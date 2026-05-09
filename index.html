@@ -2767,12 +2767,21 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       <div class="welcome-logo">AAC</div>
       <div style="font-size:13px;letter-spacing:0.12em;text-transform:uppercase;opacity:0.85;">Ad Accountability Challenge</div>
     </div>
-    <div class="welcome-body">
+    <!-- Standard R1 welcome (default) -->
+    <div class="welcome-body" id="welcome-body-standard">
       <h3>Welcome to AAC Round 1! 👋</h3>
       <div class="welcome-step"><span class="welcome-step-icon">📸</span><span>Submit your proof — screenshot your active ad campaign every week to earn +10 pts</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">✅</span><span>Check your Tracker — mark weeks complete as you go</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">💬</span><span>Use the Community Feed — post wins, ask questions, and share what's working</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">⭐</span><span>Earn All-Star status — submit proof every week across all 12 weeks</span></div>
+    </div>
+    <!-- Trial-to-R1 transition welcome (shown to trialCompleted members on first R1 login) -->
+    <div class="welcome-body" id="welcome-body-transition" style="display:none;">
+      <h3>The Trial's Over. Round 1 Starts Now. 🚀</h3>
+      <div class="welcome-step"><span class="welcome-step-icon">🏁</span><span>Your Free Trial is complete — everything you built in June carries into Round 1</span></div>
+      <div class="welcome-step"><span class="welcome-step-icon">📸</span><span>Same proof standard — screenshot your live campaign in Ads Manager each week to earn +10 pts</span></div>
+      <div class="welcome-step"><span class="welcome-step-icon">🏆</span><span>12 consecutive weeks of proof earns All-Star status and qualifies you for the prize pool</span></div>
+      <div class="welcome-step"><span class="welcome-step-icon">📅</span><span>Weekly challenge modifiers are back — check the dashboard each week for this round's focus</span></div>
     </div>
     <div class="welcome-footer">
       <button class="btn btn-gold btn-block" onclick="closeWelcomeModal()">Let's Go! 🚀</button>
@@ -2987,11 +2996,12 @@ function sanitizeMember(m) {
     business:   m.business   || "",
     type:       m.type       || "",
     // AAC Pro fields — all default inactive until Pro launch
-    isPro:      m.isPro      || false,
-    proSince:   m.proSince   || null,
-    proExpiry:  m.proExpiry  || null,
-    trialUntil: m.trialUntil || null,
-    lastLogin:  m.lastLogin  || null,
+    isPro:          m.isPro          || false,
+    proSince:       m.proSince       || null,
+    proExpiry:      m.proExpiry      || null,
+    trialUntil:     m.trialUntil     || null,
+    trialCompleted: m.trialCompleted || false,
+    lastLogin:      m.lastLogin      || null,
   };
 }
 
@@ -3067,13 +3077,13 @@ const TRIAL_WEEKS = [
 // June trial challenge modifiers - full points awarded (scoring-enabled trial)
 const TRIAL_CHALLENGES = [
   { title: "Ad Readiness Audit",
-    desc: "Open the Ad Readiness Audit in Resources and work through the full checklist. Note every item you're missing — this is your Round 1 improvement list." },
-  { title: "Write 3 Headlines and Launch One",
-    desc: "Write three ad headline variations for your offer and launch at least one as an active ad this week. Headline testing is the highest-leverage creative habit you can build." },
-  { title: "Define and Document Your Target Audience",
-    desc: "Write down your core audience: demographics, interests, behaviors, and pain points. Save it somewhere you'll reference every time you build a new campaign. Clarity here makes every ad dollar go further." },
-  { title: "Review Your Results and Write a Takeaway",
-    desc: "Pull up your ad analytics from this month and document one concrete finding — what your CTR was, which ad outperformed, or what you'll change next. Results without documentation don't compound." },
+    desc: "Open the Ad Readiness Audit in Resources and work through the full checklist. Note every item you're missing — pixel status, account setup, offer clarity. This list becomes your Round 1 starting point." },
+  { title: "Build Your Ad Creative Set",
+    desc: "Write three headline variations for your offer and pair each with a short body copy option. Pick your strongest combination and produce the final creative — image or video — ready to publish. You're building the assets you'll launch in T4." },
+  { title: "Set Up Your Test Campaign Structure",
+    desc: "Inside your ad platform, build the full campaign structure: campaign, ad set with your target audience defined, and your creative loaded. You don't have to publish yet — the goal is a campaign that's ready to go live with one click. Bonus: set up a second ad set with a different audience or headline variant so you can run an A/B test in T4." },
+  { title: "Launch Your Free Trial Test Campaign",
+    desc: "Publish the campaign you built in T2 and T3. Any platform counts — Facebook, Google, Instagram, wherever your audience is. Set a real budget, a real audience, and get a live creative running. Proof = screenshot of your active campaign in Ads Manager showing status, budget, and impressions or spend. A/B bonus: if you launched two variants, log your hypothesis — what are you testing and what result would make one the winner?" },
 ];
 
 // Returns 0-3 for June trial weeks, or -1 if not in trial period
@@ -3377,6 +3387,13 @@ function bootApp() {
     updateDoc(doc(db, "aac_registry", currentUser.uid), { lastLogin: Date.now() }).catch(() => {});
   }
 
+  // 1b. Auto-set trialCompleted when trial period has ended and flag not yet written
+  const _trialNowOver = getTrialWeekIndex() === -1 && Date.now() >= Date.UTC(2026,6,1,4,0,0);
+  if (currentUser && !currentUser.isAdmin && currentUser.uid && _trialNowOver && !currentUser.trialCompleted) {
+    updateDoc(doc(db, "aac_registry", currentUser.uid), { trialCompleted: true }).catch(() => {});
+    currentUser.trialCompleted = true;
+  }
+
   const _submitOpen = new Date("2026-04-11T00:00:00").getTime();
   const _trialIdx = getTrialWeekIndex();
   const _trialChallengeOpen = _trialIdx === 0 || _trialIdx === 1;  // T1/T2 only for update submissions
@@ -3584,18 +3601,24 @@ function loadSubmitPage() {
 function loadWeeklyChallenge() {
   const trialIdx = getTrialWeekIndex();
   const isTrial = trialIdx !== -1;
+  const TRIAL_START_TS_CH = Date.UTC(2026,5,1,4,0,0);
+  const isPreTrial = !isTrial && Date.now() < TRIAL_START_TS_CH;
   const weekIdx = getWeekIndex();
 
   const challenge = isTrial
     ? TRIAL_CHALLENGES[trialIdx]
-    : (WEEKLY_CHALLENGES[weekIdx] || WEEKLY_CHALLENGES[0]);
+    : isPreTrial
+      ? TRIAL_CHALLENGES[0]
+      : (WEEKLY_CHALLENGES[weekIdx] || WEEKLY_CHALLENGES[0]);
   const nextChallenge = isTrial
     ? (TRIAL_CHALLENGES[trialIdx + 1] || null)
-    : (WEEKLY_CHALLENGES[weekIdx + 1] || null);
+    : isPreTrial
+      ? TRIAL_CHALLENGES[1]
+      : (WEEKLY_CHALLENGES[weekIdx + 1] || null);
   const nextText = nextChallenge ? `Next week: ${nextChallenge.title}` : "";
 
   // Trial badge prefix for title
-  const trialPrefix = isTrial ? `🗓 T${trialIdx + 1}: ` : "";
+  const trialPrefix = (isTrial || isPreTrial) ? `🗓 T${isTrial ? trialIdx + 1 : 1}: ` : "";
 
   // Populate all challenge UI elements
   ["dash-challenge-title", "submit-challenge-label"].forEach(id => {
@@ -3653,9 +3676,20 @@ window.loadDashboard = async function() {
   const weekEl = document.getElementById('dash-week-label');
   const roundEl = document.getElementById('dash-round-label');
   const trialIdx = getTrialWeekIndex();
+  const TRIAL_START_TS = Date.UTC(2026,5,1,4,0,0);
+  const ROUND_START_TS = Date.UTC(2026,6,1,4,0,0);
   if (trialIdx !== -1) {
-    if (roundEl) roundEl.textContent = 'Free Trial';
+    // Active trial period
+    if (roundEl) roundEl.textContent = 'Free Trial · June 1–30';
     if (weekEl) weekEl.textContent = `Week ${trialIdx + 1} of 4`;
+  } else if (now < TRIAL_START_TS) {
+    // Pre-trial (before June 1)
+    if (roundEl) roundEl.textContent = 'Free Trial · June 1–30';
+    if (weekEl) weekEl.textContent = 'Starting Soon';
+  } else if (now < ROUND_START_TS) {
+    // Between trial end and Round 1 start (shouldn't happen but safe fallback)
+    if (roundEl) roundEl.textContent = 'Round 1';
+    if (weekEl) weekEl.textContent = 'Starting July 1';
   } else {
     if (roundEl) roundEl.textContent = 'Round 1';
     if (weekEl) weekEl.textContent = weekIdx >= 0 ? 'Week ' + (weekIdx + 1) + ' of 12' : '—';
@@ -6037,6 +6071,16 @@ function checkRoundEnd() {
 function showWelcomeModal() {
   const key = `wac_welcomed_${currentUser.uid}`;
   if (localStorage.getItem(key)) return;
+
+  // Detect trial-to-Round 1 transition: trial is over AND user completed it
+  const trialOver = getTrialWeekIndex() === -1 && Date.now() >= Date.UTC(2026,6,1,4,0,0);
+  const isTransition = trialOver && currentUser.trialCompleted === true;
+
+  if (isTransition) {
+    document.getElementById("welcome-body-standard").style.display = "none";
+    document.getElementById("welcome-body-transition").style.display = "";
+  }
+
   document.getElementById("welcome-overlay").classList.add("open");
 }
 
