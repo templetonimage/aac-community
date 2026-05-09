@@ -61,8 +61,8 @@ input, textarea, select { font-family: 'DM Sans', sans-serif; font-size: 15px; }
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 200;
-  background: #1a1a1a;
-  border-bottom: 1px solid #333;
+  background: linear-gradient(135deg, #111010 0%, #111010 45%, #BB9D49 100%);
+  border-bottom: 1px solid rgba(187,157,73,0.25);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -180,7 +180,7 @@ input, textarea, select { font-family: 'DM Sans', sans-serif; font-size: 15px; }
   height: 8px;
   background: #e74c3c;
   border-radius: 50%;
-  border: 2px solid #1a1a1a;
+  border: 2px solid #111010;
   display: none;
   pointer-events: none;
 }
@@ -192,8 +192,8 @@ input, textarea, select { font-family: 'DM Sans', sans-serif; font-size: 15px; }
   position: fixed;
   bottom: 0; left: 0; right: 0;
   z-index: 200;
-  background: #1a1a1a;
-  border-top: 1px solid #333;
+  background: linear-gradient(135deg, #BB9D49 0%, #111010 55%, #111010 100%);
+  border-top: 1px solid rgba(187,157,73,0.25);
   display: flex;
   align-items: stretch;
   min-height: 68px;
@@ -2123,7 +2123,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       <div class="card">
         <div class="feed-compose-tabs">
           <button class="feed-compose-tab active" id="tab-post" onclick="switchComposeTab('post')">💬 Post</button>
-          <button class="feed-compose-tab" id="tab-pvr" onclick="switchComposeTab('pvr')">👁 Peer Review Request</button>
+          <button class="feed-compose-tab" id="tab-pvr" onclick="switchComposeTab('pvr')">👁 Ad Peer Review</button>
           <button class="feed-compose-tab" id="tab-rer" onclick="switchComposeTab('rer')" style="display:none;">🎯 Expert Review</button>
         </div>
         <!-- Regular post fields -->
@@ -2134,35 +2134,35 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           <div class="form-group">
             <input type="url" id="feed-url" class="form-input" placeholder="Link URL (optional)" />
           </div>
-          <button class="btn btn-gold btn-sm" onclick="submitPost()">Post</button>
+          <button class="btn btn-gold btn-sm" onclick="submitPost()">Post (+1 pt)</button>
         </div>
         <!-- PVR fields -->
         <div id="pvr-compose-fields" class="pvr-compose-fields">
           <div class="form-group">
-            <label class="form-label">Page URL <span style="color:var(--danger);font-size:11px;">required</span></label>
-            <input type="url" id="pvr-url" class="form-input" placeholder="https://yoursite.com/page-to-review" />
+            <label class="form-label">Ad or Campaign URL <span style="color:var(--danger);font-size:11px;">optional</span></label>
+            <input type="url" id="pvr-url" class="form-input" placeholder="https:// (link to your ad or landing page, if shareable)" />
           </div>
           <div class="form-group">
             <label class="form-label">What feedback are you looking for?</label>
-            <textarea id="pvr-prompt" class="form-input" placeholder="e.g. Does my homepage copy make sense? Is the CTA clear?" style="min-height:70px;"></textarea>
+            <textarea id="pvr-prompt" class="form-input" placeholder="e.g. Does my hook grab attention? Is my CTA clear? Does the landing page match the ad?" style="min-height:70px;"></textarea>
           </div>
-          <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;">Members who leave feedback earn +2 pts.</div>
-          <button class="btn btn-gold btn-sm" onclick="submitPVR()">Post Peer Review Request</button>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;">Members who leave feedback earn platform points.</div>
+          <button class="btn btn-gold btn-sm" onclick="submitPVR()">Post Ad Peer Review Request</button>
         </div>
         <!-- RER fields -->
         <div id="rer-compose-fields" class="rer-compose-fields">
           <div class="form-group">
-            <label class="form-label">Page URL <span style="color:var(--danger);font-size:11px;">required</span></label>
-            <input type="url" id="rer-url" class="form-input" placeholder="https://yoursite.com/page-to-review" />
+            <label class="form-label">Ad or Campaign URL <span style="color:var(--danger);font-size:11px;">optional</span></label>
+            <input type="url" id="rer-url" class="form-input" placeholder="https:// (link to your ad, landing page, or Ads Manager screenshot)" />
           </div>
           <div class="form-group">
             <label class="form-label">What specific feedback are you looking for?</label>
-            <textarea id="rer-prompt" class="form-input" placeholder="e.g. Does my About page clearly communicate my expertise? Is my CTA compelling?" style="min-height:80px;"></textarea>
+            <textarea id="rer-prompt" class="form-input" placeholder="e.g. Is my targeting too broad? Does my creative hook land? Is my CPL too high for this offer?" style="min-height:80px;"></textarea>
           </div>
           <div class="rer-warning">⏳ Expert reviews are personal and take time. Please allow a few days for a response before following up.</div>
           <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;padding:6px 10px;background:var(--surface2);border-radius:6px;border-left:2px solid var(--border);">📌 Limited to 1 Expert Review Request per month.</div>
           <div id="rer-limit-msg" style="display:none;padding:10px 12px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.3);border-radius:8px;font-size:12px;color:var(--gold);margin-bottom:10px;line-height:1.5;"></div>
-          <button class="btn btn-gold btn-sm" id="rer-submit-btn" onclick="submitRER()">Request Expert Review</button>
+          <button class="btn btn-gold btn-sm" id="rer-submit-btn" onclick="submitRER()">Request Expert Ad Review</button>
         </div>
       </div>
       <div id="feed-list"></div>
@@ -2172,7 +2172,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
     <div class="page" id="page-resources">
       <div class="page-header">
         <div class="page-title">Resources</div>
-        <div class="page-subtitle">Website strategy guides and tools — tap any card to read.</div>
+        <div class="page-subtitle">Ad strategy guides, tools, and reference material — tap any card to read.</div>
         <div style="margin-top:10px;">
           <button onclick="openAdAudit()" class="btn btn-sm" style="background:linear-gradient(135deg,#1a1a1a,#2a2200);border:1.5px solid var(--gold);color:#e8d5a0;">✅ Open Ad Readiness Audit</button>
         </div>
@@ -2206,7 +2206,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
     <div class="page" id="page-submit">
       <div class="page-header">
         <div class="page-title">Submit Update</div>
-        <div class="page-subtitle">Log your weekly website update for points.</div>
+        <div class="page-subtitle">Log your weekly campaign proof for points.</div>
       </div>
       <!-- RER Status Card (visible when user has a request this month) -->
       <div id="rer-status-card" style="display:none;margin-bottom:14px;"></div>
@@ -2218,18 +2218,18 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         </div>
       </div>
       <div class="card">
-        <div class="card-title">Weekly Update</div>
+        <div class="card-title">Weekly Campaign Proof</div>
         <div id="pts-preview" class="pts-preview">
           <span class="pts-num" id="pts-num">10</span>
-          <span>pts for on-time update</span>
+          <span>pts — proof of current campaign</span>
         </div>
         <div class="form-group" id="submit-url-group">
-          <label class="form-label" id="submit-url-label">Campaign or Landing Page URL <span class="text-muted" style="font-weight:400;font-size:12px;">(optional)</span></label>
-          <input type="url" id="submit-url" class="form-input" placeholder="https:// (optional)" />
+          <label class="form-label" id="submit-url-label">Ad or Landing Page URL <span class="text-muted" style="font-weight:400;font-size:12px;">(optional)</span></label>
+          <input type="url" id="submit-url" class="form-input" placeholder="https:// (optional — screenshot required if no URL)" />
         </div>
         <div class="form-group">
           <label class="form-label">What did you run and what did you learn?</label>
-          <textarea id="submit-note" class="form-input" placeholder="Describe what you ran, what you tested, and what the results told you..."></textarea>
+          <textarea id="submit-note" class="form-input" placeholder="Describe your active campaign — what platform, what you tested, and what the numbers told you..."></textarea>
         </div>
         <div class="form-group" id="submit-format-group">
           <label class="form-label">Submission type</label>
@@ -2250,8 +2250,8 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           </label>
         </div>
         <div class="form-group" id="submit-screenshot-group">
-          <label class="form-label">Screenshot <span style="font-size:11px;color:var(--gold);font-weight:600;">required</span></label>
-          <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;line-height:1.5;">Required: screenshot of your active ad, A/B test results, or Ads Manager showing your campaign.</div>
+          <label class="form-label">Campaign Screenshot <span style="font-size:11px;color:var(--gold);font-weight:600;">required</span></label>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;line-height:1.5;">Required: screenshot of your active ad, Ads Manager dashboard, or A/B test results showing a live campaign.</div>
           <div class="screenshot-area" id="screenshot-area" onclick="document.getElementById('screenshot-input').click()">
             <div id="screenshot-placeholder">📷 Tap to add screenshot</div>
             <img id="screenshot-preview" class="screenshot-preview" style="display:none;" />
@@ -2262,42 +2262,17 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <button class="btn btn-gold btn-block btn-post" id="submit-update-btn" onclick="submitUpdate()" disabled style="opacity:0.45;cursor:not-allowed;" title="Submissions open April 11">Submit Update <span style="font-size:11px;font-weight:500;opacity:0.8;">(Opens April 11)</span></button>
       </div>
 
-      <!-- Engagement section -->
-      <div class="eng-section">
-        <div class="card">
-          <div class="card-title">Engage With a Member's Site</div>
-          <p class="text-sm text-muted mb-8">Visit another member's website and engage — earn +2 pts each (max 5/week)</p>
-          <div id="eng-count-display" class="text-sm mb-8"></div>
-          <div class="form-group">
-            <label class="form-label">Member's website URL</label>
-            <input type="url" id="eng-url" class="form-input" placeholder="https://theirsite.com" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">What did you do?</label>
-            <div class="eng-type-btns" id="eng-type-btns">
-              <button class="eng-type-btn" onclick="selectEngType(this,'Reviewed Results')">📊 Reviewed Results</button>
-              <button class="eng-type-btn" onclick="selectEngType(this,'Gave Creative Feedback')">🎨 Gave Creative Feedback</button>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Note (optional)</label>
-            <textarea id="eng-note" class="form-input" placeholder="Describe your engagement..."></textarea>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Screenshot <span style="color:var(--danger);font-size:11px;font-weight:600;">required</span></label>
-            <div class="eng-screenshot-area" id="eng-screenshot-area" onclick="document.getElementById('eng-screenshot-input').click()">
-              <div id="eng-screenshot-placeholder">📷 Tap to add screenshot</div>
-              <img id="eng-screenshot-preview" class="eng-screenshot-preview" style="display:none;" />
-              <input type="file" id="eng-screenshot-input" accept="image/*" style="display:none;" onchange="handleEngScreenshotSelect(event)" />
-            </div>
-            <button class="btn btn-sm btn-outline mt-8" id="clear-eng-screenshot-btn" style="display:none;" onclick="clearEngScreenshot()">Remove screenshot</button>
-          </div>
-          <button class="btn btn-gold btn-block" id="eng-submit-btn" onclick="submitEngagement()" disabled style="opacity:0.45;cursor:not-allowed;" title="Submissions open April 11">Submit Engagement +2 pts <span style="font-size:11px;font-weight:500;opacity:0.8;">(Opens April 11)</span></button>
+      <!-- Community Feed Prompt (replaces engagement section) -->
+      <div class="card mt-8" style="background:linear-gradient(135deg,rgba(184,134,11,0.05),var(--surface));border:1.5px solid var(--border);">
+        <div class="card-title" style="font-size:16px;">💬 Community Points</div>
+        <p class="text-sm text-muted mb-8" style="margin-bottom:12px;">Earn bonus points by participating in the community — every interaction compounds.</p>
+        <div style="font-size:13px;line-height:1.8;color:var(--text);">
+          <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>Community Feed post</span><span style="font-weight:700;color:var(--gold);">+1 pt</span></div>
+          <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>Ad Peer Review Request</span><span style="font-weight:700;color:var(--gold);">+5 pts</span></div>
+          <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>Expert Review Request</span><span style="font-weight:700;color:var(--gold);">+10 pts</span></div>
+          <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Monthly Zoom RSVP / Attendance</span><span style="font-weight:700;color:var(--gold);">+2 / +5 pts</span></div>
         </div>
-        <div class="card mt-16">
-          <div class="card-title">Engagement History</div>
-          <div id="eng-history"></div>
-        </div>
+        <button class="btn btn-outline btn-sm" style="margin-top:14px;width:100%;" onclick="navTo('feed')">Go to Community Feed →</button>
       </div>
 
       <!-- My Submissions -->
@@ -2313,15 +2288,18 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div class="page-title">Leaderboard</div>
         <div class="page-subtitle">Real-time points standings.</div>
       </div>
-      <div class="text-sm text-muted mb-16">Round 1 · May–July 2026</div>
+      <div class="text-sm text-muted mb-16">Round 1 · Jul–Sep 2026</div>
       <div id="leaderboard-list"></div>
       <div class="points-card">
         <h4>How Points Work</h4>
-        <div class="points-row"><span>On-time update</span><span class="pts-val">+10 pts</span></div>
-        <div class="points-row"><span>New Campaign Launch</span><span class="pts-val">+2 pts</span></div>
+        <div class="points-row"><span>Proof of current campaign (on-time)</span><span class="pts-val">+10 pts</span></div>
+        <div class="points-row"><span>New Campaign Launch bonus</span><span class="pts-val">+2 pts</span></div>
         <div class="points-row"><span>Weekly Challenge bonus</span><span class="pts-val">+5 pts</span></div>
-        <div class="points-row"><span>Engagement (per member site)</span><span class="pts-val">+2 pts</span></div>
-        <div class="points-row"><span>Max engagements/week</span><span class="pts-val">5</span></div>
+        <div class="points-row"><span>Community Feed post</span><span class="pts-val">+1 pt</span></div>
+        <div class="points-row"><span>Ad Peer Review Request</span><span class="pts-val">+5 pts</span></div>
+        <div class="points-row"><span>Expert Review Request</span><span class="pts-val">+10 pts</span></div>
+        <div class="points-row"><span>Monthly Zoom RSVP</span><span class="pts-val">+2 pts</span></div>
+        <div class="points-row"><span>Monthly Zoom Attendance</span><span class="pts-val">+5 pts</span></div>
       </div>
     </div>
 
@@ -2344,7 +2322,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       </div>
       <div class="card mt-16" style="background:linear-gradient(135deg,rgba(184,134,11,0.06),var(--surface));">
         <div class="card-title">⭐ AAC All-Star</div>
-        <p class="text-sm text-muted">Complete all 12 weekly requirements across May, June, and July to earn All-Star status. That's 24 total updates over 90 days.</p>
+        <p class="text-sm text-muted">Submit campaign proof every week across all 12 weeks to earn All-Star status and qualify for the prize pool. That's 12 consecutive weekly submissions over 90 days.</p>
       </div>
     </div>
 
@@ -2352,7 +2330,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
     <div class="page" id="page-reports">
       <div class="page-header">
         <div class="page-title">Reports</div>
-        <div class="page-subtitle">All-Star progress, engagement activity, and admin tools.</div>
+        <div class="page-subtitle">All-Star progress, community activity, and admin tools.</div>
       </div>
       <div id="admin-export-csv-btn" style="display:none;">
         <button class="btn btn-outline btn-sm export-btn" onclick="exportCSV()">📥 Export CSV</button>
@@ -2368,8 +2346,8 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       <!-- EXPERT PANEL (visible to Expert user only) -->
       <div id="expert-panel" style="display:none;margin-bottom:24px;">
         <div class="expert-panel-card">
-          <div class="expert-panel-title">🎯 Expert Review Requests</div>
-          <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">Incoming requests from members. Respond publicly to the Community Feed.</div>
+          <div class="expert-panel-title">🎯 Expert Ad Review Requests</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">Incoming ad review requests from members. Respond publicly to the Community Feed.</div>
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
             <div id="expert-panel-count" style="font-size:12px;color:var(--gold-dark);font-weight:600;"></div>
             <div style="display:flex;gap:8px;">
@@ -2400,7 +2378,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 
       <div id="report-table-wrap" class="report-table-wrap"></div>
       <div class="card mt-16">
-        <div class="card-title">Engagement Activity</div>
+        <div class="card-title">Community Points Activity</div>
         <div id="engagement-report"></div>
       </div>
 
@@ -2419,7 +2397,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       <!-- ADMIN: AAC Pro Management (hidden until _PRO_GLOBAL_ACTIVE = true) -->
       <div id="admin-pro-panel" style="display:none;margin-top:28px;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.05em;margin-bottom:4px;">★ AAC Pro Management</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">Global Pro controls — inactive until Pro launch. Per-member Pro toggle and trial access are in the Member Directory.</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">Global Pro controls — inactive until Pro launch. Per-member Pro toggle and trial access are in the Member Directory. Pro unlocks advanced ad creative tools, analytics templates, and campaign scoring.</div>
         <div class="pro-admin-section">
           <div class="pro-admin-title">Global Enable Pro</div>
           <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;line-height:1.6;">Sets <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px;">isPro: true</code> on every member in the registry at once. Use this at Pro launch after members have paid.</div>
@@ -2478,9 +2456,9 @@ textarea.form-input { resize: vertical; min-height: 80px; }
             <div style="flex:1;min-width:130px;">
               <label style="display:block;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Collection</label>
               <select id="admin-sub-collection" class="form-input" onchange="loadAdminSubmissions()" style="width:100%;">
-                <option value="submissions">Updates (Round 1)</option>
-                <option value="submissions-trial">Updates (Trial Only)</option>
-                <option value="engagements">Engagements</option>
+                <option value="submissions">Campaign Proofs (Round 1)</option>
+                <option value="submissions-trial">Campaign Proofs (Trial Only)</option>
+                <option value="engagements">Community Activity</option>
               </select>
             </div>
             <button class="btn btn-outline btn-sm" onclick="loadAdminSubmissions()" style="white-space:nowrap;height:38px;">↻ Refresh</button>
@@ -2511,7 +2489,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
     <div class="page" id="page-members">
       <div class="page-header">
         <div class="page-title">Members</div>
-        <div class="page-subtitle">Tap any card to visit their website.</div>
+        <div class="page-subtitle">Your fellow AAC members — tap any card to view their profile.</div>
       </div>
       <input type="text" class="search-bar" id="member-search" placeholder="Search members..." oninput="filterMembers()" />
       <!-- Admin create member -->
@@ -2791,10 +2769,10 @@ textarea.form-input { resize: vertical; min-height: 80px; }
     </div>
     <div class="welcome-body">
       <h3>Welcome to AAC Round 1! 👋</h3>
-      <div class="welcome-step"><span class="welcome-step-icon">🌐</span><span>Submit your updates — paste your URL each week after you update your site</span></div>
+      <div class="welcome-step"><span class="welcome-step-icon">📸</span><span>Submit your proof — screenshot your active ad campaign every week to earn +10 pts</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">✅</span><span>Check your Tracker — mark weeks complete as you go</span></div>
-      <div class="welcome-step"><span class="welcome-step-icon">🤝</span><span>Engage with members — visit and comment on other members' sites for +2 pts each</span></div>
-      <div class="welcome-step"><span class="welcome-step-icon">⭐</span><span>Earn All-Star status — complete every weekly requirement across all 12 weeks</span></div>
+      <div class="welcome-step"><span class="welcome-step-icon">💬</span><span>Use the Community Feed — post wins, ask questions, and share what's working</span></div>
+      <div class="welcome-step"><span class="welcome-step-icon">⭐</span><span>Earn All-Star status — submit proof every week across all 12 weeks</span></div>
     </div>
     <div class="welcome-footer">
       <button class="btn btn-gold btn-block" onclick="closeWelcomeModal()">Let's Go! 🚀</button>
@@ -2958,6 +2936,11 @@ const PTS_SCREENSHOT = 2;
 const PTS_FORMAT_BONUS = 2; // New Campaign bonus
 const PTS_ENGAGEMENT = 2;
 const PTS_CHALLENGE  = 5;
+const PTS_PVR        = 5;  // Posting an Ad Peer Review Request
+const PTS_RER        = 10; // Posting an Expert Review Request
+const PTS_POST       = 1;  // Regular community feed post
+const PTS_ZOOM_RSVP  = 2;  // Monthly Zoom RSVP
+const PTS_ZOOM_ATTEND = 5; // Monthly Zoom Attendance (admin-awarded)
 const MAX_ENG_PER_WEEK = 5;
 
 // Weekly Challenge Modifiers — one per week, keyed by weekIdx (0–11)
@@ -3854,9 +3837,15 @@ async function submitPost() {
       propsCount: 0,
       timestamp: Date.now()
     });
+    // Award community feed post point
+    try {
+      const regRef = doc(db, "registry", currentUser.uid);
+      await updateDoc(regRef, { points: increment(PTS_POST) });
+      currentUser.points = (currentUser.points || 0) + PTS_POST;
+    } catch (_) {}
     document.getElementById("feed-compose").value = "";
     document.getElementById("feed-url").value = "";
-    showToast("Posted!");
+    showToast("Posted! +1 pt");
     loadFeed();
   } catch (e) {
     console.error("submitPost error:", e);
@@ -4262,19 +4251,18 @@ async function getWeeklyPVRCount() {
 async function submitPVR() {
   let url = document.getElementById("pvr-url").value.trim();
   const prompt = document.getElementById("pvr-prompt").value.trim();
-  if (!url) { showToast("Enter the page URL."); return; }
-  if (!/^https?:\/\//i.test(url)) url = "https://" + url;
   if (!prompt) { showToast("Describe the feedback you're looking for."); return; }
+  if (url && !/^https?:\/\//i.test(url)) url = "https://" + url;
   if (isRoundOver()) { showToast("Round has ended."); return; }
   const weekIdx = getWeekIndex();
   const count = await getWeeklyPVRCount();
-  if (count >= 1) { showToast("One Peer Review Request per week."); return; }
+  if (count >= 1) { showToast("One Ad Peer Review Request per week."); return; }
   try {
     await addDoc(collection(db, "posts"), {
       author: currentUser.name,
       authorUid: currentUser.uid,
       type: "pvr",
-      pvr_url: url,
+      pvr_url: url || "",
       pvr_prompt: prompt,
       weekIdx,
       replies: [],
@@ -4282,10 +4270,16 @@ async function submitPVR() {
       propsCount: 0,
       timestamp: Date.now()
     });
+    // Award PVR points
+    try {
+      const regRef = doc(db, "registry", currentUser.uid);
+      await updateDoc(regRef, { points: increment(PTS_PVR) });
+      currentUser.points = (currentUser.points || 0) + PTS_PVR;
+    } catch (_) {}
     document.getElementById("pvr-url").value = "";
     document.getElementById("pvr-prompt").value = "";
     switchComposeTab("post");
-    showToast("Peer Review Request posted!");
+    showToast(`Ad Peer Review Request posted! +${PTS_PVR} pts`);
     loadFeed();
   } catch (e) {
     console.error("submitPVR error:", e);
