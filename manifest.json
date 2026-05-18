@@ -1,0 +1,25 @@
+{
+  "name": "AAC Platform",
+  "short_name": "AAC",
+  "description": "Ad Accountability Challenge — proof-based consistency tracking for paid advertising.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fbf9f5",
+  "theme_color": "#c9a84c",
+  "icons": [
+    {
+      "src": "aac-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "aac-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
