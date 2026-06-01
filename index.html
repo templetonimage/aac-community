@@ -2390,11 +2390,65 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div id="engagement-report"></div>
       </div>
 
+      <!-- ADMIN: Community Points Log -->
+      <div id="admin-community-pts-panel" style="display:none;margin-top:28px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.05em;">📋 Community Points Log</div>
+          <button class="btn btn-outline btn-sm" onclick="loadCommunityPtsLog()">↻ Refresh</button>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Append-only audit log of all community point awards. Filter by member or action type.</div>
+        <div class="card" style="border:1.5px solid var(--border);margin-bottom:0;">
+          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+            <select id="cpts-filter-member" class="form-input" style="flex:1;min-width:140px;font-size:13px;" onchange="renderCommunityPtsTable()">
+              <option value="">All Members</option>
+            </select>
+            <select id="cpts-filter-action" class="form-input" style="flex:1;min-width:140px;font-size:13px;" onchange="renderCommunityPtsTable()">
+              <option value="">All Actions</option>
+              <option value="Feed Post">Feed Post</option>
+              <option value="Peer Review Request">Peer Review Request</option>
+              <option value="Expert Review Request">Expert Review Request</option>
+              <option value="Session RSVP">Session RSVP</option>
+              <option value="Session Attendance">Session Attendance</option>
+            </select>
+          </div>
+          <div id="cpts-log-table"></div>
+        </div>
+      </div>
+
+      <!-- ADMIN: Backfill Missing Points -->
+      <div id="admin-backfill-pts-panel" style="display:none;margin-top:28px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.05em;margin-bottom:4px;">🔧 Backfill Missing Points</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Award points retroactively. Logs to <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px;">aac_community_pts</code> with a (backfill) tag.</div>
+        <div class="card" style="border:1.5px solid var(--border);">
+          <div class="form-group">
+            <label class="form-label">Member</label>
+            <select id="backfill-member" class="form-input"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Action</label>
+            <select id="backfill-action" class="form-input" onchange="autoFillBackfillPts()">
+              <option value="">— select action —</option>
+              <option value="Feed Post">Feed Post</option>
+              <option value="Peer Review Request">Peer Review Request</option>
+              <option value="Expert Review Request">Expert Review Request</option>
+              <option value="Session RSVP">Session RSVP</option>
+              <option value="Session Attendance">Session Attendance</option>
+              <option value="Manual Adjustment">Manual Adjustment</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Points</label>
+            <input type="number" id="backfill-pts" class="form-input" placeholder="e.g. 5" style="max-width:120px;" />
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="adminBackfillPts()">Award Points</button>
+          <div id="backfill-status" style="font-size:12px;color:var(--text-muted);margin-top:8px;min-height:16px;"></div>
+        </div>
+      </div>
+
       <!-- ADMIN: Coworking Sessions -->
       <div id="admin-cowork-panel" style="display:none;margin-top:28px;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.05em;margin-bottom:4px;">📅 Coworking Sessions</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Create and manage live session cards on the member dashboard. Members RSVP for +2 pts; you mark attendance for +5 pts.</div>
-        <!-- Create form -->
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Create and manage live session cards on the member dashboard. Members RSVP for +2 pts; mark attendance for +5 pts.</div>
         <div class="card" style="border:1.5px solid var(--border);margin-bottom:16px;">
           <div class="form-group">
             <label class="form-label">Session Label <span style="color:var(--danger);font-size:11px;">required</span></label>
@@ -2407,7 +2461,6 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           <button class="btn btn-gold btn-sm" onclick="adminCreateCoworkSession()">Create Session</button>
           <div id="cowork-create-status" style="font-size:12px;color:var(--text-muted);margin-top:8px;min-height:16px;"></div>
         </div>
-        <!-- Session list -->
         <div id="admin-cowork-list"></div>
       </div>
 
@@ -2979,6 +3032,18 @@ const PTS_RER        = 10; // Posting an Expert Review Request
 const PTS_POST       = 1;  // Regular community feed post
 const PTS_COWORK_RSVP   = 2;  // Coworking Session RSVP
 const PTS_COWORK_ATTEND = 5;  // Coworking Session Attendance (admin-awarded)
+
+// ==============================
+// COMMUNITY POINTS AUDIT LOG
+// ==============================
+// Fire-and-forget — never await at call sites
+async function logCommunityPts(uid, name, action, pts) {
+  try {
+    await addDoc(collection(db, "aac_community_pts"), {
+      uid, name, action, pts, ts: Date.now()
+    });
+  } catch (e) { console.warn("logCommunityPts failed:", e.message); }
+}
 const MAX_ENG_PER_WEEK = 5;
 
 // Weekly Challenge Modifiers — one per week, keyed by weekIdx (0–11)
@@ -3484,9 +3549,13 @@ function bootApp() {
     // Expert webhook config visible to admin
     const _expertWebhook = document.getElementById("admin-expert-webhook");
     if (_expertWebhook) _expertWebhook.style.display = "block";
-    // Coworking sessions panel always visible to admin
-    const _coworkPanel = document.getElementById("admin-cowork-panel");
-    if (_coworkPanel) { _coworkPanel.style.display = "block"; loadAdminCoworkSessions(); }
+    // Community Points Log + Backfill + Coworking panels
+    ["admin-community-pts-panel","admin-backfill-pts-panel","admin-cowork-panel"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = "block";
+    });
+    loadCommunityPtsLog();
+    loadAdminCoworkSessions();
     populateAdminSubFilters();
   } else {
     const _proPanel = document.getElementById("admin-pro-panel");
@@ -3906,9 +3975,10 @@ async function submitPost() {
     });
     // Award community feed post point
     try {
-      const regRef = doc(db, "registry", currentUser.uid);
+      const regRef = doc(db, "aac_registry", currentUser.uid);
       await updateDoc(regRef, { points: increment(PTS_POST) });
       currentUser.points = (currentUser.points || 0) + PTS_POST;
+      logCommunityPts(currentUser.uid, currentUser.name || "", "Feed Post", PTS_POST);
     } catch (_) {}
     document.getElementById("feed-compose").value = "";
     document.getElementById("feed-url").value = "";
@@ -4339,9 +4409,10 @@ async function submitPVR() {
     });
     // Award PVR points
     try {
-      const regRef = doc(db, "registry", currentUser.uid);
+      const regRef = doc(db, "aac_registry", currentUser.uid);
       await updateDoc(regRef, { points: increment(PTS_PVR) });
       currentUser.points = (currentUser.points || 0) + PTS_PVR;
+      logCommunityPts(currentUser.uid, currentUser.name || "", "Peer Review Request", PTS_PVR);
     } catch (_) {}
     document.getElementById("pvr-url").value = "";
     document.getElementById("pvr-prompt").value = "";
@@ -6495,6 +6566,20 @@ async function populateAdminSubFilters() {
         if (ptsInput && cur !== null) ptsInput.value = cur;
       };
     }
+    // Community pts log member filter
+    const cptsEl = document.getElementById("cpts-filter-member");
+    if (cptsEl) {
+      cptsEl.innerHTML = '<option value="">All Members</option>' +
+        members.filter(m => m.email !== ADMIN_EMAIL)
+          .map(m => `<option value="${m.uid}">${esc(m.name)}</option>`).join("");
+    }
+    // Backfill member dropdown
+    const bfEl = document.getElementById("backfill-member");
+    if (bfEl) {
+      bfEl.innerHTML = '<option value="">— select member —</option>' +
+        members.filter(m => m.email !== ADMIN_EMAIL)
+          .map(m => `<option value="${m.uid}" data-name="${esc(m.name).replace(/"/g,'&quot;')}">${esc(m.name)}</option>`).join("");
+    }
   } catch (e) { console.error("populateAdminSubFilters error:", e); }
 }
 
@@ -7280,6 +7365,14 @@ function resetAdAudit() {
   showToast("Audit reset.");
 }
 
+window.openAdAudit         = openAdAudit;
+window.closeAdAudit        = closeAdAudit;
+window.closeAdAuditDirect  = closeAdAuditDirect;
+window.cycleAdStatus       = cycleAdStatus;
+window.toggleAdNote        = toggleAdNote;
+window.saveAdNote          = saveAdNote;
+window.resetAdAudit        = resetAdAudit;
+
 // ==============================
 // COWORKING SESSIONS
 // ==============================
@@ -7288,27 +7381,22 @@ async function loadCoworkCard() {
   const card = document.getElementById("cowork-card");
   if (!card) return;
   try {
-    const snap = await db.collection("aac_coworking_sessions")
-      .where("active", "==", true)
-      .orderBy("createdAt", "desc")
-      .limit(1)
-      .get();
+    const q    = query(collection(db, "aac_coworking_sessions"), where("active","==",true), orderBy("createdAt","desc"), limit(1));
+    const snap = await getDocs(q);
     if (snap.empty) { card.style.display = "none"; return; }
-    const doc = snap.docs[0];
-    const data = doc.data();
-    card._sessionId   = doc.id;
+    const docSnap     = snap.docs[0];
+    const data        = docSnap.data();
+    card._sessionId   = docSnap.id;
     card._calendarUrl = data.calendarUrl || "";
     document.getElementById("cowork-card-label").textContent = data.label || "Coworking Session";
-    // Check if already RSVP'd
-    const rsvpDoc = await db.collection("aac_coworking_sessions")
-      .doc(doc.id).collection("rsvps").doc(currentUser.uid).get();
+    const rsvpSnap = await getDoc(doc(db, "aac_coworking_sessions", docSnap.id, "rsvps", currentUser.uid));
     const btn = document.getElementById("cowork-rsvp-btn");
     const sub = document.getElementById("cowork-card-sub");
-    if (rsvpDoc.exists) {
-      btn.textContent = "RSVP\u2019d";
-      btn.disabled    = true;
+    if (rsvpSnap.exists()) {
+      btn.textContent   = "RSVP\u2019d";
+      btn.disabled      = true;
       btn.style.opacity = "0.55";
-      sub.textContent  = "You\u2019re on the list! Attend to earn +5 pts.";
+      sub.textContent   = "You\u2019re on the list! Attend to earn +5 pts.";
     } else {
       btn.textContent   = "RSVP +2";
       btn.disabled      = false;
@@ -7316,9 +7404,7 @@ async function loadCoworkCard() {
       sub.textContent   = "RSVP to earn +2 pts. Attend to earn +5 pts.";
     }
     card.style.display = "flex";
-  } catch (e) {
-    console.warn("loadCoworkCard:", e);
-  }
+  } catch (e) { console.warn("loadCoworkCard:", e); }
 }
 
 async function rsvpCowork() {
@@ -7327,30 +7413,18 @@ async function rsvpCowork() {
   const sessionId   = card._sessionId;
   const calendarUrl = card._calendarUrl;
   if (!sessionId) return;
-  const rsvpRef = db.collection("aac_coworking_sessions")
-    .doc(sessionId).collection("rsvps").doc(currentUser.uid);
-  // Dedup guard
-  const existing = await rsvpRef.get().catch(() => null);
-  if (existing && existing.exists) {
-    showToast("Already RSVP\u2019d!");
-    loadCoworkCard();
-    return;
-  }
+  const rsvpRef = doc(db, "aac_coworking_sessions", sessionId, "rsvps", currentUser.uid);
   try {
-    const batch = db.batch();
-    batch.set(rsvpRef, { uid: currentUser.uid, name: currentUser.name || "", rsvpAt: Date.now() });
-    batch.update(db.collection("aac_registry").doc(currentUser.uid),
-      { points: firebase.firestore.FieldValue.increment(PTS_COWORK_RSVP) });
-    await batch.commit();
+    const existing = await getDoc(rsvpRef);
+    if (existing.exists()) { showToast("Already RSVP\u2019d!"); loadCoworkCard(); return; }
+    await setDoc(rsvpRef, { uid: currentUser.uid, name: currentUser.name || "", rsvpAt: Date.now() });
+    await updateDoc(doc(db, "aac_registry", currentUser.uid), { points: increment(PTS_COWORK_RSVP) });
     currentUser.points = (currentUser.points || 0) + PTS_COWORK_RSVP;
     logCommunityPts(currentUser.uid, currentUser.name || "", "Session RSVP", PTS_COWORK_RSVP);
     showToast("RSVP confirmed! +" + PTS_COWORK_RSVP + " pts");
     if (calendarUrl) window.open(calendarUrl, "_blank", "noopener");
     loadCoworkCard();
-  } catch (e) {
-    showToast("RSVP failed — please try again.");
-    console.error("rsvpCowork:", e);
-  }
+  } catch (e) { showToast("RSVP failed — please try again."); console.error("rsvpCowork:", e); }
 }
 
 async function adminCreateCoworkSession() {
@@ -7359,17 +7433,13 @@ async function adminCreateCoworkSession() {
   const status = document.getElementById("cowork-create-status");
   if (!label) { if (status) status.textContent = "Label is required."; return; }
   try {
-    await db.collection("aac_coworking_sessions").add({
-      label, calendarUrl: calUrl, active: true, createdAt: Date.now()
-    });
+    await addDoc(collection(db, "aac_coworking_sessions"), { label, calendarUrl: calUrl, active: true, createdAt: Date.now() });
     document.getElementById("cowork-label-input").value = "";
     document.getElementById("cowork-cal-input").value   = "";
     if (status) status.textContent = "Session created.";
     loadAdminCoworkSessions();
     loadCoworkCard();
-  } catch (e) {
-    if (status) status.textContent = "Error: " + e.message;
-  }
+  } catch (e) { if (status) status.textContent = "Error: " + e.message; }
 }
 
 async function loadAdminCoworkSessions() {
@@ -7377,61 +7447,50 @@ async function loadAdminCoworkSessions() {
   if (!list) return;
   list.innerHTML = "<div style='font-size:12px;color:var(--text-muted);'>Loading...</div>";
   try {
-    const snap = await db.collection("aac_coworking_sessions")
-      .orderBy("createdAt", "desc").get();
+    const snap = await getDocs(query(collection(db, "aac_coworking_sessions"), orderBy("createdAt","desc")));
     if (snap.empty) { list.innerHTML = "<div style='font-size:12px;color:var(--text-muted);'>No sessions yet.</div>"; return; }
-    list.innerHTML = snap.docs.map(doc => {
-      const d = doc.data();
-      const created = new Date(d.createdAt).toLocaleDateString("en-US", {month:"short",day:"numeric",year:"numeric"});
-      const badge = d.active
-        ? `<span style='background:rgba(39,174,96,.15);color:#27ae60;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;letter-spacing:.04em;'>ACTIVE</span>`
-        : `<span style='background:rgba(107,107,107,.12);color:var(--text-muted);font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;letter-spacing:.04em;'>CLOSED</span>`;
-      return `<div id="cowork-row-${doc.id}" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+    list.innerHTML = snap.docs.map(docSnap => {
+      const d       = docSnap.data();
+      const created = new Date(d.createdAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+      const badge   = d.active
+        ? `<span style='background:rgba(39,174,96,.15);color:#27ae60;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;'>ACTIVE</span>`
+        : `<span style='background:rgba(107,107,107,.12);color:var(--text-muted);font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;'>CLOSED</span>`;
+      const safeLabel = esc(d.label).replace(/'/g,"\\'");
+      const safeCal   = (d.calendarUrl||"").replace(/'/g,"\\'");
+      return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">
-          <div style="flex:1;">
-            <div style="font-weight:700;font-size:13px;line-height:1.4;">${esc(d.label)}</div>
-            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Created ${created}</div>
-          </div>
+          <div style="flex:1;"><div style="font-weight:700;font-size:13px;">${esc(d.label)}</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Created ${created}</div></div>
           ${badge}
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;">
-          <button class="btn btn-outline btn-sm" onclick="adminToggleCoworkSession('${doc.id}',${d.active})">${d.active ? "Close" : "Reopen"}</button>
-          <button class="btn btn-outline btn-sm" onclick="adminShowRenameSession('${doc.id}','${esc(d.label).replace(/'/g,"\\'")}','${(d.calendarUrl||"").replace(/'/g,"\\'")}')">Edit</button>
-          <button class="btn btn-sm" style="background:#fef2f2;color:var(--danger);border:1px solid #fecaca;" onclick="adminDeleteCoworkSession('${doc.id}')">Delete</button>
-          <button class="btn btn-gold btn-sm" onclick="adminLoadAttendees('${doc.id}')">Mark Attendees</button>
+          <button class="btn btn-outline btn-sm" onclick="adminToggleCoworkSession('${docSnap.id}',${d.active})">${d.active ? "Close" : "Reopen"}</button>
+          <button class="btn btn-outline btn-sm" onclick="adminShowRenameSession('${docSnap.id}','${safeLabel}','${safeCal}')">Edit</button>
+          <button class="btn btn-sm" style="background:#fef2f2;color:var(--danger);border:1px solid #fecaca;" onclick="adminDeleteCoworkSession('${docSnap.id}')">Delete</button>
+          <button class="btn btn-gold btn-sm" onclick="adminLoadAttendees('${docSnap.id}')">Mark Attendees</button>
         </div>
-        <div id="cowork-rename-${doc.id}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
-          <div class="form-group"><input type="text" id="cowork-rename-label-${doc.id}" class="form-input" style="font-size:13px;" /></div>
-          <div class="form-group"><input type="url" id="cowork-rename-cal-${doc.id}" class="form-input" style="font-size:13px;" placeholder="Calendar URL (optional)" /></div>
+        <div id="cowork-rename-${docSnap.id}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+          <div class="form-group"><input type="text" id="cowork-rename-label-${docSnap.id}" class="form-input" style="font-size:13px;" /></div>
+          <div class="form-group"><input type="url" id="cowork-rename-cal-${docSnap.id}" class="form-input" style="font-size:13px;" placeholder="Calendar URL (optional)" /></div>
           <div style="display:flex;gap:6px;">
-            <button class="btn btn-gold btn-sm" onclick="adminRenameSession('${doc.id}')">Save</button>
-            <button class="btn btn-outline btn-sm" onclick="document.getElementById('cowork-rename-${doc.id}').style.display='none'">Cancel</button>
+            <button class="btn btn-gold btn-sm" onclick="adminRenameSession('${docSnap.id}')">Save</button>
+            <button class="btn btn-outline btn-sm" onclick="document.getElementById('cowork-rename-${docSnap.id}').style.display='none'">Cancel</button>
           </div>
         </div>
-        <div id="cowork-attendees-${doc.id}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);"></div>
+        <div id="cowork-attendees-${docSnap.id}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);"></div>
       </div>`;
     }).join("");
-  } catch (e) {
-    list.innerHTML = "<div style='font-size:12px;color:var(--danger);'>Error loading sessions.</div>";
-    console.error("loadAdminCoworkSessions:", e);
-  }
+  } catch (e) { list.innerHTML = "<div style='font-size:12px;color:var(--danger);'>Error loading sessions.</div>"; console.error("loadAdminCoworkSessions:", e); }
 }
 
 async function adminToggleCoworkSession(id, currentActive) {
-  try {
-    await db.collection("aac_coworking_sessions").doc(id).update({ active: !currentActive });
-    loadAdminCoworkSessions();
-    loadCoworkCard();
-  } catch (e) { showToast("Error: " + e.message); }
+  try { await updateDoc(doc(db, "aac_coworking_sessions", id), { active: !currentActive }); loadAdminCoworkSessions(); loadCoworkCard(); }
+  catch (e) { showToast("Error: " + e.message); }
 }
 
 async function adminDeleteCoworkSession(id) {
-  if (!confirm("Delete this session?\n\nNote: RSVP and attendance records in subcollections are NOT deleted automatically.")) return;
-  try {
-    await db.collection("aac_coworking_sessions").doc(id).delete();
-    loadAdminCoworkSessions();
-    loadCoworkCard();
-  } catch (e) { showToast("Error: " + e.message); }
+  if (!confirm("Delete this session?\n\nNote: RSVP and attendance subcollection records are NOT auto-deleted.")) return;
+  try { await deleteDoc(doc(db, "aac_coworking_sessions", id)); loadAdminCoworkSessions(); loadCoworkCard(); }
+  catch (e) { showToast("Error: " + e.message); }
 }
 
 function adminShowRenameSession(id, currentLabel, currentCal) {
@@ -7447,10 +7506,9 @@ async function adminRenameSession(id) {
   const calUrl = (document.getElementById("cowork-rename-cal-"   + id).value || "").trim();
   if (!label) { showToast("Label is required."); return; }
   try {
-    await db.collection("aac_coworking_sessions").doc(id).update({ label, calendarUrl: calUrl });
+    await updateDoc(doc(db, "aac_coworking_sessions", id), { label, calendarUrl: calUrl });
     document.getElementById("cowork-rename-" + id).style.display = "none";
-    loadAdminCoworkSessions();
-    loadCoworkCard();
+    loadAdminCoworkSessions(); loadCoworkCard();
   } catch (e) { showToast("Error: " + e.message); }
 }
 
@@ -7461,36 +7519,32 @@ async function adminLoadAttendees(sessionId) {
   wrap.innerHTML = "<div style='font-size:12px;color:var(--text-muted);'>Loading members...</div>";
   try {
     const [membersSnap, attendeesSnap] = await Promise.all([
-      db.collection("aac_registry").orderBy("name").get(),
-      db.collection("aac_coworking_sessions").doc(sessionId).collection("attendees").get()
+      getDocs(query(collection(db, "aac_registry"), orderBy("name"))),
+      getDocs(collection(db, "aac_coworking_sessions", sessionId, "attendees"))
     ]);
     const awardedSet = new Set(attendeesSnap.docs.map(d => d.id));
-    const members    = membersSnap.docs.map(d => ({ uid: d.id, ...d.data() }))
-      .filter(m => m.name);
+    const members    = membersSnap.docs.map(d => ({ uid: d.id, ...d.data() })).filter(m => m.name);
     if (!members.length) { wrap.innerHTML = "<div style='font-size:12px;color:var(--text-muted);'>No members found.</div>"; return; }
     const rows = members.map(m => {
-      const awarded  = awardedSet.has(m.uid);
-      const disabled = awarded ? "disabled" : "";
-      const label    = awarded ? ` <span style='color:var(--text-muted);font-size:11px;'>(awarded)</span>` : "";
-      return `<label style='display:flex;align-items:center;gap:8px;padding:6px 2px;font-size:13px;cursor:${awarded ? "default" : "pointer"};'>
-        <input type='checkbox' data-uid='${m.uid}' data-name='${esc(m.name || "").replace(/'/g,"\\'")}' ${awarded ? "checked" : ""} ${disabled} style='accent-color:var(--gold);width:16px;height:16px;' />
-        ${esc(m.name || "")}${label}
+      const awarded    = awardedSet.has(m.uid);
+      const safeName   = esc(m.name || "").replace(/"/g,"&quot;");
+      const awardedLbl = awarded ? ` <span style='color:var(--text-muted);font-size:11px;'>(awarded)</span>` : "";
+      return `<label style='display:flex;align-items:center;gap:8px;padding:6px 2px;font-size:13px;cursor:${awarded?"default":"pointer"};'>
+        <input type='checkbox' data-uid='${m.uid}' data-name='${safeName}' ${awarded?"checked disabled":""} style='accent-color:var(--gold);width:16px;height:16px;' />
+        ${esc(m.name||"")}${awardedLbl}
       </label>`;
     }).join("");
     wrap.innerHTML = `
       <div style='font-weight:600;font-size:13px;margin-bottom:8px;'>Mark Attendees</div>
       <div style='max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:10px;'>${rows}</div>
-      <button class='btn btn-gold btn-sm' onclick='adminAwardAttendance("${sessionId}", this)'>Award +${PTS_COWORK_ATTEND} pts to Checked</button>
+      <button class='btn btn-gold btn-sm' onclick='adminAwardAttendance("${sessionId}",this)'>Award +${PTS_COWORK_ATTEND} pts to Checked</button>
       <div id='cowork-award-status-${sessionId}' style='font-size:12px;color:var(--text-muted);margin-top:8px;min-height:16px;'></div>`;
-  } catch (e) {
-    wrap.innerHTML = "<div style='font-size:12px;color:var(--danger);'>Error loading members.</div>";
-    console.error("adminLoadAttendees:", e);
-  }
+  } catch (e) { wrap.innerHTML = "<div style='font-size:12px;color:var(--danger);'>Error loading members.</div>"; console.error("adminLoadAttendees:", e); }
 }
 
 async function adminAwardAttendance(sessionId, btn) {
-  const wrap      = document.getElementById("cowork-attendees-" + sessionId);
-  const statusEl  = document.getElementById("cowork-award-status-" + sessionId);
+  const wrap     = document.getElementById("cowork-attendees-" + sessionId);
+  const statusEl = document.getElementById("cowork-award-status-" + sessionId);
   if (!wrap) return;
   const boxes = Array.from(wrap.querySelectorAll("input[type='checkbox']:checked:not(:disabled)"));
   if (!boxes.length) { if (statusEl) statusEl.textContent = "No unchecked members selected."; return; }
@@ -7500,32 +7554,121 @@ async function adminAwardAttendance(sessionId, btn) {
     const uid  = box.dataset.uid;
     const name = box.dataset.name || "";
     try {
-      await db.collection("aac_coworking_sessions").doc(sessionId)
-        .collection("attendees").doc(uid).set({ uid, awardedAt: Date.now() });
-      await db.collection("aac_registry").doc(uid)
-        .update({ points: firebase.firestore.FieldValue.increment(PTS_COWORK_ATTEND) });
+      await setDoc(doc(db, "aac_coworking_sessions", sessionId, "attendees", uid), { uid, awardedAt: Date.now() });
+      await updateDoc(doc(db, "aac_registry", uid), { points: increment(PTS_COWORK_ATTEND) });
       logCommunityPts(uid, name, "Session Attendance", PTS_COWORK_ATTEND);
       awarded++;
-    } catch (e) {
-      console.error("adminAwardAttendance uid=" + uid, e);
-    }
+    } catch (e) { console.error("adminAwardAttendance uid=" + uid, e); }
   }
   if (statusEl) statusEl.textContent = "Awarded " + awarded + " member" + (awarded !== 1 ? "s" : "") + ".";
   if (btn) { btn.disabled = false; btn.textContent = "Award +" + PTS_COWORK_ATTEND + " pts to Checked"; }
   adminLoadAttendees(sessionId);
 }
 
-window.rsvpCowork                = rsvpCowork;
-window.adminCreateCoworkSession  = adminCreateCoworkSession;
-window.loadAdminCoworkSessions   = loadAdminCoworkSessions;
-window.adminToggleCoworkSession  = adminToggleCoworkSession;
-window.adminDeleteCoworkSession  = adminDeleteCoworkSession;
-window.adminShowRenameSession    = adminShowRenameSession;
-window.adminRenameSession        = adminRenameSession;
-window.adminLoadAttendees        = adminLoadAttendees;
-window.adminAwardAttendance      = adminAwardAttendance;
+// ==============================
+// COMMUNITY POINTS LOG (Admin)
+// ==============================
+let _cptsAllDocs = [];
 
+async function loadCommunityPtsLog() {
+  const tableEl = document.getElementById("cpts-log-table");
+  if (!tableEl) return;
+  tableEl.innerHTML = "<div style='font-size:12px;color:var(--text-muted);padding:12px 0;'>Loading...</div>";
+  try {
+    const snap = await getDocs(collection(db, "aac_community_pts"));
+    _cptsAllDocs = [];
+    snap.forEach(d => _cptsAllDocs.push(d.data()));
+    _cptsAllDocs.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    renderCommunityPtsTable();
+  } catch (e) {
+    tableEl.innerHTML = "<div style='font-size:12px;color:var(--danger);padding:12px 0;'>Error loading log.</div>";
+    console.error("loadCommunityPtsLog:", e);
+  }
+}
 
+function renderCommunityPtsTable() {
+  const tableEl  = document.getElementById("cpts-log-table");
+  if (!tableEl) return;
+  const filterUid    = (document.getElementById("cpts-filter-member")?.value || "");
+  const filterAction = (document.getElementById("cpts-filter-action")?.value  || "");
+  let rows = _cptsAllDocs;
+  if (filterUid)    rows = rows.filter(r => r.uid === filterUid);
+  if (filterAction) rows = rows.filter(r => r.action === filterAction);
+  if (!rows.length) { tableEl.innerHTML = "<div style='font-size:12px;color:var(--text-muted);padding:12px 0;'>No records found.</div>"; return; }
+  tableEl.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border);">
+          <th style="text-align:left;padding:6px 4px;font-weight:700;color:var(--text-muted);">Member</th>
+          <th style="text-align:left;padding:6px 4px;font-weight:700;color:var(--text-muted);">Action</th>
+          <th style="text-align:right;padding:6px 4px;font-weight:700;color:var(--text-muted);">Pts</th>
+          <th style="text-align:right;padding:6px 4px;font-weight:700;color:var(--text-muted);">Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(r => `
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:6px 4px;">${esc(r.name || r.uid || "")}</td>
+            <td style="padding:6px 4px;">${esc(r.action || "")}</td>
+            <td style="padding:6px 4px;text-align:right;font-weight:700;color:var(--gold);">+${r.pts}</td>
+            <td style="padding:6px 4px;text-align:right;color:var(--text-muted);">${r.ts ? new Date(r.ts).toLocaleDateString("en-US",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}) : ""}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+// ==============================
+// BACKFILL MISSING POINTS (Admin)
+// ==============================
+const _BACKFILL_PTS_MAP = {
+  "Feed Post": 1,
+  "Peer Review Request": 5,
+  "Expert Review Request": 10,
+  "Session RSVP": 2,
+  "Session Attendance": 5,
+  "Manual Adjustment": ""
+};
+
+function autoFillBackfillPts() {
+  const action = document.getElementById("backfill-action")?.value || "";
+  const ptsEl  = document.getElementById("backfill-pts");
+  if (ptsEl && action in _BACKFILL_PTS_MAP) ptsEl.value = _BACKFILL_PTS_MAP[action];
+}
+
+async function adminBackfillPts() {
+  const memberSel = document.getElementById("backfill-member");
+  const actionEl  = document.getElementById("backfill-action");
+  const ptsEl     = document.getElementById("backfill-pts");
+  const statusEl  = document.getElementById("backfill-status");
+  const uid    = memberSel?.value || "";
+  const action = actionEl?.value  || "";
+  const pts    = parseInt(ptsEl?.value || "0", 10);
+  const name   = memberSel?.selectedOptions[0]?.dataset.name || "";
+  if (!uid)    { if (statusEl) statusEl.textContent = "Select a member."; return; }
+  if (!action) { if (statusEl) statusEl.textContent = "Select an action."; return; }
+  if (!pts || isNaN(pts)) { if (statusEl) statusEl.textContent = "Enter a valid point value."; return; }
+  if (!confirm(`Award ${pts} pts to ${name || uid} for "${action}"?`)) return;
+  try {
+    await updateDoc(doc(db, "aac_registry", uid), { points: increment(pts) });
+    logCommunityPts(uid, name, action + " (backfill)", pts);
+    if (statusEl) statusEl.textContent = `Done — +${pts} pts awarded to ${name || uid}.`;
+    setTimeout(loadCommunityPtsLog, 600);
+  } catch (e) { if (statusEl) statusEl.textContent = "Error: " + e.message; console.error("adminBackfillPts:", e); }
+}
+
+window.rsvpCowork               = rsvpCowork;
+window.adminCreateCoworkSession = adminCreateCoworkSession;
+window.loadAdminCoworkSessions  = loadAdminCoworkSessions;
+window.adminToggleCoworkSession = adminToggleCoworkSession;
+window.adminDeleteCoworkSession = adminDeleteCoworkSession;
+window.adminShowRenameSession   = adminShowRenameSession;
+window.adminRenameSession       = adminRenameSession;
+window.adminLoadAttendees       = adminLoadAttendees;
+window.adminAwardAttendance     = adminAwardAttendance;
+window.loadCommunityPtsLog      = loadCommunityPtsLog;
+window.renderCommunityPtsTable  = renderCommunityPtsTable;
+window.autoFillBackfillPts      = autoFillBackfillPts;
+window.adminBackfillPts         = adminBackfillPts;
 
 
 
