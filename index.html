@@ -2021,12 +2021,12 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div class="dash-stat-card dash-animate" style="animation-delay:0.39s;">
           <span class="dash-stat-icon">🤝</span>
           <div class="dash-stat-value" id="dash-val-eng">0</div>
-          <div class="dash-stat-label">Engage Points</div>
+          <div class="dash-stat-label">Community Points</div>
         </div>
         <div class="dash-stat-card dash-animate" style="animation-delay:0.46s;">
           <span class="dash-stat-icon">📅</span>
           <div class="dash-stat-value" id="dash-val-count">0</div>
-          <div class="dash-stat-label">Updates Made</div>
+          <div class="dash-stat-label">Submissions</div>
         </div>
       </div>
       <div class="dash-quick-actions dash-animate" style="animation-delay:0.5s;">
@@ -2039,13 +2039,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           <span class="dash-quick-btn-label">My Tracker<span class="dash-quick-btn-sub">Mark week complete</span></span>
         </button>
       </div>
-      <a href="https://calendar.app.google/bZ8cTvxdkrSGEzR67" target="_blank" rel="noopener" class="dash-animate" style="animation-delay:0.53s;display:flex;align-items:center;gap:14px;background:var(--surface);border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;text-decoration:none;box-shadow:var(--shadow);">
-        <span style="font-size:26px;flex-shrink:0;">📅</span>
-        <div style="flex:1;">
-          <div style="font-weight:700;font-size:14px;color:var(--text);">AAC Kick Off Zoom — June 1 @ 8pm ET</div>
-          <div style="font-size:12px;color:var(--gold);font-weight:600;margin-top:2px;">Add to Google Calendar →</div>
-        </div>
-      </a>
+      <div id="dash-zoom-card" class="dash-animate" style="animation-delay:0.53s;display:none;margin-bottom:16px;"></div>
       <div class="dash-animate" style="animation-delay:0.54s;background:linear-gradient(135deg,rgba(184,134,11,0.07),var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
           <span style="font-size:26px;flex-shrink:0;">📖</span>
@@ -2485,6 +2479,65 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           <div id="admin-pts-status" style="display:none;margin-top:10px;font-size:13px;color:var(--text-muted);padding:8px;background:var(--surface2);border-radius:6px;"></div>
         </div>
       </div>
+
+      <!-- ADMIN: Zoom / Coworking Session Editor -->
+      <div id="admin-zoom-tool" style="display:none;margin-top:28px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.05em;margin-bottom:4px;">📅 Zoom &amp; Coworking Sessions</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Update the upcoming session card on the dashboard, then award +5 pts to attendees. All sessions are logged.</div>
+        <!-- Upcoming Session Editor -->
+        <div class="card" style="border:1.5px solid var(--border);margin-bottom:16px;">
+          <div style="font-size:13px;font-weight:700;margin-bottom:12px;">Upcoming Session Card</div>
+          <div class="form-group">
+            <label class="form-label">Session Title</label>
+            <input type="text" id="zoom-title-input" class="form-input" placeholder="e.g. AAC Monthly Zoom — July" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date &amp; Time (display text)</label>
+            <input type="text" id="zoom-datetime-input" class="form-input" placeholder="e.g. July 6 @ 8pm ET" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Calendar / Join Link</label>
+            <input type="url" id="zoom-link-input" class="form-input" placeholder="https://calendar.app.google/..." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Link Label</label>
+            <input type="text" id="zoom-linklabel-input" class="form-input" placeholder="Add to Google Calendar →" />
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-gold btn-sm" onclick="saveZoomCard()">Save &amp; Publish</button>
+            <button class="btn btn-outline btn-sm" onclick="loadZoomCardEditor()">↻ Reload</button>
+            <button class="btn btn-outline btn-sm" onclick="hideZoomCard()">Hide Card</button>
+          </div>
+          <div id="zoom-card-status" style="display:none;margin-top:10px;font-size:13px;color:var(--text-muted);padding:8px;background:var(--surface2);border-radius:6px;"></div>
+        </div>
+        <!-- Award Attendance Points -->
+        <div class="card" style="border:1.5px solid var(--border);margin-bottom:16px;">
+          <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Award Attendance (+5 pts)</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Select a session label and the members who attended. Each gets +5 pts logged under Community Activity.</div>
+          <div class="form-group">
+            <label class="form-label">Session Label (for the record)</label>
+            <input type="text" id="zoom-session-label" class="form-input" placeholder="e.g. Monthly Zoom — July 2026" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Attendees</label>
+            <div id="zoom-attendee-list" style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;padding:4px 0;"></div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+            <button class="btn btn-gold btn-sm" onclick="awardZoomAttendance()">Award +5 to Selected</button>
+            <button class="btn btn-outline btn-sm" onclick="loadZoomAttendeeList()">↻ Refresh Members</button>
+          </div>
+          <div id="zoom-award-status" style="display:none;margin-top:10px;font-size:13px;color:var(--text-muted);padding:8px;background:var(--surface2);border-radius:6px;"></div>
+        </div>
+        <!-- Session History Log -->
+        <div class="card" style="border:1.5px solid var(--border);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div style="font-size:13px;font-weight:700;">Attendance History</div>
+            <button class="btn btn-outline btn-sm" onclick="loadZoomHistory()">↻ Refresh</button>
+          </div>
+          <div id="zoom-history-list"><div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">Click Refresh to load records.</div></div>
+        </div>
+      </div>
+
     </div>
 
     <!-- PAGE: MEMBERS -->
@@ -3434,7 +3487,7 @@ function bootApp() {
   if (_proNavBtn) _proNavBtn.style.display = userHasPro() ? "flex" : "none";
 
   // 5. Show/hide admin elements
-  const adminBoxes = ["admin-announce-box", "admin-resource-box", "admin-create-box", "admin-registry", "firebase-setup-card", "admin-export-csv-btn", "admin-bug-reports", "admin-reset-points", "admin-submissions-tool"];
+  const adminBoxes = ["admin-announce-box", "admin-resource-box", "admin-create-box", "admin-registry", "firebase-setup-card", "admin-export-csv-btn", "admin-bug-reports", "admin-reset-points", "admin-submissions-tool", "admin-zoom-tool"];
   adminBoxes.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = "none";
@@ -3457,6 +3510,12 @@ function bootApp() {
     // Expert webhook config visible to admin
     const _expertWebhook = document.getElementById("admin-expert-webhook");
     if (_expertWebhook) _expertWebhook.style.display = "block";
+    // Zoom tool visible to admin
+    const _zoomTool = document.getElementById("admin-zoom-tool");
+    if (_zoomTool) _zoomTool.style.display = "block";
+    loadZoomCardEditor();
+    loadZoomAttendeeList();
+    loadZoomHistory();
     populateAdminSubFilters();
   } else {
     const _proPanel = document.getElementById("admin-pro-panel");
@@ -3467,6 +3526,8 @@ function bootApp() {
     if (_subsTool) _subsTool.style.display = "none";
     const _expertWebhook = document.getElementById("admin-expert-webhook");
     if (_expertWebhook) _expertWebhook.style.display = "none";
+    const _zoomTool = document.getElementById("admin-zoom-tool");
+    if (_zoomTool) _zoomTool.style.display = "none";
   }
 
   // Expert panel — visible to Expert user on Reports page (loaded on navTo)
@@ -3487,6 +3548,7 @@ function bootApp() {
   loadEngHistory();
   loadDashboard();
   loadWeeklyChallenge();
+  loadZoomDashCard();
 
   // 7. Default to dashboard
   navTo("dashboard");
@@ -3521,7 +3583,7 @@ function navTo(page) {
   if (scroller) scroller.scrollTop = 0;
 
   // Page-specific loads
-  if (page === "dashboard") { loadDashboard(); loadWeeklyChallenge(); }
+  if (page === "dashboard") { loadDashboard(); loadWeeklyChallenge(); loadZoomDashCard(); }
   if (page === "feed") { loadFeed(); loadAnnouncements(); clearFeedBadge(); initRERTab(); }
   if (page === "submit") { loadSubmitPage(); loadWeeklyChallenge(); loadRERStatus(); }
   if (page === "ranks") { loadLeaderboard(); clearRanksBadge(); }
@@ -3728,12 +3790,12 @@ window.loadDashboard = async function() {
     const postPts = subs.reduce((a, s) => a + (s.pts || 0), 0);
     const engPts = engs.reduce((a, e) => a + (e.pts || 0), 0);
 
-    // Tracker-based post count
+    // Submission count for "Submissions" dash card
+    const trackerPostCount = subs.length;
+
+    // Tracker data still needed for week dots / status strip
     const trackerData = trackerSnap.exists() ? trackerSnap.data() : {};
     const tracked = trackerData.tracked || {};
-    const trackerPostCount = WEEKS.reduce((sum, w) => {
-      return sum + (tracked[w.id] || []).filter(Boolean).length;
-    }, 0);
 
     // This-week submission check
     const currentWeekIdx = getWeekIndex();
@@ -7257,6 +7319,205 @@ window.toggleAdNote        = toggleAdNote;
 window.saveAdNote          = saveAdNote;
 window.resetAdAudit        = resetAdAudit;
 
+// ==============================
+//  ZOOM / COWORKING SESSION TOOLS
+// ==============================
+
+const ZOOM_CONFIG_DOC = "zoom_config";   // doc in "aac_settings" collection
+const ZOOM_LOG_COL    = "zoom_attendance"; // collection for per-session records
+
+// --- Dashboard card renderer ---
+window.loadZoomDashCard = async function() {
+  const card = document.getElementById("dash-zoom-card");
+  if (!card) return;
+  if (!db) { card.style.display = "none"; return; }
+  try {
+    const { getDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const snap = await getDoc(doc(db, "aac_settings", ZOOM_CONFIG_DOC));
+    if (!snap.exists()) { card.style.display = "none"; return; }
+    const d = snap.data();
+    if (!d.visible || !d.title) { card.style.display = "none"; return; }
+    const linkHref = d.link || "#";
+    const linkLabel = d.linkLabel || "View Details →";
+    card.style.display = "block";
+    card.innerHTML = `<a href="${esc(linkHref)}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;text-decoration:none;box-shadow:var(--shadow);">
+      <span style="font-size:26px;flex-shrink:0;">📅</span>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:14px;color:var(--text);">${esc(d.title)}${d.datetime ? " — " + esc(d.datetime) : ""}</div>
+        <div style="font-size:12px;color:var(--gold);font-weight:600;margin-top:2px;">${esc(linkLabel)}</div>
+      </div>
+    </a>`;
+  } catch(e) {
+    card.style.display = "none";
+  }
+};
+
+// --- Admin: load editor fields from Firestore ---
+window.loadZoomCardEditor = async function() {
+  if (!db) return;
+  try {
+    const { getDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const snap = await getDoc(doc(db, "aac_settings", ZOOM_CONFIG_DOC));
+    if (!snap.exists()) return;
+    const d = snap.data();
+    const ti = document.getElementById("zoom-title-input");
+    const dt = document.getElementById("zoom-datetime-input");
+    const li = document.getElementById("zoom-link-input");
+    const ll = document.getElementById("zoom-linklabel-input");
+    if (ti) ti.value = d.title || "";
+    if (dt) dt.value = d.datetime || "";
+    if (li) li.value = d.link || "";
+    if (ll) ll.value = d.linkLabel || "";
+  } catch(e) { /* silent */ }
+};
+
+// --- Admin: save & publish card ---
+window.saveZoomCard = async function() {
+  const statusEl = document.getElementById("zoom-card-status");
+  if (!db) { if (statusEl) { statusEl.style.display = "block"; statusEl.textContent = "No database connection."; } return; }
+  const title     = (document.getElementById("zoom-title-input") || {}).value || "";
+  const datetime  = (document.getElementById("zoom-datetime-input") || {}).value || "";
+  const link      = (document.getElementById("zoom-link-input") || {}).value || "";
+  const linkLabel = (document.getElementById("zoom-linklabel-input") || {}).value || "Add to Google Calendar →";
+  if (!title) { if (statusEl) { statusEl.style.display = "block"; statusEl.textContent = "Title is required."; } return; }
+  try {
+    const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await setDoc(doc(db, "aac_settings", ZOOM_CONFIG_DOC), { title, datetime, link, linkLabel, visible: true, updatedAt: Date.now() });
+    if (statusEl) { statusEl.style.display = "block"; statusEl.style.color = "var(--success)"; statusEl.textContent = "✓ Card saved and published."; }
+    loadZoomDashCard();
+  } catch(e) {
+    if (statusEl) { statusEl.style.display = "block"; statusEl.style.color = "var(--danger)"; statusEl.textContent = "Error: " + e.message; }
+  }
+};
+
+// --- Admin: hide card without deleting ---
+window.hideZoomCard = async function() {
+  if (!db) return;
+  const statusEl = document.getElementById("zoom-card-status");
+  try {
+    const { setDoc, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const snap = await getDoc(doc(db, "aac_settings", ZOOM_CONFIG_DOC));
+    const existing = snap.exists() ? snap.data() : {};
+    await setDoc(doc(db, "aac_settings", ZOOM_CONFIG_DOC), { ...existing, visible: false, updatedAt: Date.now() });
+    if (statusEl) { statusEl.style.display = "block"; statusEl.style.color = "var(--text-muted)"; statusEl.textContent = "Card hidden from dashboard."; }
+    loadZoomDashCard();
+  } catch(e) {
+    if (statusEl) { statusEl.style.display = "block"; statusEl.style.color = "var(--danger)"; statusEl.textContent = "Error: " + e.message; }
+  }
+};
+
+// --- Admin: load member checkboxes for attendance ---
+window.loadZoomAttendeeList = async function() {
+  const container = document.getElementById("zoom-attendee-list");
+  if (!container || !db) return;
+  container.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">Loading members...</div>';
+  try {
+    const { getDocs, collection } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const snap = await getDocs(collection(db, "aac_registry"));
+    const members = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(m => !m.isAdmin && m.email !== ADMIN_EMAIL)
+      .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    if (!members.length) { container.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">No members found.</div>'; return; }
+    container.innerHTML = members.map(m =>
+      `<label style="display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0;cursor:pointer;">
+        <input type="checkbox" class="zoom-attendee-check" data-uid="${esc(m.id)}" data-name="${esc(m.name || m.email)}" style="width:16px;height:16px;accent-color:var(--gold);" />
+        <span>${esc(m.name || m.email)}</span>
+        <span style="font-size:11px;color:var(--text-muted);">${esc(m.email || "")}</span>
+      </label>`
+    ).join("");
+  } catch(e) {
+    container.innerHTML = '<div style="font-size:12px;color:var(--danger);">Error loading members: ' + esc(e.message) + '</div>';
+  }
+};
+
+// --- Admin: award +5 pts to checked attendees ---
+window.awardZoomAttendance = async function() {
+  const statusEl = document.getElementById("zoom-award-status");
+  const label = (document.getElementById("zoom-session-label") || {}).value || "";
+  if (!label) { if (statusEl) { statusEl.style.display = "block"; statusEl.style.color = "var(--danger)"; statusEl.textContent = "Enter a session label first."; } return; }
+  const checked = [...document.querySelectorAll(".zoom-attendee-check:checked")];
+  if (!checked.length) { if (statusEl) { statusEl.style.display = "block"; statusEl.style.color = "var(--danger)"; statusEl.textContent = "No attendees selected."; } return; }
+  if (!confirm(`Award +5 pts to ${checked.length} member(s) for "${label}"?`)) return;
+  if (statusEl) { statusEl.style.display = "block"; statusEl.style.color = "var(--text-muted)"; statusEl.textContent = "Awarding..."; }
+  try {
+    const { addDoc, updateDoc, doc, increment, collection } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const sessionId = "zoom_" + Date.now();
+    const awardedAt = Date.now();
+    const attendees = checked.map(el => ({ uid: el.dataset.uid, name: el.dataset.name }));
+    // Award pts to each member
+    let successCount = 0;
+    for (const att of attendees) {
+      try {
+        // Log in engagements collection (consistent with community activity)
+        await addDoc(collection(db, "engagements"), {
+          type: "zoom_attendance",
+          label,
+          sessionId,
+          authorUid: att.uid,
+          authorName: att.name,
+          pts: PTS_ZOOM_ATTEND,
+          awardedByAdmin: true,
+          createdAt: awardedAt
+        });
+        // Increment registry points
+        await updateDoc(doc(db, "aac_registry", att.uid), { points: increment(PTS_ZOOM_ATTEND) });
+        successCount++;
+      } catch(innerErr) {
+        console.warn("Could not award pts to", att.uid, innerErr);
+      }
+    }
+    // Write session log record
+    await addDoc(collection(db, ZOOM_LOG_COL), {
+      label,
+      sessionId,
+      attendees,
+      ptsAwarded: PTS_ZOOM_ATTEND,
+      awardedAt,
+      awardedByAdmin: ADMIN_EMAIL
+    });
+    if (statusEl) { statusEl.style.display = "block"; statusEl.style.color = "var(--success)"; statusEl.textContent = `✓ Awarded +${PTS_ZOOM_ATTEND} pts to ${successCount} member(s).`; }
+    // Uncheck all
+    checked.forEach(el => { el.checked = false; });
+    loadZoomHistory();
+  } catch(e) {
+    if (statusEl) { statusEl.style.display = "block"; statusEl.style.color = "var(--danger)"; statusEl.textContent = "Error: " + e.message; }
+  }
+};
+
+// --- Admin: load session history log ---
+window.loadZoomHistory = async function() {
+  const container = document.getElementById("zoom-history-list");
+  if (!container || !db) return;
+  container.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:13px;">Loading...</div>';
+  try {
+    const { getDocs, collection, orderBy, query, limit } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    let snap;
+    try { snap = await getDocs(query(collection(db, ZOOM_LOG_COL), orderBy("awardedAt", "desc"), limit(30))); }
+    catch(e2) { snap = await getDocs(collection(db, ZOOM_LOG_COL)); }
+    if (!snap.docs.length) { container.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:13px;">No sessions logged yet.</div>'; return; }
+    const rows = snap.docs.map(d => d.data()).sort((a, b) => (b.awardedAt || 0) - (a.awardedAt || 0));
+    container.innerHTML = rows.map(r => {
+      const date = r.awardedAt ? new Date(r.awardedAt).toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric", hour:"numeric", minute:"2-digit"}) : "—";
+      const names = (r.attendees || []).map(a => esc(a.name || a.uid)).join(", ") || "—";
+      return `<div style="border-bottom:1px solid var(--border);padding:10px 0;">
+        <div style="font-size:13px;font-weight:600;color:var(--text);">${esc(r.label || "Zoom Session")}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${date} &middot; ${(r.attendees||[]).length} attendee(s) &middot; +${r.ptsAwarded || 5} pts each</div>
+        <div style="font-size:12px;color:var(--text);margin-top:4px;">${names}</div>
+      </div>`;
+    }).join("");
+  } catch(e) {
+    container.innerHTML = '<div style="text-align:center;padding:16px;color:var(--danger);font-size:13px;">Error: ' + esc(e.message) + '</div>';
+  }
+};
+
+window.loadZoomDashCard    = window.loadZoomDashCard;
+window.loadZoomCardEditor  = window.loadZoomCardEditor;
+window.saveZoomCard        = window.saveZoomCard;
+window.hideZoomCard        = window.hideZoomCard;
+window.loadZoomAttendeeList= window.loadZoomAttendeeList;
+window.awardZoomAttendance = window.awardZoomAttendance;
+window.loadZoomHistory     = window.loadZoomHistory;
 
 
 </script>
