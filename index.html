@@ -2032,16 +2032,11 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           <div class="dash-stat-label">Update Points</div>
         </div>
         <div class="dash-stat-card dash-animate" style="animation-delay:0.39s;">
-          <span class="dash-stat-icon">🤝</span>
-          <div class="dash-stat-value" id="dash-val-eng">0</div>
-          <div class="dash-stat-label">Engage Points</div>
-        </div>
-        <div class="dash-stat-card dash-animate" style="animation-delay:0.46s;">
           <span class="dash-stat-icon">📅</span>
           <div class="dash-stat-value" id="dash-val-count">0</div>
-          <div class="dash-stat-label">Updates Made</div>
+          <div class="dash-stat-label">Submissions Made</div>
         </div>
-        <div class="dash-stat-card dash-animate" style="animation-delay:0.50s;">
+        <div class="dash-stat-card dash-animate" style="animation-delay:0.46s;">
           <span class="dash-stat-icon">🏅</span>
           <div class="dash-stat-value" id="dash-val-community">0</div>
           <div class="dash-stat-label">Community Pts</div>
@@ -3766,7 +3761,7 @@ window.loadDashboard = async function() {
     void el.offsetHeight;
     el.style.animation = '';
   });
-  ['dash-val-total','dash-val-posts','dash-val-eng','dash-val-count','dash-val-community'].forEach(id => {
+  ['dash-val-total','dash-val-posts','dash-val-count','dash-val-community'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.textContent = '0';
   });
@@ -3865,7 +3860,7 @@ window.loadDashboard = async function() {
       .filter(m => !m.isAdmin && m.email !== ADMIN_EMAIL)
       .slice(0, 10);
 
-    const communityPts = Math.max(0, totalPts - postPts - engPts);
+    const communityPts = Math.max(0, totalPts - postPts);
 
     _renderDashboard({total:totalPts, postPts, engPts, communityPts, trackerPostCount, weekSubmitted, trackerThisWeek, trackerDots, leaderboard:lbMembers, myUid:uid});
 
@@ -3905,9 +3900,8 @@ function _renderDashboard({total, postPts, engPts, communityPts, trackerPostCoun
   // Count-up stats
   _dashCountUp(document.getElementById('dash-val-total'),     total,            120);
   _dashCountUp(document.getElementById('dash-val-posts'),     postPts,          200);
-  _dashCountUp(document.getElementById('dash-val-eng'),       engPts,           280);
-  _dashCountUp(document.getElementById('dash-val-count'),     trackerPostCount, 360);
-  _dashCountUp(document.getElementById('dash-val-community'), communityPts,     440);
+  _dashCountUp(document.getElementById('dash-val-count'),     trackerPostCount, 280);
+  _dashCountUp(document.getElementById('dash-val-community'), communityPts,     360);
 
   // All-Star progress bar (24 total required updates across 12 weeks)
   const totalRequired = 24;
