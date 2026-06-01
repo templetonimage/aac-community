@@ -2255,7 +2255,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           </div>
           <button class="btn btn-sm btn-outline mt-8" id="clear-screenshot-btn" style="display:none;" onclick="clearScreenshot()">Remove screenshot</button>
         </div>
-        <button class="btn btn-gold btn-block btn-post" id="submit-update-btn" onclick="submitUpdate()" disabled style="opacity:0.45;cursor:not-allowed;" title="Submissions open April 11">Submit Update <span style="font-size:11px;font-weight:500;opacity:0.8;">(Opens April 11)</span></button>
+        <button class="btn btn-gold btn-block btn-post" id="submit-update-btn" onclick="submitUpdate()" disabled style="opacity:0.45;cursor:not-allowed;" title="Submissions open July 1">Submit Update <span style="font-size:11px;font-weight:500;opacity:0.8;">(Opens July 1)</span></button>
       </div>
 
       <!-- Community Feed Prompt (replaces engagement section) -->
@@ -2381,7 +2381,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       <!-- ADMIN: Reset Points Tool -->
       <div id="admin-reset-points" style="display:none;margin-top:28px;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.05em;margin-bottom:4px;">🔄 Reset Member Points</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Zeroes out <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px;">points</code> and <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px;">totalPosts</code> for every member in the registry. Submission and engagement history in Firestore is preserved. Use at the end of the April trial before Round 1 begins.</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Zeroes out <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px;">points</code> and <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px;">totalPosts</code> for every member in the registry. Submission and engagement history in Firestore is preserved. Use at the end of the June trial before Round 1 begins.</div>
         <div class="pro-global-danger">
           <div class="pro-global-danger-title">⚠️ Destructive Action</div>
           <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;line-height:1.5;">This cannot be undone. All member point totals will be set to zero. Requires double confirmation.</div>
@@ -3461,7 +3461,7 @@ function bootApp() {
     _updateBtn.style.opacity = "";
     _updateBtn.style.cursor = "";
     _updateBtn.title = "";
-    _updateBtn.innerHTML = _updateBtn.innerHTML.replace(/<span[^>]*>\(Opens April 1\)<\/span>/g, "").replace(/<span[^>]*>\(Opens April 11\)<\/span>/g, "").trim();
+    _updateBtn.innerHTML = _updateBtn.innerHTML.replace(/<span[^>]*>\(Opens April 1\)<\/span>/g, "").replace(/<span[^>]*>\(Opens April 11\)<\/span>/g, "").replace(/<span[^>]*>\(Opens July 1\)<\/span>/g, "").trim();
   }
 
   // Unlock Submit Engagement: all trial weeks OR after April 11 OR admin
@@ -3471,7 +3471,7 @@ function bootApp() {
     _engBtn.style.opacity = "";
     _engBtn.style.cursor = "";
     _engBtn.title = "";
-    _engBtn.innerHTML = _engBtn.innerHTML.replace(/<span[^>]*>\(Opens April 1\)<\/span>/g, "").replace(/<span[^>]*>\(Opens April 11\)<\/span>/g, "").trim();
+    _engBtn.innerHTML = _engBtn.innerHTML.replace(/<span[^>]*>\(Opens April 1\)<\/span>/g, "").replace(/<span[^>]*>\(Opens April 11\)<\/span>/g, "").replace(/<span[^>]*>\(Opens July 1\)<\/span>/g, "").trim();
   }
 
   // 2. Set topnav username and avatar
@@ -3618,7 +3618,7 @@ function loadSubmitPage() {
   }
   if (isTrialChallengeMode) {
     trialNotice.style.display = "block";
-    trialNotice.innerHTML = `<strong style="color:var(--gold);">🗓 April Trial — Challenge Submissions</strong><br>Check the Weekly Challenge box and describe what you worked on. That's it — no URL or screenshot needed. Full submissions open April 11.`;
+    trialNotice.innerHTML = `<strong style="color:var(--gold);">🗓 June Trial — Challenge Submissions</strong><br>Check the Weekly Challenge box and describe what you worked on. That's it — no URL or screenshot needed. Full submissions open July 1.`;
   } else {
     trialNotice.style.display = "none";
   }
@@ -3638,7 +3638,7 @@ function loadSubmitPage() {
   if (isTrial) {
     if (engNotice) {
       engNotice.style.display = "block";
-      engNotice.innerHTML = `<strong style="color:var(--gold);">🗓 April Trial — Engagements Open</strong><br>Visit a member's site, comment on their blog, or share their work. Screenshot is optional during the trial.`;
+      engNotice.innerHTML = `<strong style="color:var(--gold);">🗓 June Trial — Engagements Open</strong><br>Visit a member's site, comment on their blog, or share their work. Screenshot is optional during the trial.`;
     }
     if (engScreenshotLabel) {
       engScreenshotLabel.textContent = "optional during trial";
