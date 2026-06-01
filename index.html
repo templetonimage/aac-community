@@ -2028,6 +2028,11 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           <div class="dash-stat-value" id="dash-val-count">0</div>
           <div class="dash-stat-label">Updates Made</div>
         </div>
+        <div class="dash-stat-card dash-animate" style="animation-delay:0.50s;">
+          <span class="dash-stat-icon">🏅</span>
+          <div class="dash-stat-value" id="dash-val-community">0</div>
+          <div class="dash-stat-label">Community Pts</div>
+        </div>
       </div>
       <div class="dash-quick-actions dash-animate" style="animation-delay:0.5s;">
         <button class="dash-quick-btn" onclick="navTo('submit');loadSubmitPage();">
@@ -3761,7 +3766,7 @@ window.loadDashboard = async function() {
     void el.offsetHeight;
     el.style.animation = '';
   });
-  ['dash-val-total','dash-val-posts','dash-val-eng','dash-val-count'].forEach(id => {
+  ['dash-val-total','dash-val-posts','dash-val-eng','dash-val-count','dash-val-community'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.textContent = '0';
   });
@@ -3801,7 +3806,7 @@ window.loadDashboard = async function() {
   if (metaEl) metaEl.textContent = new Date().toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'});
 
   if (!db || useLocalFallback) {
-    _renderDashboard({total:0, postPts:0, engPts:0, trackerPostCount:0, weekSubmitted:false, trackerThisWeek:false, trackerDots:[], leaderboard:[], myUid:''});
+    _renderDashboard({total:0, postPts:0, engPts:0, communityPts:0, trackerPostCount:0, weekSubmitted:false, trackerThisWeek:false, trackerDots:[], leaderboard:[], myUid:''});
     return;
   }
 
@@ -3860,11 +3865,13 @@ window.loadDashboard = async function() {
       .filter(m => !m.isAdmin && m.email !== ADMIN_EMAIL)
       .slice(0, 10);
 
-    _renderDashboard({total:totalPts, postPts, engPts, trackerPostCount, weekSubmitted, trackerThisWeek, trackerDots, leaderboard:lbMembers, myUid:uid});
+    const communityPts = Math.max(0, totalPts - postPts - engPts);
+
+    _renderDashboard({total:totalPts, postPts, engPts, communityPts, trackerPostCount, weekSubmitted, trackerThisWeek, trackerDots, leaderboard:lbMembers, myUid:uid});
 
   } catch(e) {
     console.error('Dashboard load error:', e);
-    _renderDashboard({total:0, postPts:0, engPts:0, trackerPostCount:0, weekSubmitted:false, trackerThisWeek:false, trackerDots:[], leaderboard:[], myUid:''});
+    _renderDashboard({total:0, postPts:0, engPts:0, communityPts:0, trackerPostCount:0, weekSubmitted:false, trackerThisWeek:false, trackerDots:[], leaderboard:[], myUid:''});
   }
 };
 
@@ -3882,7 +3889,7 @@ function _dashCountUp(el, target, delay=0, duration=900) {
   }, delay);
 }
 
-function _renderDashboard({total, postPts, engPts, trackerPostCount, weekSubmitted, trackerThisWeek, trackerDots, leaderboard, myUid}) {
+function _renderDashboard({total, postPts, engPts, communityPts, trackerPostCount, weekSubmitted, trackerThisWeek, trackerDots, leaderboard, myUid}) {
   // Status pills
   const strip = document.getElementById('dash-status-strip');
   if (strip) {
@@ -3896,10 +3903,11 @@ function _renderDashboard({total, postPts, engPts, trackerPostCount, weekSubmitt
   }
 
   // Count-up stats
-  _dashCountUp(document.getElementById('dash-val-total'), total,            120);
-  _dashCountUp(document.getElementById('dash-val-posts'), postPts,          200);
-  _dashCountUp(document.getElementById('dash-val-eng'),   engPts,           280);
-  _dashCountUp(document.getElementById('dash-val-count'), trackerPostCount, 360);
+  _dashCountUp(document.getElementById('dash-val-total'),     total,            120);
+  _dashCountUp(document.getElementById('dash-val-posts'),     postPts,          200);
+  _dashCountUp(document.getElementById('dash-val-eng'),       engPts,           280);
+  _dashCountUp(document.getElementById('dash-val-count'),     trackerPostCount, 360);
+  _dashCountUp(document.getElementById('dash-val-community'), communityPts,     440);
 
   // All-Star progress bar (24 total required updates across 12 weeks)
   const totalRequired = 24;
