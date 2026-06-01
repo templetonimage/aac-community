@@ -1994,6 +1994,19 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div class="dash-welcome-meta" id="dash-date-meta"></div>
       </div>
       <div class="dash-status-strip dash-animate" id="dash-status-strip" style="animation-delay:0.15s;"></div>
+      <div class="dash-animate" style="animation-delay:0.18s;background:linear-gradient(135deg,rgba(184,134,11,0.07),var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+          <span style="font-size:26px;flex-shrink:0;">📖</span>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:14px;color:var(--text);">Ad Fundamentals Playbook</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">AAC's 7-part guide to paid advertising — creative, targeting, analytics, and more.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="openAdFundamentalsModal()" class="btn btn-gold btn-sm" style="flex:1;">View Guide →</button>
+          <button onclick="openAdAudit()" class="btn btn-sm" style="flex:1;background:linear-gradient(135deg,#1a1a1a,#2a2200);border:1.5px solid var(--gold);color:#e8d5a0;">✅ Ad Audit</button>
+        </div>
+      </div>
       <div class="weekly-challenge-banner dash-animate" id="dash-challenge-banner" style="animation-delay:0.2s;">
         <div class="wc-inner">
           <div class="wc-icon">⚡</div>
@@ -2055,19 +2068,6 @@ textarea.form-input { resize: vertical; min-height: 80px; }
             <div id="cowork-card-sub" style="font-size:12px;color:var(--gold);font-weight:600;padding-left:28px;">RSVP to earn +2 pts. Attend to earn +5 pts.</div>
           </div>
           <button id="cowork-rsvp-btn" onclick="rsvpCowork()" class="btn btn-gold btn-sm" style="white-space:nowrap;flex-shrink:0;">RSVP +2</button>
-        </div>
-      </div>
-      <div class="dash-animate" style="animation-delay:0.54s;background:linear-gradient(135deg,rgba(184,134,11,0.07),var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
-        <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
-          <span style="font-size:26px;flex-shrink:0;">📖</span>
-          <div style="flex:1;">
-            <div style="font-weight:700;font-size:14px;color:var(--text);">Ad Fundamentals Playbook</div>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Google's ranking framework — 7 slides built for your business.</div>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;">
-          <button onclick="openAdFundamentalsModal()" class="btn btn-gold btn-sm" style="flex:1;">View Guide →</button>
-          <button onclick="openAdAudit()" class="btn btn-sm" style="flex:1;background:linear-gradient(135deg,#1a1a1a,#2a2200);border:1.5px solid var(--gold);color:#e8d5a0;">✅ Ad Audit</button>
         </div>
       </div>
       <div class="dash-allstar-banner dash-animate" style="animation-delay:0.55s;">
@@ -2240,8 +2240,8 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           <input type="url" id="submit-url" class="form-input" placeholder="https:// (optional — screenshot required if no URL)" />
         </div>
         <div class="form-group">
-          <label class="form-label">What did you run and what did you learn?</label>
-          <textarea id="submit-note" class="form-input" placeholder="Describe your active campaign — what platform, what you tested, and what the numbers told you..."></textarea>
+          <label class="form-label">What did you do or what did you learn?</label>
+          <textarea id="submit-note" class="form-input" placeholder=""></textarea>
         </div>
         <div class="form-group" id="submit-format-group">
           <label class="form-label">Submission type</label>
@@ -2272,7 +2272,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           </div>
           <button class="btn btn-sm btn-outline mt-8" id="clear-screenshot-btn" style="display:none;" onclick="clearScreenshot()">Remove screenshot</button>
         </div>
-        <button class="btn btn-gold btn-block btn-post" id="submit-update-btn" onclick="submitUpdate()" disabled style="opacity:0.45;cursor:not-allowed;" title="Submissions open April 11">Submit Update <span style="font-size:11px;font-weight:500;opacity:0.8;">(Opens April 11)</span></button>
+        <button class="btn btn-gold btn-block btn-post" id="submit-update-btn" onclick="submitUpdate()" disabled style="opacity:0.45;cursor:not-allowed;" title="Submissions open June 15">Submit Update <span style="font-size:11px;font-weight:500;opacity:0.8;">(Opens June 15)</span></button>
       </div>
 
       <!-- Community Feed Prompt (replaces engagement section) -->
@@ -2857,8 +2857,8 @@ textarea.form-input { resize: vertical; min-height: 80px; }
     <!-- Standard R1 welcome (default) -->
     <div class="welcome-body" id="welcome-body-standard">
       <h3>Welcome to AAC Round 1! 👋</h3>
-      <div class="welcome-step"><span class="welcome-step-icon">📸</span><span>Submit your proof — screenshot your active ad campaign every week to earn +10 pts</span></div>
-      <div class="welcome-step"><span class="welcome-step-icon">✅</span><span>Check your Tracker — mark weeks complete as you go</span></div>
+      <div class="welcome-step"><span class="welcome-step-icon">📖</span><span>Read the Ad Fundamentals Playbook — AAC's 7-part guide to paid advertising</span></div>
+      <div class="welcome-step"><span class="welcome-step-icon">✅</span><span>Complete Your Ad Audit to Prepare for Live Submissions on 6/15</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">💬</span><span>Use the Community Feed — post wins, ask questions, and share what's working</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">⭐</span><span>Earn All-Star status — submit proof every week across all 12 weeks</span></div>
     </div>
@@ -3493,7 +3493,7 @@ function bootApp() {
     currentUser.trialCompleted = true;
   }
 
-  const _submitOpen = new Date("2026-04-11T00:00:00").getTime();
+  const _submitOpen = new Date("2026-06-15T00:00:00").getTime();
   const _trialIdx = getTrialWeekIndex();
   const _trialChallengeOpen = _trialIdx === 0 || _trialIdx === 1;  // T1/T2 only for update submissions
   const _trialEngOpen = _trialIdx !== -1;                           // All trial weeks for engagements
@@ -3661,7 +3661,7 @@ function loadSubmitPage() {
   }
   if (isTrialChallengeMode) {
     trialNotice.style.display = "block";
-    trialNotice.innerHTML = `<strong style="color:var(--gold);">🗓 April Trial — Challenge Submissions</strong><br>Check the Weekly Challenge box and describe what you worked on. That's it — no URL or screenshot needed. Full submissions open April 11.`;
+    trialNotice.innerHTML = `<strong style="color:var(--gold);">🗓 June Trial — Challenge Submissions</strong><br>Check the Weekly Challenge box and describe what you worked on. That's it — no URL or screenshot needed. Full submissions open June 15.`;
   } else {
     trialNotice.style.display = "none";
   }
@@ -5415,7 +5415,7 @@ async function getRegistryForCurrentRound() {
     const snap = await getDocs(collection(db, "aac_registry"));
     snap.forEach(d => {
       const data = d.data();
-      if ((data.rounds || []).includes(CURRENT_ROUND) || data.isFounder) {
+      if ((data.rounds || []).includes(CURRENT_ROUND) || data.isFounder || data.trialUntil) {
         members.push({ id: d.id, ...data });
       }
     });
