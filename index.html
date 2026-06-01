@@ -2021,12 +2021,12 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div class="dash-stat-card dash-animate" style="animation-delay:0.39s;">
           <span class="dash-stat-icon">🤝</span>
           <div class="dash-stat-value" id="dash-val-eng">0</div>
-          <div class="dash-stat-label">Community Points</div>
+          <div class="dash-stat-label">Engage Points</div>
         </div>
         <div class="dash-stat-card dash-animate" style="animation-delay:0.46s;">
           <span class="dash-stat-icon">📅</span>
           <div class="dash-stat-value" id="dash-val-count">0</div>
-          <div class="dash-stat-label">Submissions</div>
+          <div class="dash-stat-label">Updates Made</div>
         </div>
       </div>
       <div class="dash-quick-actions dash-animate" style="animation-delay:0.5s;">
@@ -2039,7 +2039,19 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           <span class="dash-quick-btn-label">My Tracker<span class="dash-quick-btn-sub">Mark week complete</span></span>
         </button>
       </div>
-      <div id="dash-zoom-card" class="dash-animate" style="animation-delay:0.53s;display:none;margin-bottom:16px;"></div>
+      <!-- COWORKING SESSION CARD (dynamic — hidden until active session exists) -->
+      <div id="cowork-card" class="dash-animate" style="display:none;animation-delay:0.53s;background:var(--surface);border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="flex:1;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+              <span style="font-size:20px;flex-shrink:0;">📅</span>
+              <div id="cowork-card-label" style="font-weight:700;font-size:14px;color:var(--text);">Coworking Session</div>
+            </div>
+            <div id="cowork-card-sub" style="font-size:12px;color:var(--gold);font-weight:600;padding-left:28px;">RSVP to earn +2 pts. Attend to earn +5 pts.</div>
+          </div>
+          <button id="cowork-rsvp-btn" onclick="rsvpCowork()" class="btn btn-gold btn-sm" style="white-space:nowrap;flex-shrink:0;">RSVP +2</button>
+        </div>
+      </div>
       <div class="dash-animate" style="animation-delay:0.54s;background:linear-gradient(135deg,rgba(184,134,11,0.07),var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
           <span style="font-size:26px;flex-shrink:0;">📖</span>
@@ -2255,7 +2267,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           </div>
           <button class="btn btn-sm btn-outline mt-8" id="clear-screenshot-btn" style="display:none;" onclick="clearScreenshot()">Remove screenshot</button>
         </div>
-        <button class="btn btn-gold btn-block btn-post" id="submit-update-btn" onclick="submitUpdate()" disabled style="opacity:0.45;cursor:not-allowed;" title="Submissions open July 1">Submit Update <span style="font-size:11px;font-weight:500;opacity:0.8;">(Opens July 1)</span></button>
+        <button class="btn btn-gold btn-block btn-post" id="submit-update-btn" onclick="submitUpdate()" disabled style="opacity:0.45;cursor:not-allowed;" title="Submissions open April 11">Submit Update <span style="font-size:11px;font-weight:500;opacity:0.8;">(Opens April 11)</span></button>
       </div>
 
       <!-- Community Feed Prompt (replaces engagement section) -->
@@ -2266,7 +2278,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>Community Feed post</span><span style="font-weight:700;color:var(--gold);">+1 pt</span></div>
           <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>Ad Peer Review Request</span><span style="font-weight:700;color:var(--gold);">+5 pts</span></div>
           <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>Expert Review Request</span><span style="font-weight:700;color:var(--gold);">+10 pts</span></div>
-          <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Monthly Zoom RSVP / Attendance</span><span style="font-weight:700;color:var(--gold);">+2 / +5 pts</span></div>
+          <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Coworking Session RSVP / Attendance</span><span style="font-weight:700;color:var(--gold);">+2 / +5 pts</span></div>
         </div>
         <button class="btn btn-outline btn-sm" style="margin-top:14px;width:100%;" onclick="navTo('feed')">Go to Community Feed →</button>
       </div>
@@ -2294,8 +2306,8 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div class="points-row"><span>Community Feed post</span><span class="pts-val">+1 pt</span></div>
         <div class="points-row"><span>Ad Peer Review Request</span><span class="pts-val">+5 pts</span></div>
         <div class="points-row"><span>Expert Review Request</span><span class="pts-val">+10 pts</span></div>
-        <div class="points-row"><span>Monthly Zoom RSVP</span><span class="pts-val">+2 pts</span></div>
-        <div class="points-row"><span>Monthly Zoom Attendance</span><span class="pts-val">+5 pts</span></div>
+        <div class="points-row"><span>Coworking Session RSVP</span><span class="pts-val">+2 pts</span></div>
+        <div class="points-row"><span>Coworking Session Attendance</span><span class="pts-val">+5 pts</span></div>
       </div>
     </div>
 
@@ -2378,10 +2390,31 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div id="engagement-report"></div>
       </div>
 
+      <!-- ADMIN: Coworking Sessions -->
+      <div id="admin-cowork-panel" style="display:none;margin-top:28px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.05em;margin-bottom:4px;">📅 Coworking Sessions</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Create and manage live session cards on the member dashboard. Members RSVP for +2 pts; you mark attendance for +5 pts.</div>
+        <!-- Create form -->
+        <div class="card" style="border:1.5px solid var(--border);margin-bottom:16px;">
+          <div class="form-group">
+            <label class="form-label">Session Label <span style="color:var(--danger);font-size:11px;">required</span></label>
+            <input type="text" id="cowork-label-input" class="form-input" placeholder="e.g. Coworking Session — July 10 @ 10am ET" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Google Calendar URL <span style="color:var(--text-muted);font-size:11px;">optional</span></label>
+            <input type="url" id="cowork-cal-input" class="form-input" placeholder="https://calendar.google.com/..." />
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="adminCreateCoworkSession()">Create Session</button>
+          <div id="cowork-create-status" style="font-size:12px;color:var(--text-muted);margin-top:8px;min-height:16px;"></div>
+        </div>
+        <!-- Session list -->
+        <div id="admin-cowork-list"></div>
+      </div>
+
       <!-- ADMIN: Reset Points Tool -->
       <div id="admin-reset-points" style="display:none;margin-top:28px;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.05em;margin-bottom:4px;">🔄 Reset Member Points</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Zeroes out <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px;">points</code> and <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px;">totalPosts</code> for every member in the registry. Submission and engagement history in Firestore is preserved. Use at the end of the June trial before Round 1 begins.</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Zeroes out <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px;">points</code> and <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px;">totalPosts</code> for every member in the registry. Submission and engagement history in Firestore is preserved. Use at the end of the April trial before Round 1 begins.</div>
         <div class="pro-global-danger">
           <div class="pro-global-danger-title">⚠️ Destructive Action</div>
           <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;line-height:1.5;">This cannot be undone. All member point totals will be set to zero. Requires double confirmation.</div>
@@ -2479,65 +2512,6 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           <div id="admin-pts-status" style="display:none;margin-top:10px;font-size:13px;color:var(--text-muted);padding:8px;background:var(--surface2);border-radius:6px;"></div>
         </div>
       </div>
-
-      <!-- ADMIN: Zoom / Coworking Session Editor -->
-      <div id="admin-zoom-tool" style="display:none;margin-top:28px;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.05em;margin-bottom:4px;">📅 Zoom &amp; Coworking Sessions</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Update the upcoming session card on the dashboard, then award +5 pts to attendees. All sessions are logged.</div>
-        <!-- Upcoming Session Editor -->
-        <div class="card" style="border:1.5px solid var(--border);margin-bottom:16px;">
-          <div style="font-size:13px;font-weight:700;margin-bottom:12px;">Upcoming Session Card</div>
-          <div class="form-group">
-            <label class="form-label">Session Title</label>
-            <input type="text" id="zoom-title-input" class="form-input" placeholder="e.g. AAC Monthly Zoom — July" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Date &amp; Time (display text)</label>
-            <input type="text" id="zoom-datetime-input" class="form-input" placeholder="e.g. July 6 @ 8pm ET" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Calendar / Join Link</label>
-            <input type="url" id="zoom-link-input" class="form-input" placeholder="https://calendar.app.google/..." />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Link Label</label>
-            <input type="text" id="zoom-linklabel-input" class="form-input" placeholder="Add to Google Calendar →" />
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-gold btn-sm" onclick="saveZoomCard()">Save &amp; Publish</button>
-            <button class="btn btn-outline btn-sm" onclick="loadZoomCardEditor()">↻ Reload</button>
-            <button class="btn btn-outline btn-sm" onclick="hideZoomCard()">Hide Card</button>
-          </div>
-          <div id="zoom-card-status" style="display:none;margin-top:10px;font-size:13px;color:var(--text-muted);padding:8px;background:var(--surface2);border-radius:6px;"></div>
-        </div>
-        <!-- Award Attendance Points -->
-        <div class="card" style="border:1.5px solid var(--border);margin-bottom:16px;">
-          <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Award Attendance (+5 pts)</div>
-          <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Select a session label and the members who attended. Each gets +5 pts logged under Community Activity.</div>
-          <div class="form-group">
-            <label class="form-label">Session Label (for the record)</label>
-            <input type="text" id="zoom-session-label" class="form-input" placeholder="e.g. Monthly Zoom — July 2026" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Attendees</label>
-            <div id="zoom-attendee-list" style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;padding:4px 0;"></div>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-            <button class="btn btn-gold btn-sm" onclick="awardZoomAttendance()">Award +5 to Selected</button>
-            <button class="btn btn-outline btn-sm" onclick="loadZoomAttendeeList()">↻ Refresh Members</button>
-          </div>
-          <div id="zoom-award-status" style="display:none;margin-top:10px;font-size:13px;color:var(--text-muted);padding:8px;background:var(--surface2);border-radius:6px;"></div>
-        </div>
-        <!-- Session History Log -->
-        <div class="card" style="border:1.5px solid var(--border);">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-            <div style="font-size:13px;font-weight:700;">Attendance History</div>
-            <button class="btn btn-outline btn-sm" onclick="loadZoomHistory()">↻ Refresh</button>
-          </div>
-          <div id="zoom-history-list"><div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">Click Refresh to load records.</div></div>
-        </div>
-      </div>
-
     </div>
 
     <!-- PAGE: MEMBERS -->
@@ -3003,8 +2977,8 @@ const PTS_CHALLENGE  = 5;
 const PTS_PVR        = 5;  // Posting an Ad Peer Review Request
 const PTS_RER        = 10; // Posting an Expert Review Request
 const PTS_POST       = 1;  // Regular community feed post
-const PTS_ZOOM_RSVP  = 2;  // Monthly Zoom RSVP
-const PTS_ZOOM_ATTEND = 5; // Monthly Zoom Attendance (admin-awarded)
+const PTS_COWORK_RSVP   = 2;  // Coworking Session RSVP
+const PTS_COWORK_ATTEND = 5;  // Coworking Session Attendance (admin-awarded)
 const MAX_ENG_PER_WEEK = 5;
 
 // Weekly Challenge Modifiers — one per week, keyed by weekIdx (0–11)
@@ -3461,7 +3435,7 @@ function bootApp() {
     _updateBtn.style.opacity = "";
     _updateBtn.style.cursor = "";
     _updateBtn.title = "";
-    _updateBtn.innerHTML = _updateBtn.innerHTML.replace(/<span[^>]*>\(Opens April 1\)<\/span>/g, "").replace(/<span[^>]*>\(Opens April 11\)<\/span>/g, "").replace(/<span[^>]*>\(Opens July 1\)<\/span>/g, "").trim();
+    _updateBtn.innerHTML = _updateBtn.innerHTML.replace(/<span[^>]*>\(Opens April 1\)<\/span>/g, "").replace(/<span[^>]*>\(Opens April 11\)<\/span>/g, "").trim();
   }
 
   // Unlock Submit Engagement: all trial weeks OR after April 11 OR admin
@@ -3471,7 +3445,7 @@ function bootApp() {
     _engBtn.style.opacity = "";
     _engBtn.style.cursor = "";
     _engBtn.title = "";
-    _engBtn.innerHTML = _engBtn.innerHTML.replace(/<span[^>]*>\(Opens April 1\)<\/span>/g, "").replace(/<span[^>]*>\(Opens April 11\)<\/span>/g, "").replace(/<span[^>]*>\(Opens July 1\)<\/span>/g, "").trim();
+    _engBtn.innerHTML = _engBtn.innerHTML.replace(/<span[^>]*>\(Opens April 1\)<\/span>/g, "").replace(/<span[^>]*>\(Opens April 11\)<\/span>/g, "").trim();
   }
 
   // 2. Set topnav username and avatar
@@ -3487,7 +3461,7 @@ function bootApp() {
   if (_proNavBtn) _proNavBtn.style.display = userHasPro() ? "flex" : "none";
 
   // 5. Show/hide admin elements
-  const adminBoxes = ["admin-announce-box", "admin-resource-box", "admin-create-box", "admin-registry", "firebase-setup-card", "admin-export-csv-btn", "admin-bug-reports", "admin-reset-points", "admin-submissions-tool", "admin-zoom-tool"];
+  const adminBoxes = ["admin-announce-box", "admin-resource-box", "admin-create-box", "admin-registry", "firebase-setup-card", "admin-export-csv-btn", "admin-bug-reports", "admin-reset-points", "admin-submissions-tool"];
   adminBoxes.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = "none";
@@ -3510,12 +3484,9 @@ function bootApp() {
     // Expert webhook config visible to admin
     const _expertWebhook = document.getElementById("admin-expert-webhook");
     if (_expertWebhook) _expertWebhook.style.display = "block";
-    // Zoom tool visible to admin
-    const _zoomTool = document.getElementById("admin-zoom-tool");
-    if (_zoomTool) _zoomTool.style.display = "block";
-    loadZoomCardEditor();
-    loadZoomAttendeeList();
-    loadZoomHistory();
+    // Coworking sessions panel always visible to admin
+    const _coworkPanel = document.getElementById("admin-cowork-panel");
+    if (_coworkPanel) { _coworkPanel.style.display = "block"; loadAdminCoworkSessions(); }
     populateAdminSubFilters();
   } else {
     const _proPanel = document.getElementById("admin-pro-panel");
@@ -3526,8 +3497,6 @@ function bootApp() {
     if (_subsTool) _subsTool.style.display = "none";
     const _expertWebhook = document.getElementById("admin-expert-webhook");
     if (_expertWebhook) _expertWebhook.style.display = "none";
-    const _zoomTool = document.getElementById("admin-zoom-tool");
-    if (_zoomTool) _zoomTool.style.display = "none";
   }
 
   // Expert panel — visible to Expert user on Reports page (loaded on navTo)
@@ -3548,7 +3517,7 @@ function bootApp() {
   loadEngHistory();
   loadDashboard();
   loadWeeklyChallenge();
-  loadZoomDashCard();
+  loadCoworkCard(); // non-blocking — shows card only if active session exists
 
   // 7. Default to dashboard
   navTo("dashboard");
@@ -3583,7 +3552,7 @@ function navTo(page) {
   if (scroller) scroller.scrollTop = 0;
 
   // Page-specific loads
-  if (page === "dashboard") { loadDashboard(); loadWeeklyChallenge(); loadZoomDashCard(); }
+  if (page === "dashboard") { loadDashboard(); loadWeeklyChallenge(); }
   if (page === "feed") { loadFeed(); loadAnnouncements(); clearFeedBadge(); initRERTab(); }
   if (page === "submit") { loadSubmitPage(); loadWeeklyChallenge(); loadRERStatus(); }
   if (page === "ranks") { loadLeaderboard(); clearRanksBadge(); }
@@ -3618,7 +3587,7 @@ function loadSubmitPage() {
   }
   if (isTrialChallengeMode) {
     trialNotice.style.display = "block";
-    trialNotice.innerHTML = `<strong style="color:var(--gold);">🗓 June Trial — Challenge Submissions</strong><br>Check the Weekly Challenge box and describe what you worked on. That's it — no URL or screenshot needed. Full submissions open July 1.`;
+    trialNotice.innerHTML = `<strong style="color:var(--gold);">🗓 April Trial — Challenge Submissions</strong><br>Check the Weekly Challenge box and describe what you worked on. That's it — no URL or screenshot needed. Full submissions open April 11.`;
   } else {
     trialNotice.style.display = "none";
   }
@@ -3638,7 +3607,7 @@ function loadSubmitPage() {
   if (isTrial) {
     if (engNotice) {
       engNotice.style.display = "block";
-      engNotice.innerHTML = `<strong style="color:var(--gold);">🗓 June Trial — Engagements Open</strong><br>Visit a member's site, comment on their blog, or share their work. Screenshot is optional during the trial.`;
+      engNotice.innerHTML = `<strong style="color:var(--gold);">🗓 April Trial — Engagements Open</strong><br>Visit a member's site, comment on their blog, or share their work. Screenshot is optional during the trial.`;
     }
     if (engScreenshotLabel) {
       engScreenshotLabel.textContent = "optional during trial";
@@ -3790,12 +3759,12 @@ window.loadDashboard = async function() {
     const postPts = subs.reduce((a, s) => a + (s.pts || 0), 0);
     const engPts = engs.reduce((a, e) => a + (e.pts || 0), 0);
 
-    // Submission count for "Submissions" dash card
-    const trackerPostCount = subs.length;
-
-    // Tracker data still needed for week dots / status strip
+    // Tracker-based post count
     const trackerData = trackerSnap.exists() ? trackerSnap.data() : {};
     const tracked = trackerData.tracked || {};
+    const trackerPostCount = WEEKS.reduce((sum, w) => {
+      return sum + (tracked[w.id] || []).filter(Boolean).length;
+    }, 0);
 
     // This-week submission check
     const currentWeekIdx = getWeekIndex();
@@ -7311,213 +7280,253 @@ function resetAdAudit() {
   showToast("Audit reset.");
 }
 
-window.openAdAudit         = openAdAudit;
-window.closeAdAudit        = closeAdAudit;
-window.closeAdAuditDirect  = closeAdAuditDirect;
-window.cycleAdStatus       = cycleAdStatus;
-window.toggleAdNote        = toggleAdNote;
-window.saveAdNote          = saveAdNote;
-window.resetAdAudit        = resetAdAudit;
-
 // ==============================
-//  ZOOM / COWORKING SESSION TOOLS
+// COWORKING SESSIONS
 // ==============================
 
-const ZOOM_CONFIG_DOC = "zoom_config";   // doc in "aac_settings" collection
-const ZOOM_LOG_COL    = "zoom_attendance"; // collection for per-session records
-
-// --- Dashboard card renderer ---
-window.loadZoomDashCard = async function() {
-  const card = document.getElementById("dash-zoom-card");
+async function loadCoworkCard() {
+  const card = document.getElementById("cowork-card");
   if (!card) return;
-  if (!db) { card.style.display = "none"; return; }
   try {
-    const { getDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-    const snap = await getDoc(doc(db, "aac_settings", ZOOM_CONFIG_DOC));
-    if (!snap.exists()) { card.style.display = "none"; return; }
-    const d = snap.data();
-    if (!d.visible || !d.title) { card.style.display = "none"; return; }
-    const linkHref = d.link || "#";
-    const linkLabel = d.linkLabel || "View Details →";
-    card.style.display = "block";
-    card.innerHTML = `<a href="${esc(linkHref)}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;text-decoration:none;box-shadow:var(--shadow);">
-      <span style="font-size:26px;flex-shrink:0;">📅</span>
-      <div style="flex:1;">
-        <div style="font-weight:700;font-size:14px;color:var(--text);">${esc(d.title)}${d.datetime ? " — " + esc(d.datetime) : ""}</div>
-        <div style="font-size:12px;color:var(--gold);font-weight:600;margin-top:2px;">${esc(linkLabel)}</div>
-      </div>
-    </a>`;
-  } catch(e) {
-    card.style.display = "none";
-  }
-};
-
-// --- Admin: load editor fields from Firestore ---
-window.loadZoomCardEditor = async function() {
-  if (!db) return;
-  try {
-    const { getDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-    const snap = await getDoc(doc(db, "aac_settings", ZOOM_CONFIG_DOC));
-    if (!snap.exists()) return;
-    const d = snap.data();
-    const ti = document.getElementById("zoom-title-input");
-    const dt = document.getElementById("zoom-datetime-input");
-    const li = document.getElementById("zoom-link-input");
-    const ll = document.getElementById("zoom-linklabel-input");
-    if (ti) ti.value = d.title || "";
-    if (dt) dt.value = d.datetime || "";
-    if (li) li.value = d.link || "";
-    if (ll) ll.value = d.linkLabel || "";
-  } catch(e) { /* silent */ }
-};
-
-// --- Admin: save & publish card ---
-window.saveZoomCard = async function() {
-  const statusEl = document.getElementById("zoom-card-status");
-  if (!db) { if (statusEl) { statusEl.style.display = "block"; statusEl.textContent = "No database connection."; } return; }
-  const title     = (document.getElementById("zoom-title-input") || {}).value || "";
-  const datetime  = (document.getElementById("zoom-datetime-input") || {}).value || "";
-  const link      = (document.getElementById("zoom-link-input") || {}).value || "";
-  const linkLabel = (document.getElementById("zoom-linklabel-input") || {}).value || "Add to Google Calendar →";
-  if (!title) { if (statusEl) { statusEl.style.display = "block"; statusEl.textContent = "Title is required."; } return; }
-  try {
-    const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-    await setDoc(doc(db, "aac_settings", ZOOM_CONFIG_DOC), { title, datetime, link, linkLabel, visible: true, updatedAt: Date.now() });
-    if (statusEl) { statusEl.style.display = "block"; statusEl.style.color = "var(--success)"; statusEl.textContent = "✓ Card saved and published."; }
-    loadZoomDashCard();
-  } catch(e) {
-    if (statusEl) { statusEl.style.display = "block"; statusEl.style.color = "var(--danger)"; statusEl.textContent = "Error: " + e.message; }
-  }
-};
-
-// --- Admin: hide card without deleting ---
-window.hideZoomCard = async function() {
-  if (!db) return;
-  const statusEl = document.getElementById("zoom-card-status");
-  try {
-    const { setDoc, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-    const snap = await getDoc(doc(db, "aac_settings", ZOOM_CONFIG_DOC));
-    const existing = snap.exists() ? snap.data() : {};
-    await setDoc(doc(db, "aac_settings", ZOOM_CONFIG_DOC), { ...existing, visible: false, updatedAt: Date.now() });
-    if (statusEl) { statusEl.style.display = "block"; statusEl.style.color = "var(--text-muted)"; statusEl.textContent = "Card hidden from dashboard."; }
-    loadZoomDashCard();
-  } catch(e) {
-    if (statusEl) { statusEl.style.display = "block"; statusEl.style.color = "var(--danger)"; statusEl.textContent = "Error: " + e.message; }
-  }
-};
-
-// --- Admin: load member checkboxes for attendance ---
-window.loadZoomAttendeeList = async function() {
-  const container = document.getElementById("zoom-attendee-list");
-  if (!container || !db) return;
-  container.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">Loading members...</div>';
-  try {
-    const { getDocs, collection } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-    const snap = await getDocs(collection(db, "aac_registry"));
-    const members = snap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .filter(m => !m.isAdmin && m.email !== ADMIN_EMAIL)
-      .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-    if (!members.length) { container.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">No members found.</div>'; return; }
-    container.innerHTML = members.map(m =>
-      `<label style="display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0;cursor:pointer;">
-        <input type="checkbox" class="zoom-attendee-check" data-uid="${esc(m.id)}" data-name="${esc(m.name || m.email)}" style="width:16px;height:16px;accent-color:var(--gold);" />
-        <span>${esc(m.name || m.email)}</span>
-        <span style="font-size:11px;color:var(--text-muted);">${esc(m.email || "")}</span>
-      </label>`
-    ).join("");
-  } catch(e) {
-    container.innerHTML = '<div style="font-size:12px;color:var(--danger);">Error loading members: ' + esc(e.message) + '</div>';
-  }
-};
-
-// --- Admin: award +5 pts to checked attendees ---
-window.awardZoomAttendance = async function() {
-  const statusEl = document.getElementById("zoom-award-status");
-  const label = (document.getElementById("zoom-session-label") || {}).value || "";
-  if (!label) { if (statusEl) { statusEl.style.display = "block"; statusEl.style.color = "var(--danger)"; statusEl.textContent = "Enter a session label first."; } return; }
-  const checked = [...document.querySelectorAll(".zoom-attendee-check:checked")];
-  if (!checked.length) { if (statusEl) { statusEl.style.display = "block"; statusEl.style.color = "var(--danger)"; statusEl.textContent = "No attendees selected."; } return; }
-  if (!confirm(`Award +5 pts to ${checked.length} member(s) for "${label}"?`)) return;
-  if (statusEl) { statusEl.style.display = "block"; statusEl.style.color = "var(--text-muted)"; statusEl.textContent = "Awarding..."; }
-  try {
-    const { addDoc, updateDoc, doc, increment, collection } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-    const sessionId = "zoom_" + Date.now();
-    const awardedAt = Date.now();
-    const attendees = checked.map(el => ({ uid: el.dataset.uid, name: el.dataset.name }));
-    // Award pts to each member
-    let successCount = 0;
-    for (const att of attendees) {
-      try {
-        // Log in engagements collection (consistent with community activity)
-        await addDoc(collection(db, "engagements"), {
-          type: "zoom_attendance",
-          label,
-          sessionId,
-          authorUid: att.uid,
-          authorName: att.name,
-          pts: PTS_ZOOM_ATTEND,
-          awardedByAdmin: true,
-          createdAt: awardedAt
-        });
-        // Increment registry points
-        await updateDoc(doc(db, "aac_registry", att.uid), { points: increment(PTS_ZOOM_ATTEND) });
-        successCount++;
-      } catch(innerErr) {
-        console.warn("Could not award pts to", att.uid, innerErr);
-      }
+    const snap = await db.collection("aac_coworking_sessions")
+      .where("active", "==", true)
+      .orderBy("createdAt", "desc")
+      .limit(1)
+      .get();
+    if (snap.empty) { card.style.display = "none"; return; }
+    const doc = snap.docs[0];
+    const data = doc.data();
+    card._sessionId   = doc.id;
+    card._calendarUrl = data.calendarUrl || "";
+    document.getElementById("cowork-card-label").textContent = data.label || "Coworking Session";
+    // Check if already RSVP'd
+    const rsvpDoc = await db.collection("aac_coworking_sessions")
+      .doc(doc.id).collection("rsvps").doc(currentUser.uid).get();
+    const btn = document.getElementById("cowork-rsvp-btn");
+    const sub = document.getElementById("cowork-card-sub");
+    if (rsvpDoc.exists) {
+      btn.textContent = "RSVP\u2019d";
+      btn.disabled    = true;
+      btn.style.opacity = "0.55";
+      sub.textContent  = "You\u2019re on the list! Attend to earn +5 pts.";
+    } else {
+      btn.textContent   = "RSVP +2";
+      btn.disabled      = false;
+      btn.style.opacity = "1";
+      sub.textContent   = "RSVP to earn +2 pts. Attend to earn +5 pts.";
     }
-    // Write session log record
-    await addDoc(collection(db, ZOOM_LOG_COL), {
-      label,
-      sessionId,
-      attendees,
-      ptsAwarded: PTS_ZOOM_ATTEND,
-      awardedAt,
-      awardedByAdmin: ADMIN_EMAIL
-    });
-    if (statusEl) { statusEl.style.display = "block"; statusEl.style.color = "var(--success)"; statusEl.textContent = `✓ Awarded +${PTS_ZOOM_ATTEND} pts to ${successCount} member(s).`; }
-    // Uncheck all
-    checked.forEach(el => { el.checked = false; });
-    loadZoomHistory();
-  } catch(e) {
-    if (statusEl) { statusEl.style.display = "block"; statusEl.style.color = "var(--danger)"; statusEl.textContent = "Error: " + e.message; }
+    card.style.display = "flex";
+  } catch (e) {
+    console.warn("loadCoworkCard:", e);
   }
-};
+}
 
-// --- Admin: load session history log ---
-window.loadZoomHistory = async function() {
-  const container = document.getElementById("zoom-history-list");
-  if (!container || !db) return;
-  container.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:13px;">Loading...</div>';
+async function rsvpCowork() {
+  const card = document.getElementById("cowork-card");
+  if (!card || !currentUser) return;
+  const sessionId   = card._sessionId;
+  const calendarUrl = card._calendarUrl;
+  if (!sessionId) return;
+  const rsvpRef = db.collection("aac_coworking_sessions")
+    .doc(sessionId).collection("rsvps").doc(currentUser.uid);
+  // Dedup guard
+  const existing = await rsvpRef.get().catch(() => null);
+  if (existing && existing.exists) {
+    showToast("Already RSVP\u2019d!");
+    loadCoworkCard();
+    return;
+  }
   try {
-    const { getDocs, collection, orderBy, query, limit } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-    let snap;
-    try { snap = await getDocs(query(collection(db, ZOOM_LOG_COL), orderBy("awardedAt", "desc"), limit(30))); }
-    catch(e2) { snap = await getDocs(collection(db, ZOOM_LOG_COL)); }
-    if (!snap.docs.length) { container.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:13px;">No sessions logged yet.</div>'; return; }
-    const rows = snap.docs.map(d => d.data()).sort((a, b) => (b.awardedAt || 0) - (a.awardedAt || 0));
-    container.innerHTML = rows.map(r => {
-      const date = r.awardedAt ? new Date(r.awardedAt).toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric", hour:"numeric", minute:"2-digit"}) : "—";
-      const names = (r.attendees || []).map(a => esc(a.name || a.uid)).join(", ") || "—";
-      return `<div style="border-bottom:1px solid var(--border);padding:10px 0;">
-        <div style="font-size:13px;font-weight:600;color:var(--text);">${esc(r.label || "Zoom Session")}</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${date} &middot; ${(r.attendees||[]).length} attendee(s) &middot; +${r.ptsAwarded || 5} pts each</div>
-        <div style="font-size:12px;color:var(--text);margin-top:4px;">${names}</div>
+    const batch = db.batch();
+    batch.set(rsvpRef, { uid: currentUser.uid, name: currentUser.name || "", rsvpAt: Date.now() });
+    batch.update(db.collection("aac_registry").doc(currentUser.uid),
+      { points: firebase.firestore.FieldValue.increment(PTS_COWORK_RSVP) });
+    await batch.commit();
+    currentUser.points = (currentUser.points || 0) + PTS_COWORK_RSVP;
+    logCommunityPts(currentUser.uid, currentUser.name || "", "Session RSVP", PTS_COWORK_RSVP);
+    showToast("RSVP confirmed! +" + PTS_COWORK_RSVP + " pts");
+    if (calendarUrl) window.open(calendarUrl, "_blank", "noopener");
+    loadCoworkCard();
+  } catch (e) {
+    showToast("RSVP failed — please try again.");
+    console.error("rsvpCowork:", e);
+  }
+}
+
+async function adminCreateCoworkSession() {
+  const label  = (document.getElementById("cowork-label-input").value || "").trim();
+  const calUrl = (document.getElementById("cowork-cal-input").value  || "").trim();
+  const status = document.getElementById("cowork-create-status");
+  if (!label) { if (status) status.textContent = "Label is required."; return; }
+  try {
+    await db.collection("aac_coworking_sessions").add({
+      label, calendarUrl: calUrl, active: true, createdAt: Date.now()
+    });
+    document.getElementById("cowork-label-input").value = "";
+    document.getElementById("cowork-cal-input").value   = "";
+    if (status) status.textContent = "Session created.";
+    loadAdminCoworkSessions();
+    loadCoworkCard();
+  } catch (e) {
+    if (status) status.textContent = "Error: " + e.message;
+  }
+}
+
+async function loadAdminCoworkSessions() {
+  const list = document.getElementById("admin-cowork-list");
+  if (!list) return;
+  list.innerHTML = "<div style='font-size:12px;color:var(--text-muted);'>Loading...</div>";
+  try {
+    const snap = await db.collection("aac_coworking_sessions")
+      .orderBy("createdAt", "desc").get();
+    if (snap.empty) { list.innerHTML = "<div style='font-size:12px;color:var(--text-muted);'>No sessions yet.</div>"; return; }
+    list.innerHTML = snap.docs.map(doc => {
+      const d = doc.data();
+      const created = new Date(d.createdAt).toLocaleDateString("en-US", {month:"short",day:"numeric",year:"numeric"});
+      const badge = d.active
+        ? `<span style='background:rgba(39,174,96,.15);color:#27ae60;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;letter-spacing:.04em;'>ACTIVE</span>`
+        : `<span style='background:rgba(107,107,107,.12);color:var(--text-muted);font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;letter-spacing:.04em;'>CLOSED</span>`;
+      return `<div id="cowork-row-${doc.id}" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:13px;line-height:1.4;">${esc(d.label)}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Created ${created}</div>
+          </div>
+          ${badge}
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <button class="btn btn-outline btn-sm" onclick="adminToggleCoworkSession('${doc.id}',${d.active})">${d.active ? "Close" : "Reopen"}</button>
+          <button class="btn btn-outline btn-sm" onclick="adminShowRenameSession('${doc.id}','${esc(d.label).replace(/'/g,"\\'")}','${(d.calendarUrl||"").replace(/'/g,"\\'")}')">Edit</button>
+          <button class="btn btn-sm" style="background:#fef2f2;color:var(--danger);border:1px solid #fecaca;" onclick="adminDeleteCoworkSession('${doc.id}')">Delete</button>
+          <button class="btn btn-gold btn-sm" onclick="adminLoadAttendees('${doc.id}')">Mark Attendees</button>
+        </div>
+        <div id="cowork-rename-${doc.id}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+          <div class="form-group"><input type="text" id="cowork-rename-label-${doc.id}" class="form-input" style="font-size:13px;" /></div>
+          <div class="form-group"><input type="url" id="cowork-rename-cal-${doc.id}" class="form-input" style="font-size:13px;" placeholder="Calendar URL (optional)" /></div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-gold btn-sm" onclick="adminRenameSession('${doc.id}')">Save</button>
+            <button class="btn btn-outline btn-sm" onclick="document.getElementById('cowork-rename-${doc.id}').style.display='none'">Cancel</button>
+          </div>
+        </div>
+        <div id="cowork-attendees-${doc.id}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);"></div>
       </div>`;
     }).join("");
-  } catch(e) {
-    container.innerHTML = '<div style="text-align:center;padding:16px;color:var(--danger);font-size:13px;">Error: ' + esc(e.message) + '</div>';
+  } catch (e) {
+    list.innerHTML = "<div style='font-size:12px;color:var(--danger);'>Error loading sessions.</div>";
+    console.error("loadAdminCoworkSessions:", e);
   }
-};
+}
 
-window.loadZoomDashCard    = window.loadZoomDashCard;
-window.loadZoomCardEditor  = window.loadZoomCardEditor;
-window.saveZoomCard        = window.saveZoomCard;
-window.hideZoomCard        = window.hideZoomCard;
-window.loadZoomAttendeeList= window.loadZoomAttendeeList;
-window.awardZoomAttendance = window.awardZoomAttendance;
-window.loadZoomHistory     = window.loadZoomHistory;
+async function adminToggleCoworkSession(id, currentActive) {
+  try {
+    await db.collection("aac_coworking_sessions").doc(id).update({ active: !currentActive });
+    loadAdminCoworkSessions();
+    loadCoworkCard();
+  } catch (e) { showToast("Error: " + e.message); }
+}
+
+async function adminDeleteCoworkSession(id) {
+  if (!confirm("Delete this session?\n\nNote: RSVP and attendance records in subcollections are NOT deleted automatically.")) return;
+  try {
+    await db.collection("aac_coworking_sessions").doc(id).delete();
+    loadAdminCoworkSessions();
+    loadCoworkCard();
+  } catch (e) { showToast("Error: " + e.message); }
+}
+
+function adminShowRenameSession(id, currentLabel, currentCal) {
+  const wrap = document.getElementById("cowork-rename-" + id);
+  if (!wrap) return;
+  document.getElementById("cowork-rename-label-" + id).value = currentLabel;
+  document.getElementById("cowork-rename-cal-"   + id).value = currentCal;
+  wrap.style.display = "block";
+}
+
+async function adminRenameSession(id) {
+  const label  = (document.getElementById("cowork-rename-label-" + id).value || "").trim();
+  const calUrl = (document.getElementById("cowork-rename-cal-"   + id).value || "").trim();
+  if (!label) { showToast("Label is required."); return; }
+  try {
+    await db.collection("aac_coworking_sessions").doc(id).update({ label, calendarUrl: calUrl });
+    document.getElementById("cowork-rename-" + id).style.display = "none";
+    loadAdminCoworkSessions();
+    loadCoworkCard();
+  } catch (e) { showToast("Error: " + e.message); }
+}
+
+async function adminLoadAttendees(sessionId) {
+  const wrap = document.getElementById("cowork-attendees-" + sessionId);
+  if (!wrap) return;
+  wrap.style.display = "block";
+  wrap.innerHTML = "<div style='font-size:12px;color:var(--text-muted);'>Loading members...</div>";
+  try {
+    const [membersSnap, attendeesSnap] = await Promise.all([
+      db.collection("aac_registry").orderBy("name").get(),
+      db.collection("aac_coworking_sessions").doc(sessionId).collection("attendees").get()
+    ]);
+    const awardedSet = new Set(attendeesSnap.docs.map(d => d.id));
+    const members    = membersSnap.docs.map(d => ({ uid: d.id, ...d.data() }))
+      .filter(m => m.name);
+    if (!members.length) { wrap.innerHTML = "<div style='font-size:12px;color:var(--text-muted);'>No members found.</div>"; return; }
+    const rows = members.map(m => {
+      const awarded  = awardedSet.has(m.uid);
+      const disabled = awarded ? "disabled" : "";
+      const label    = awarded ? ` <span style='color:var(--text-muted);font-size:11px;'>(awarded)</span>` : "";
+      return `<label style='display:flex;align-items:center;gap:8px;padding:6px 2px;font-size:13px;cursor:${awarded ? "default" : "pointer"};'>
+        <input type='checkbox' data-uid='${m.uid}' data-name='${esc(m.name || "").replace(/'/g,"\\'")}' ${awarded ? "checked" : ""} ${disabled} style='accent-color:var(--gold);width:16px;height:16px;' />
+        ${esc(m.name || "")}${label}
+      </label>`;
+    }).join("");
+    wrap.innerHTML = `
+      <div style='font-weight:600;font-size:13px;margin-bottom:8px;'>Mark Attendees</div>
+      <div style='max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:10px;'>${rows}</div>
+      <button class='btn btn-gold btn-sm' onclick='adminAwardAttendance("${sessionId}", this)'>Award +${PTS_COWORK_ATTEND} pts to Checked</button>
+      <div id='cowork-award-status-${sessionId}' style='font-size:12px;color:var(--text-muted);margin-top:8px;min-height:16px;'></div>`;
+  } catch (e) {
+    wrap.innerHTML = "<div style='font-size:12px;color:var(--danger);'>Error loading members.</div>";
+    console.error("adminLoadAttendees:", e);
+  }
+}
+
+async function adminAwardAttendance(sessionId, btn) {
+  const wrap      = document.getElementById("cowork-attendees-" + sessionId);
+  const statusEl  = document.getElementById("cowork-award-status-" + sessionId);
+  if (!wrap) return;
+  const boxes = Array.from(wrap.querySelectorAll("input[type='checkbox']:checked:not(:disabled)"));
+  if (!boxes.length) { if (statusEl) statusEl.textContent = "No unchecked members selected."; return; }
+  if (btn) { btn.disabled = true; btn.textContent = "Awarding..."; }
+  let awarded = 0;
+  for (const box of boxes) {
+    const uid  = box.dataset.uid;
+    const name = box.dataset.name || "";
+    try {
+      await db.collection("aac_coworking_sessions").doc(sessionId)
+        .collection("attendees").doc(uid).set({ uid, awardedAt: Date.now() });
+      await db.collection("aac_registry").doc(uid)
+        .update({ points: firebase.firestore.FieldValue.increment(PTS_COWORK_ATTEND) });
+      logCommunityPts(uid, name, "Session Attendance", PTS_COWORK_ATTEND);
+      awarded++;
+    } catch (e) {
+      console.error("adminAwardAttendance uid=" + uid, e);
+    }
+  }
+  if (statusEl) statusEl.textContent = "Awarded " + awarded + " member" + (awarded !== 1 ? "s" : "") + ".";
+  if (btn) { btn.disabled = false; btn.textContent = "Award +" + PTS_COWORK_ATTEND + " pts to Checked"; }
+  adminLoadAttendees(sessionId);
+}
+
+window.rsvpCowork                = rsvpCowork;
+window.adminCreateCoworkSession  = adminCreateCoworkSession;
+window.loadAdminCoworkSessions   = loadAdminCoworkSessions;
+window.adminToggleCoworkSession  = adminToggleCoworkSession;
+window.adminDeleteCoworkSession  = adminDeleteCoworkSession;
+window.adminShowRenameSession    = adminShowRenameSession;
+window.adminRenameSession        = adminRenameSession;
+window.adminLoadAttendees        = adminLoadAttendees;
+window.adminAwardAttendance      = adminAwardAttendance;
+
+
+
 
 
 </script>
