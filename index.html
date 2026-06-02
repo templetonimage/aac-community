@@ -4362,71 +4362,97 @@ async function toggleLike(postId) {
 
 async function deletePost(postId) {
   if (!confirm("Delete this post?\n\nPoints earned from this post (and all likes/replies on it) will be deducted.")) return;
+
+  // 1. Fetch post data before deleting
+  let postData;
   try {
-    // 1. Fetch post data before deleting
     const postRef = doc(db, "posts", postId);
     const postSnap = await getDoc(postRef);
     if (!postSnap.exists()) { showToast("Post not found."); return; }
-    const postData = postSnap.data();
-    const authorUid = postData.authorUid;
-    const postType  = postData.type || "regular"; // "regular" | "pvr"
-
-    // 2. Delete the post document
-    await deleteDoc(postRef);
-
-    // 3. Deduct the author's post pts (Feed Post or PVR)
-    const authorAction = (postType === "pvr") ? "Peer Review Request" : "Feed Post";
-    const authorPts    = (postType === "pvr") ? PTS_PVR : PTS_POST;
-    try {
-      // Find and delete the pts log entry for the author's post
-      const authorLogQ = query(collection(db, "aac_community_pts"),
-        where("uid", "==", authorUid),
-        where("action", "==", authorAction),
-        where("postId", "==", postId));
-      const authorLogSnap = await getDocs(authorLogQ);
-      if (!authorLogSnap.empty) {
-        const logDoc = authorLogSnap.docs[0];
-        const pts = logDoc.data().pts || authorPts;
-        await deleteDoc(logDoc.ref);
-        await updateDoc(doc(db, "aac_registry", authorUid), { points: increment(-pts) });
-        if (authorUid === currentUser.uid) currentUser.points = Math.max(0, (currentUser.points || 0) - pts);
-      }
-    } catch (_) {}
-
-    // 4. Deduct pts for all likes on this post (from whoever gave them)
-    try {
-      const likeLogQ = query(collection(db, "aac_community_pts"),
-        where("action", "==", "Like"),
-        where("postId", "==", postId));
-      const likeSnap = await getDocs(likeLogQ);
-      for (const logDoc of likeSnap.docs) {
-        const { uid, pts } = logDoc.data();
-        await deleteDoc(logDoc.ref);
-        if (uid) await updateDoc(doc(db, "aac_registry", uid), { points: increment(-(pts || PTS_LIKE_REPLY)) });
-        if (uid === currentUser.uid) currentUser.points = Math.max(0, (currentUser.points || 0) - (pts || PTS_LIKE_REPLY));
-      }
-    } catch (_) {}
-
-    // 5. Deduct pts for all replies on this post
-    try {
-      const replyLogQ = query(collection(db, "aac_community_pts"),
-        where("action", "==", "Reply"),
-        where("postId", "==", postId));
-      const replySnap = await getDocs(replyLogQ);
-      for (const logDoc of replySnap.docs) {
-        const { uid, pts } = logDoc.data();
-        await deleteDoc(logDoc.ref);
-        if (uid) await updateDoc(doc(db, "aac_registry", uid), { points: increment(-(pts || PTS_LIKE_REPLY)) });
-        if (uid === currentUser.uid) currentUser.points = Math.max(0, (currentUser.points || 0) - (pts || PTS_LIKE_REPLY));
-      }
-    } catch (_) {}
-
-    showToast("Post deleted. Points adjusted.");
-    loadFeed();
+    postData = postSnap.data();
   } catch (e) {
-    console.error("deletePost error:", e);
-    showToast("Failed to delete post.");
+    showToast("Failed to load post.");
+    console.error("deletePost fetch error:", e);
+    return;
   }
+
+  const authorUid = postData.authorUid;
+  const postType  = postData.type || "regular";
+
+  // 2. Delete the post document
+  try {
+    await deleteDoc(doc(db, "posts", postId));
+  } catch (e) {
+    // If UID mismatch (old post stored email as authorUid), try updating authorUid first then delete
+    if (e.code === "permission-denied" && currentUser.isAdmin) {
+      try {
+        await updateDoc(doc(db, "posts", postId), { authorUid: currentUser.uid });
+        await deleteDoc(doc(db, "posts", postId));
+      } catch (e2) {
+        showToast("Delete failed — check Firestore rules are up to date.");
+        console.error("deletePost permission error:", e2);
+        return;
+      }
+    } else {
+      showToast("Failed to delete post.");
+      console.error("deletePost error:", e);
+      return;
+    }
+  }
+
+  // 3. Deduct the author's post pts — silent fail if log entry missing
+  const authorAction = (postType === "pvr") ? "Peer Review Request" : "Feed Post";
+  const authorPts    = (postType === "pvr") ? PTS_PVR : PTS_POST;
+  try {
+    const authorLogQ = query(collection(db, "aac_community_pts"),
+      where("uid", "==", authorUid),
+      where("action", "==", authorAction),
+      where("postId", "==", postId));
+    const authorLogSnap = await getDocs(authorLogQ);
+    if (!authorLogSnap.empty) {
+      const logDoc = authorLogSnap.docs[0];
+      const pts = logDoc.data().pts || authorPts;
+      await deleteDoc(logDoc.ref);
+      const regUid = (authorUid && authorUid.length < 50) ? authorUid : currentUser.uid;
+      await updateDoc(doc(db, "aac_registry", regUid), { points: increment(-pts) });
+      if (regUid === currentUser.uid) currentUser.points = Math.max(0, (currentUser.points || 0) - pts);
+    }
+  } catch (_) {}
+
+  // 4. Deduct pts for all likes on this post
+  try {
+    const likeLogQ = query(collection(db, "aac_community_pts"),
+      where("action", "==", "Like"),
+      where("postId", "==", postId));
+    const likeSnap = await getDocs(likeLogQ);
+    for (const logDoc of likeSnap.docs) {
+      const { uid, pts } = logDoc.data();
+      try {
+        await deleteDoc(logDoc.ref);
+        if (uid) await updateDoc(doc(db, "aac_registry", uid), { points: increment(-(pts || PTS_LIKE_REPLY)) });
+        if (uid === currentUser.uid) currentUser.points = Math.max(0, (currentUser.points || 0) - (pts || PTS_LIKE_REPLY));
+      } catch (_) {}
+    }
+  } catch (_) {}
+
+  // 5. Deduct pts for all replies on this post
+  try {
+    const replyLogQ = query(collection(db, "aac_community_pts"),
+      where("action", "==", "Reply"),
+      where("postId", "==", postId));
+    const replySnap = await getDocs(replyLogQ);
+    for (const logDoc of replySnap.docs) {
+      const { uid, pts } = logDoc.data();
+      try {
+        await deleteDoc(logDoc.ref);
+        if (uid) await updateDoc(doc(db, "aac_registry", uid), { points: increment(-(pts || PTS_LIKE_REPLY)) });
+        if (uid === currentUser.uid) currentUser.points = Math.max(0, (currentUser.points || 0) - (pts || PTS_LIKE_REPLY));
+      } catch (_) {}
+    }
+  } catch (_) {}
+
+  showToast("Post deleted. Points adjusted.");
+  loadFeed();
 }
 
 // ==============================
@@ -6494,7 +6520,8 @@ function showFirebaseSetupCard() {
   el.innerHTML = `
     <p class="text-sm text-muted" style="margin-bottom:12px;">Firebase project: <strong>aac-26</strong> · Admin: ${esc(ADMIN_EMAIL)} · Round: ${CURRENT_ROUND}</p>
     <div style="font-size:12px;font-weight:600;margin-bottom:6px;">Required Firestore Security Rules</div>
-    <div style="background:#f8f8f8;border:1px solid var(--border);border-radius:6px;padding:12px;font-family:monospace;font-size:11px;line-height:1.7;white-space:pre-wrap;overflow-x:auto;">rules_version = '2';
+    <div style="position:relative;">
+      <div id="firebase-rules-block" style="background:#f8f8f8;border:1px solid var(--border);border-radius:6px;padding:12px;font-family:monospace;font-size:11px;line-height:1.7;white-space:pre-wrap;overflow-x:auto;">rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /aac_registry/{userId} {
@@ -6513,13 +6540,16 @@ service cloud.firestore {
       allow create: if request.auth != null;
       allow update, delete: if request.auth != null &&
         (request.auth.token.email == '${esc(ADMIN_EMAIL)}' ||
-         request.auth.uid == resource.data.authorUid);
+         request.auth.uid == resource.data.authorUid ||
+         resource.data.authorUid == request.auth.token.email);
     }
     match /{document=**} {
       allow read, write: if request.auth != null;
     }
   }
 }</div>
+      <button onclick="(()=>{const el=document.getElementById('firebase-rules-block');navigator.clipboard.writeText(el.textContent).then(()=>showToast('Rules copied!')).catch(()=>showToast('Copy failed.'))})()" style="position:absolute;top:8px;right:8px;background:var(--gold);color:#1a1a1a;border:none;border-radius:4px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;">Copy</button>
+    </div>
     <p style="font-size:11px;color:var(--text-muted);margin-top:8px;">Paste these into Firebase Console → Firestore → Rules tab → Publish.</p>
   `;
 }
