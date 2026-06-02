@@ -2267,7 +2267,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           </div>
           <button class="btn btn-sm btn-outline mt-8" id="clear-screenshot-btn" style="display:none;" onclick="clearScreenshot()">Remove screenshot</button>
         </div>
-        <button class="btn btn-gold btn-block btn-post" id="submit-update-btn" onclick="submitUpdate()" disabled style="opacity:0.45;cursor:not-allowed;" title="Submissions open June 15">Submit Update <span style="font-size:11px;font-weight:500;opacity:0.8;">(Opens June 15)</span></button>
+        <button class="btn btn-gold btn-block btn-post" id="submit-update-btn" onclick="submitUpdate()" disabled style="opacity:0.45;cursor:not-allowed;" title="Submissions opening soon">Submit Proof</button>
       </div>
 
       <!-- Community Feed Prompt (replaces engagement section) -->
@@ -2719,7 +2719,10 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div class="card-title">Change Password</div>
         <div class="form-group">
           <label class="form-label">New Password</label>
-          <input type="password" id="new-pass" class="form-input" placeholder="New password" />
+          <div style="position:relative;">
+            <input type="password" id="new-pass" class="form-input" placeholder="New password" style="padding-right:44px;" />
+            <button type="button" onclick="(function(){var i=document.getElementById('new-pass'),b=document.getElementById('new-pass-toggle');if(i.type==='password'){i.type='text';b.textContent='🙈';}else{i.type='password';b.textContent='👁';}})()" id="new-pass-toggle" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-muted);padding:0;line-height:1;">👁</button>
+          </div>
         </div>
         <button class="btn btn-outline btn-block" onclick="changePassword()">Update Password</button>
       </div>
@@ -2951,6 +2954,37 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 </div>
 
 <!-- RER RESPONDED NOTIFICATION MODAL -->
+<!-- BUG REPORT MODAL -->
+<div class="modal-overlay" id="bug-report-modal" onclick="(function(e){if(e.target===document.getElementById('bug-report-modal'))closeBugReport();})(event)" style="display:none;align-items:flex-end;">
+  <div class="modal-sheet" style="max-height:90dvh;display:flex;flex-direction:column;">
+    <div class="modal-header">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);">🐛 Report a Bug / Issue</div>
+      <button class="modal-close" onclick="closeBugReport()">✕</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 20px 24px;">
+      <div class="form-group" style="margin-bottom:14px;">
+        <label class="form-label">Your Name</label>
+        <input type="text" id="bug-name" class="form-input" placeholder="Name" />
+      </div>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label class="form-label">Describe the issue</label>
+        <textarea id="bug-desc" class="form-input" rows="4" placeholder="What happened? What were you trying to do?" style="resize:vertical;min-height:100px;"></textarea>
+      </div>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label class="form-label" style="margin-bottom:6px;">Screenshot (optional)</label>
+        <input type="file" id="bug-screenshot" accept="image/*" style="display:none;" onchange="previewBugScreenshot(this)" />
+        <div id="bug-screenshot-preview" style="display:none;margin-bottom:8px;">
+          <img id="bug-screenshot-img" style="max-width:100%;border-radius:8px;border:1px solid var(--border);" />
+          <button onclick="clearBugScreenshot()" style="margin-top:6px;background:none;border:none;font-size:12px;color:var(--text-muted);cursor:pointer;text-decoration:underline;font-family:'DM Sans',sans-serif;">Remove</button>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('bug-screenshot').click()">Attach Screenshot</button>
+      </div>
+      <div id="bug-report-msg" style="font-size:13px;min-height:18px;margin-bottom:10px;"></div>
+      <button class="btn btn-gold btn-block" id="bug-submit-btn" onclick="submitBugReport()">Send Report</button>
+    </div>
+  </div>
+</div>
+
 <div class="rer-notif-overlay" id="rer-notif-overlay">
   <div class="rer-notif-modal">
     <div style="font-size:42px;margin-bottom:10px;">🎯</div>
@@ -3500,7 +3534,7 @@ function bootApp() {
     _updateBtn.style.opacity = "";
     _updateBtn.style.cursor = "";
     _updateBtn.title = "";
-    _updateBtn.innerHTML = _updateBtn.innerHTML.replace(/<span[^>]*>\(Opens April 1\)<\/span>/g, "").replace(/<span[^>]*>\(Opens April 11\)<\/span>/g, "").trim();
+    _updateBtn.innerHTML = "Submit Proof";
   }
 
   // Unlock Submit Engagement: all trial weeks OR after April 11 OR admin
@@ -6896,7 +6930,7 @@ let _bugScreenshotBase64 = null;
 window.openBugReport = function() {
   const nameEl = document.getElementById("bug-name");
   if (nameEl && currentUser && currentUser.name) nameEl.value = currentUser.name;
-  document.getElementById("bug-report-modal").style.display = "block";
+  document.getElementById("bug-report-modal").style.display = "flex";
 };
 
 window.closeBugReport = function() {
