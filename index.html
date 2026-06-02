@@ -2320,7 +2320,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       <!-- April Free Trial section (local only) -->
       <div class="card mb-16">
         <div class="card-title" style="font-size:16px;margin-bottom:4px;">🗓 June Free Trial</div>
-        <p class="text-sm text-muted" style="margin-bottom:14px;">Personal check-in only — does not count toward All-Star or points.</p>
+        <p class="text-sm text-muted" style="margin-bottom:14px;">Trial weeks — full scoring enabled. Proof submissions auto-fill your tracker.</p>
         <div id="trial-tracker-body"></div>
       </div>
       <!-- Main Round 1 tracker -->
@@ -5032,6 +5032,9 @@ async function submitUpdate() {
     currentUser.totalPosts = (currentUser.totalPosts || 0) + 1;
     lsSet("wac_session", currentUser);
 
+    // Sync tracker slot from submission count
+    await syncTrackerFromSubmissions(isTrial ? trialIdx : weekIdx, isTrial);
+
     // Reset form
     document.getElementById("submit-url").value = "";
     document.getElementById("submit-note").value = "";
@@ -5167,7 +5170,7 @@ async function loadMySubmissions() {
       <div class="submission-pts">+${s.pts}</div>
       ${canEdit ? `<button class="btn btn-outline btn-sm sub-edit-btn" style="font-size:11px;padding:4px 9px;margin-right:4px;"
         data-id="${s.id}" data-url="${urlB64}" data-note="${noteB64}">Edit</button>` : ""}
-      <button class="submission-del sub-del-btn" data-id="${s.id}" data-pts="${s.pts}">🗑</button>
+      <button class="submission-del sub-del-btn" data-id="${s.id}" data-pts="${s.pts}" data-weekidx="${s.isTrial ? (s.trialWeekIdx ?? -1) : (s.weekIdx ?? -1)}" data-istrial="${!!s.isTrial}">🗑</button>
     </div>`;
     }).join("");
 
@@ -5182,9 +5185,11 @@ async function loadMySubmissions() {
         editSubmission(docId, currentUrl, currentNote);
       }
       if (delBtn) {
-        const docId = delBtn.dataset.id;
-        const pts   = parseInt(delBtn.dataset.pts, 10);
-        deleteSubmission(docId, pts);
+        const docId   = delBtn.dataset.id;
+        const pts     = parseInt(delBtn.dataset.pts, 10);
+        const weekIdx = parseInt(delBtn.dataset.weekidx, 10);
+        const isTrial = delBtn.dataset.istrial === "true";
+        deleteSubmission(docId, pts, weekIdx, isTrial);
       }
     };
   } catch (e) { console.error("loadMySubmissions error:", e); }
@@ -5211,7 +5216,7 @@ window.editSubmission = async function(docId, currentUrl, currentNote) {
   }
 };
 
-async function deleteSubmission(id, pts) {
+async function deleteSubmission(id, pts, weekIdx, isTrial) {
   if (!confirm(`Delete this submission? ${pts} point${pts !== 1 ? "s" : ""} will be deducted from your total.`)) return;
   try {
     await deleteDoc(doc(db, "submissions", id));
@@ -5223,6 +5228,9 @@ async function deleteSubmission(id, pts) {
     currentUser.points    = Math.max(0, (currentUser.points    || 0) - pts);
     currentUser.totalPosts = Math.max(0, (currentUser.totalPosts || 0) - 1);
     lsSet("wac_session", currentUser);
+    if (weekIdx != null && weekIdx >= 0) {
+      await syncTrackerFromSubmissions(weekIdx, isTrial);
+    }
     showToast(`Submission deleted. -${pts} pts`);
     loadMySubmissions();
     updatePtsPreview();
@@ -5232,42 +5240,111 @@ async function deleteSubmission(id, pts) {
 // ==============================
 // TRACKER
 // ==============================
-async function buildTracker() {
-  // ── April trial section (localStorage only, no Firestore) ──
-  const trialKey = "aac_trial_tracker";
-  let trialData = {};
-  try { trialData = JSON.parse(localStorage.getItem(trialKey) || "{}"); } catch {}
 
+// Syncs tracker slots from real submission count for a given week.
+// Slots 0..realCount-1 → true; slots at realCount+ preserve manual state.
+async function syncTrackerFromSubmissions(weekIdx, isTrial) {
+  if (!db || !currentUser || currentUser.isAdmin) return;
+  const uid = currentUser.uid;
+  const { getDocs, collection, query, where, doc: fsDoc, getDoc: fsGetDoc, setDoc: fsSetDoc }
+    = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+
+  let realCount = 0;
+  try {
+    const q = isTrial
+      ? query(collection(db, 'submissions'), where('authorUid', '==', uid), where('trialWeekIdx', '==', weekIdx))
+      : query(collection(db, 'submissions'), where('authorUid', '==', uid), where('weekIdx', '==', weekIdx), where('isTrial', '==', false));
+    const snap = await getDocs(q);
+    realCount = snap.size;
+  } catch (e) { console.warn('syncTrackerFromSubmissions: query failed', e); return; }
+
+  const slotLength = isTrial ? 1 : WEEKS[weekIdx].required;
+  const weekId     = isTrial ? TRIAL_WEEKS[weekIdx].id : WEEKS[weekIdx].id;
+  const trackerKey = isTrial ? 'trial' : 'tracked';
+
+  const ref = fsDoc(db, 'trackers', uid);
+  let trackerData = {};
+  try { const s = await fsGetDoc(ref); if (s.exists()) trackerData = s.data(); } catch {}
+
+  const section  = trackerData[trackerKey] || {};
+  const existing = section[weekId] || [];
+  const slots    = Array.from({ length: slotLength }, (_, i) =>
+    i < realCount ? true : (existing[i] === true)
+  );
+
+  try {
+    await fsSetDoc(ref, { uid, [`${trackerKey}.${weekId}`]: slots, updatedAt: Date.now() }, { merge: true });
+    if (window._trackerCache) window._trackerCache[uid] = null;
+  } catch (e) { console.warn('syncTrackerFromSubmissions: write failed', e); }
+}
+
+async function buildTracker() {
+  const trackerUid = currentUser.isAdmin ? "admin-test" : currentUser.uid;
+
+  // Read Firestore tracker doc
+  let trackerDoc = {};
+  try {
+    const ref = doc(db, "trackers", trackerUid);
+    const snap = await getDoc(ref);
+    if (snap.exists()) trackerDoc = snap.data();
+  } catch {}
+
+  const tracked = trackerDoc.tracked || {};   // Round 1 slot arrays
+  const trial   = trackerDoc.trial   || {};   // Trial week slot arrays
+
+  // ── Lazy backfill: run once per session for non-admin members ──
+  if (!window._trackerBackfillDone && db && currentUser && !currentUser.isAdmin) {
+    window._trackerBackfillDone = true;
+    (async () => {
+      try {
+        const { getDocs, collection: col, query: q, where: wh }
+          = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+        const snap = await getDocs(q(col(db, 'submissions'), wh('authorUid', '==', currentUser.uid)));
+        const subs = snap.docs.map(d => d.data());
+        let needsRebuild = false;
+
+        for (let i = 0; i < TRIAL_WEEKS.length; i++) {
+          const count    = subs.filter(s => s.isTrial && s.trialWeekIdx === i).length;
+          const existing = (trial[TRIAL_WEEKS[i].id] || []).filter(Boolean).length;
+          if (count > existing) { await syncTrackerFromSubmissions(i, true); needsRebuild = true; }
+        }
+        for (let i = 0; i < WEEKS.length; i++) {
+          const count    = subs.filter(s => !s.isTrial && s.weekIdx === i).length;
+          const existing = (tracked[WEEKS[i].id] || []).filter(Boolean).length;
+          if (count > existing) { await syncTrackerFromSubmissions(i, false); needsRebuild = true; }
+        }
+        if (needsRebuild) buildTracker();
+      } catch (e) { console.warn('Tracker backfill failed:', e); }
+    })();
+  }
+
+  // ── Trial section (Firestore-backed) ──
   const trialEl = document.getElementById("trial-tracker-body");
   if (trialEl) {
-    let trialHtml = `<div class="tracker-month-group">`;
-    for (const w of TRIAL_WEEKS) {
-      const checked = trialData[w.id] ? "checked" : "";
-      trialHtml += `<div class="tracker-week ${checked}" data-week="${w.id}" onclick="toggleTrialCheck('${w.id}')">
-        <div>
-          <div class="tracker-week-label">${w.label}</div>
-          <div class="tracker-week-dates">${w.dates}</div>
-        </div>
-        <div class="tracker-check">${trialData[w.id] ? "✓" : ""}</div>
-      </div>`;
+    let trialHtml = `<p class="text-sm text-muted" style="margin-bottom:12px;">Your tracker updates automatically when you submit proof. Tap any empty box to mark it manually.</p><div class="tracker-month-group">`;
+    for (let i = 0; i < TRIAL_WEEKS.length; i++) {
+      const w     = TRIAL_WEEKS[i];
+      const slots = trial[w.id] || [false];
+      slots.forEach((filled, slotIdx) => {
+        const cls = filled ? "checked" : "";
+        trialHtml += `<div class="tracker-week ${cls}" data-week="${w.id}" onclick="toggleCheck('${w.id}', ${slotIdx}, true)">
+          <div>
+            <div class="tracker-week-label">${w.label}</div>
+            <div class="tracker-week-dates">${w.dates}</div>
+          </div>
+          <div class="tracker-check">${filled ? "✓" : ""}</div>
+        </div>`;
+      });
     }
     trialHtml += `</div>`;
     trialEl.innerHTML = trialHtml;
   }
 
-  // ── Main Round 1 tracker (May–July) ──
-  const MAY1 = new Date("2026-05-01T00:00:00").getTime();
-  const isLocked = Date.now() < MAY1 && !(currentUser && currentUser.isAdmin);
-
-  let trackerData = {};
-  const trackerUid = currentUser.isAdmin ? "admin-test" : currentUser.uid;
-  try {
-    const ref = doc(db, "trackers", trackerUid);
-    const snap = await getDoc(ref);
-    if (snap.exists()) trackerData = snap.data();
-  } catch {}
-
-  const completed = WEEKS.filter(w => trackerData[w.id]).length;
+  // ── Round 1 tracker ──
+  const completed = WEEKS.filter(w => {
+    const slots = tracked[w.id] || [];
+    return slots.length === w.required && slots.every(Boolean);
+  }).length;
   const pct = Math.round((completed / 12) * 100);
 
   const headerEl = document.getElementById("tracker-header");
@@ -5277,25 +5354,28 @@ async function buildTracker() {
       <span class="text-sm text-muted">${pct}%</span>
     </div>
     <div class="tracker-progress"><div class="tracker-progress-bar" style="width:${pct}%"></div></div>
-    ${isLocked ? `<div style="font-size:12px;color:var(--text-muted);margin-top:10px;padding:8px 12px;background:var(--surface2);border-radius:8px;text-align:center;">🔒 Round 1 begins May 1, 2026</div>` : ""}
     ${currentUser.isAdmin ? `<div style="font-size:11px;color:var(--text-muted);margin-top:6px;padding:4px 8px;background:var(--surface2);border-radius:4px;">Admin test tracker — use Reports → All-Star Progress to manage member trackers</div>` : ""}
   `;
 
   let html = "";
   for (const month of MONTHS) {
     const monthWeeks = WEEKS.filter(w => w.month === month);
-    html += `<div class="tracker-month-group" style="${isLocked ? "opacity:0.45;pointer-events:none;" : ""}">
+    html += `<div class="tracker-month-group">
       <div class="tracker-month-title">${month}</div>
       <div class="tracker-month-req">${MONTH_REQS[month]}</div>`;
-    for (const w of monthWeeks) {
-      const checked = trackerData[w.id] ? "checked" : "";
-      html += `<div class="tracker-week ${checked}" data-week="${w.id}" ${isLocked ? "" : `onclick="toggleCheck('${w.id}')"`}>
-        <div>
-          <div class="tracker-week-label">${w.label}</div>
-          <div class="tracker-week-dates">${w.dates}</div>
-        </div>
-        <div class="tracker-check">${trackerData[w.id] ? "✓" : ""}</div>
-      </div>`;
+    for (let wi = 0; wi < monthWeeks.length; wi++) {
+      const w     = monthWeeks[wi];
+      const slots = tracked[w.id] || Array(w.required).fill(false);
+      slots.forEach((filled, slotIdx) => {
+        const cls = filled ? "checked" : "";
+        html += `<div class="tracker-week ${cls}" data-week="${w.id}" onclick="toggleCheck('${w.id}', ${slotIdx}, false)">
+          <div>
+            <div class="tracker-week-label">${w.label}${w.required > 1 ? ` <span style="font-size:11px;color:var(--text-muted);">(${slotIdx + 1}/${w.required})</span>` : ""}</div>
+            <div class="tracker-week-dates">${w.dates}</div>
+          </div>
+          <div class="tracker-check">${filled ? "✓" : ""}</div>
+        </div>`;
+      });
     }
     html += `</div>`;
   }
@@ -5303,30 +5383,34 @@ async function buildTracker() {
 }
 
 
-async function toggleCheck(weekId) {
+async function toggleCheck(weekId, slotIndex, isTrial) {
   const trackerUid = currentUser.isAdmin ? "admin-test" : currentUser.uid;
+  const trackerKey = isTrial ? 'trial' : 'tracked';
   try {
-    const ref = doc(db, "trackers", trackerUid);
+    const ref  = doc(db, "trackers", trackerUid);
     const snap = await getDoc(ref);
-    let data = snap.exists() ? snap.data() : { uid: trackerUid };
-    data[weekId] = !data[weekId];
-    await setDoc(ref, data, { merge: true });
-    if (!currentUser.isAdmin) await checkAllStar(data);
+    let data   = snap.exists() ? snap.data() : { uid: trackerUid };
+    const section  = data[trackerKey] || {};
+    const existing = section[weekId] || [];
+    // Ensure array is long enough
+    const slotLen = isTrial ? 1 : (() => { const w = WEEKS.find(x => x.id === weekId); return w ? w.required : 1; })();
+    const slots   = Array.from({ length: slotLen }, (_, i) => existing[i] === true);
+    slots[slotIndex] = !slots[slotIndex];
+    await setDoc(ref, { [`${trackerKey}.${weekId}`]: slots, uid: trackerUid }, { merge: true });
+    if (!currentUser.isAdmin && !isTrial) {
+      // Re-read full doc for AllStar check
+      const updated = await getDoc(ref);
+      if (updated.exists()) await checkAllStar(updated.data().tracked || {});
+    }
     buildTracker();
   } catch (e) { showToast("Failed to update tracker."); }
 }
 
-function toggleTrialCheck(weekId) {
-  const trialKey = "aac_trial_tracker";
-  let trialData = {};
-  try { trialData = JSON.parse(localStorage.getItem(trialKey) || "{}"); } catch {}
-  trialData[weekId] = !trialData[weekId];
-  try { localStorage.setItem(trialKey, JSON.stringify(trialData)); } catch {}
-  buildTracker();
-}
-
-async function checkAllStar(data) {
-  const allDone = WEEKS.every(w => data[w.id]);
+async function checkAllStar(tracked) {
+  const allDone = WEEKS.every(w => {
+    const slots = tracked[w.id] || [];
+    return slots.length === w.required && slots.every(Boolean);
+  });
   if (allDone) {
     const regRef = doc(db, "aac_registry", currentUser.uid);
     await updateDoc(regRef, { isAllStar: true });
@@ -6508,7 +6592,7 @@ window.submitEngagement = submitEngagement;
 window.deleteSubmission = deleteSubmission;
 window.editSubmission = window.editSubmission;
 window.toggleCheck = toggleCheck;
-window.toggleTrialCheck = toggleTrialCheck;
+window.syncTrackerFromSubmissions = syncTrackerFromSubmissions;
 window.handleMemberCardClick = handleMemberCardClick;
 window.closeMemberModal = closeMemberModal;
 window.closeMemberModalDirect = closeMemberModalDirect;
