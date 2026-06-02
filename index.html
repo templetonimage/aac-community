@@ -2141,7 +2141,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           <div class="form-group">
             <input type="url" id="feed-url" class="form-input" placeholder="Link URL (optional)" />
           </div>
-          <button class="btn btn-gold btn-sm" onclick="submitPost()">Post (+1 pt)</button>
+          <button class="btn btn-gold btn-sm" onclick="submitPost()">Post (+2 pts)</button>
         </div>
         <!-- PVR fields -->
         <div id="pvr-compose-fields" class="pvr-compose-fields">
@@ -2212,7 +2212,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
     <!-- PAGE: SUBMIT -->
     <div class="page" id="page-submit">
       <div class="page-header">
-        <div class="page-title">Submit Update</div>
+        <div class="page-title">Submit Proof</div>
         <div class="page-subtitle">Log your weekly campaign proof for points.</div>
       </div>
       <!-- RER Status Card (visible when user has a request this month) -->
@@ -2275,7 +2275,8 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div class="card-title" style="font-size:16px;">💬 Community Points</div>
         <p class="text-sm text-muted mb-8" style="margin-bottom:12px;">Earn bonus points by participating in the community — every interaction compounds.</p>
         <div style="font-size:13px;line-height:1.8;color:var(--text);">
-          <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>Community Feed post</span><span style="font-weight:700;color:var(--gold);">+1 pt</span></div>
+          <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>Community Feed post <span style="font-size:11px;color:var(--text-muted);">(2x/week max)</span></span><span style="font-weight:700;color:var(--gold);">+2 pts</span></div>
+          <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>Like or reply on a post <span style="font-size:11px;color:var(--text-muted);">(5x/week max)</span></span><span style="font-weight:700;color:var(--gold);">+1 pt</span></div>
           <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>Ad Peer Review Request</span><span style="font-weight:700;color:var(--gold);">+5 pts</span></div>
           <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>Expert Review Request</span><span style="font-weight:700;color:var(--gold);">+10 pts</span></div>
           <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Coworking Session RSVP / Attendance</span><span style="font-weight:700;color:var(--gold);">+2 / +5 pts</span></div>
@@ -2303,7 +2304,8 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div class="points-row"><span>Proof of current campaign (on-time)</span><span class="pts-val">+10 pts</span></div>
         <div class="points-row"><span>New Campaign Launch bonus</span><span class="pts-val">+2 pts</span></div>
         <div class="points-row"><span>Weekly Challenge bonus</span><span class="pts-val">+5 pts</span></div>
-        <div class="points-row"><span>Community Feed post</span><span class="pts-val">+1 pt</span></div>
+        <div class="points-row"><span>Community Feed post <span style="font-size:11px;opacity:0.6;">(2x/week)</span></span><span class="pts-val">+2 pts</span></div>
+        <div class="points-row"><span>Like or reply on a post <span style="font-size:11px;opacity:0.6;">(5x/week)</span></span><span class="pts-val">+1 pt</span></div>
         <div class="points-row"><span>Ad Peer Review Request</span><span class="pts-val">+5 pts</span></div>
         <div class="points-row"><span>Expert Review Request</span><span class="pts-val">+10 pts</span></div>
         <div class="points-row"><span>Coworking Session RSVP</span><span class="pts-val">+2 pts</span></div>
@@ -2405,6 +2407,8 @@ textarea.form-input { resize: vertical; min-height: 80px; }
             <select id="cpts-filter-action" class="form-input" style="flex:1;min-width:140px;font-size:13px;" onchange="renderCommunityPtsTable()">
               <option value="">All Actions</option>
               <option value="Feed Post">Feed Post</option>
+              <option value="Like">Like</option>
+              <option value="Reply">Reply</option>
               <option value="Peer Review Request">Peer Review Request</option>
               <option value="Expert Review Request">Expert Review Request</option>
               <option value="Session RSVP">Session RSVP</option>
@@ -2429,6 +2433,8 @@ textarea.form-input { resize: vertical; min-height: 80px; }
             <select id="backfill-action" class="form-input" onchange="autoFillBackfillPts()">
               <option value="">— select action —</option>
               <option value="Feed Post">Feed Post</option>
+              <option value="Like">Like</option>
+              <option value="Reply">Reply</option>
               <option value="Peer Review Request">Peer Review Request</option>
               <option value="Expert Review Request">Expert Review Request</option>
               <option value="Session RSVP">Session RSVP</option>
@@ -3063,7 +3069,9 @@ const PTS_ENGAGEMENT = 2;
 const PTS_CHALLENGE  = 5;
 const PTS_PVR        = 5;  // Posting an Ad Peer Review Request
 const PTS_RER        = 10; // Posting an Expert Review Request
-const PTS_POST       = 1;  // Regular community feed post
+const PTS_POST       = 2;  // Regular community feed post (2x/week max)
+const MAX_POST_PER_WEEK  = 2;  // Post limit per week
+const PTS_LIKE_REPLY = 1;  // Like (props) or reply (+1 pt, 5x/week max)
 const PTS_COWORK_RSVP   = 2;  // Coworking Session RSVP
 const PTS_COWORK_ATTEND = 5;  // Coworking Session Attendance (admin-awarded)
 
@@ -3079,6 +3087,7 @@ async function logCommunityPts(uid, name, action, pts) {
   } catch (e) { console.warn("logCommunityPts failed:", e.message); }
 }
 const MAX_ENG_PER_WEEK = 5;
+const MAX_LIKE_REPLY_PER_WEEK = 5;  // Like/reply limit per week
 
 // Weekly Challenge Modifiers — one per week, keyed by weekIdx (0–11)
 const WEEKLY_CHALLENGES = [
@@ -3294,6 +3303,15 @@ function getWeekIndex() {
 
 function getWeekDeadline(weekIdx) {
   return WEEK_SCHEDULE[weekIdx] ? WEEK_SCHEDULE[weekIdx][1] : WEEK_SCHEDULE[11][1];
+}
+
+function _getWeekStart(weekIdx) {
+  const idx = (weekIdx !== undefined && weekIdx !== null) ? weekIdx : getWeekIndex();
+  return WEEK_SCHEDULE[idx] ? WEEK_SCHEDULE[idx][0] : WEEK_SCHEDULE[0][0];
+}
+function _getWeekEnd(weekIdx) {
+  const idx = (weekIdx !== undefined && weekIdx !== null) ? weekIdx : getWeekIndex();
+  return WEEK_SCHEDULE[idx] ? WEEK_SCHEDULE[idx][1] : WEEK_SCHEDULE[11][1];
 }
 
 function showToast(msg) {
@@ -3982,7 +4000,7 @@ function _renderDashboard({total, postPts, engPts, communityPts, trackerPostCoun
       ${_dashAvatarHTML(m.name, m.photoURL || "")}
       <div class="dash-lb-info">
         <div class="dash-lb-name">${esc(m.name)}${isYou ? '<span class="dash-you-badge">YOU</span>' : ''}${m.isExpert ? ' <span style="font-size:10px;color:var(--gold);font-weight:700;">🎯</span>' : ''}${m.isAllStar ? ' ⭐' : ''}</div>
-        <div class="dash-lb-sub">${posts} update${posts !== 1 ? 's' : ''}</div>
+        <div class="dash-lb-sub">${posts} submission${posts !== 1 ? 's' : ''}</div>
       </div>
       <div class="dash-lb-pts">${m.points || 0}</div>
     </div>`;
@@ -3999,6 +4017,21 @@ async function submitPost() {
   let url = document.getElementById("feed-url").value.trim();
   if (!text) { showToast("Write something first."); return; }
   if (url && !/^https?:\/\//i.test(url)) url = "https://" + url;
+
+  // Enforce 2 posts per week cap
+  try {
+    const weekIdx = getWeekIndex();
+    const postQ = query(collection(db, "posts"),
+      where("authorUid", "==", currentUser.uid),
+      where("weekIdx", "==", weekIdx),
+      where("type", "==", "regular"));
+    const postSnap = await getDocs(postQ);
+    if (postSnap.size >= MAX_POST_PER_WEEK) {
+      showToast(`Max ${MAX_POST_PER_WEEK} community posts per week.`);
+      return;
+    }
+  } catch (_) {}
+
   try {
     await addDoc(collection(db, "posts"), {
       author: currentUser.name,
@@ -4007,9 +4040,11 @@ async function submitPost() {
       url: url || "",
       props: [],
       propsCount: 0,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      weekIdx: getWeekIndex(),
+      type: "regular"
     });
-    // Award community feed post point
+    // Award community feed post points
     try {
       const regRef = doc(db, "aac_registry", currentUser.uid);
       await updateDoc(regRef, { points: increment(PTS_POST) });
@@ -4018,7 +4053,7 @@ async function submitPost() {
     } catch (_) {}
     document.getElementById("feed-compose").value = "";
     document.getElementById("feed-url").value = "";
-    showToast("Posted! +1 pt");
+    showToast(`Posted! +${PTS_POST} pts`);
     loadFeed();
   } catch (e) {
     console.error("submitPost error:", e);
@@ -4214,7 +4249,6 @@ function renderPVRCard(p) {
 }
 
 async function giveProps(postId) {
-  // Props opens their site, then confirms
   try {
     const ref = doc(db, "posts", postId);
     const snap = await getDoc(ref);
@@ -4222,13 +4256,44 @@ async function giveProps(postId) {
     const data = snap.data();
     const props = data.props || [];
     if (props.includes(currentUser.name)) { showToast("You already gave props!"); return; }
-    // If user has a website, open it
-    // Find the post author's registry doc for their website
-    confirmProps(postId);
+    // Check weekly like/reply cap (5 combined per week)
+    const weekIdx = getWeekIndex();
+    const weekStart = _getWeekStart(weekIdx);
+    const weekEnd   = _getWeekEnd(weekIdx);
+    const likeQ = query(collection(db, "aac_community_pts"),
+      where("uid", "==", currentUser.uid),
+      where("action", "==", "Like"),
+      where("ts", ">=", weekStart),
+      where("ts", "<=", weekEnd));
+    const replyQ = query(collection(db, "aac_community_pts"),
+      where("uid", "==", currentUser.uid),
+      where("action", "==", "Reply"),
+      where("ts", ">=", weekStart),
+      where("ts", "<=", weekEnd));
+    const [likeSnap, replySnap] = await Promise.all([getDocs(likeQ), getDocs(replyQ)]);
+    const weeklyEngCount = likeSnap.size + replySnap.size;
+    if (weeklyEngCount >= MAX_LIKE_REPLY_PER_WEEK) {
+      showToast(`Max ${MAX_LIKE_REPLY_PER_WEEK} likes/replies per week.`);
+      // Still allow the props without points
+      confirmPropsNoPoints(postId, props);
+      return;
+    }
+    confirmProps(postId, props, true);
   } catch (e) { showToast("Error giving props."); }
 }
 
-async function confirmProps(postId) {
+async function confirmPropsNoPoints(postId, existingProps) {
+  try {
+    const props = [...existingProps];
+    props.push(currentUser.name);
+    const ref = doc(db, "posts", postId);
+    await updateDoc(ref, { props, propsCount: props.length });
+    showToast("Props given! 👏 (weekly limit reached — no pts)");
+    loadFeed();
+  } catch (e) { showToast("Error confirming props."); }
+}
+
+async function confirmProps(postId, existingProps, awardPts) {
   try {
     const ref = doc(db, "posts", postId);
     const snap = await getDoc(ref);
@@ -4238,7 +4303,17 @@ async function confirmProps(postId) {
     if (props.includes(currentUser.name)) return;
     props.push(currentUser.name);
     await updateDoc(ref, { props, propsCount: props.length });
-    showToast("Props given! 👏");
+    if (awardPts) {
+      try {
+        const regRef = doc(db, "aac_registry", currentUser.uid);
+        await updateDoc(regRef, { points: increment(PTS_LIKE_REPLY) });
+        currentUser.points = (currentUser.points || 0) + PTS_LIKE_REPLY;
+        logCommunityPts(currentUser.uid, currentUser.name || "", "Like", PTS_LIKE_REPLY);
+      } catch (_) {}
+      showToast(`Props given! 👏 +${PTS_LIKE_REPLY} pt`);
+    } else {
+      showToast("Props given! 👏");
+    }
     loadFeed();
   } catch (e) { showToast("Error confirming props."); }
 }
@@ -4368,7 +4443,33 @@ async function submitPostReply(postId) {
   try {
     await updateDoc(doc(db, "posts", postId), { replies: arrayUnion(reply) });
     if (input) input.value = "";
-    showToast("Reply posted!");
+    // Award +1 pt for reply (within 5/week like+reply cap)
+    try {
+      const weekIdx = getWeekIndex();
+      const weekStart = _getWeekStart(weekIdx);
+      const weekEnd   = _getWeekEnd(weekIdx);
+      const likeQ = query(collection(db, "aac_community_pts"),
+        where("uid", "==", currentUser.uid),
+        where("action", "==", "Like"),
+        where("ts", ">=", weekStart),
+        where("ts", "<=", weekEnd));
+      const replyQ = query(collection(db, "aac_community_pts"),
+        where("uid", "==", currentUser.uid),
+        where("action", "==", "Reply"),
+        where("ts", ">=", weekStart),
+        where("ts", "<=", weekEnd));
+      const [likeSnap, replySnap] = await Promise.all([getDocs(likeQ), getDocs(replyQ)]);
+      const weeklyEngCount = likeSnap.size + replySnap.size;
+      if (weeklyEngCount < MAX_LIKE_REPLY_PER_WEEK) {
+        const regRef = doc(db, "aac_registry", currentUser.uid);
+        await updateDoc(regRef, { points: increment(PTS_LIKE_REPLY) });
+        currentUser.points = (currentUser.points || 0) + PTS_LIKE_REPLY;
+        logCommunityPts(currentUser.uid, currentUser.name || "", "Reply", PTS_LIKE_REPLY);
+        showToast(`Reply posted! +${PTS_LIKE_REPLY} pt`);
+      } else {
+        showToast("Reply posted! (weekly limit reached — no pts)");
+      }
+    } catch (_) { showToast("Reply posted!"); }
     loadFeed();
   } catch (e) {
     console.error("submitPostReply error:", e);
@@ -4911,7 +5012,7 @@ function updatePtsPreview() {
   const challengeChecked = document.getElementById("submit-challenge");
   if (challengeChecked && challengeChecked.checked) pts += PTS_CHALLENGE;
   document.getElementById("pts-num").textContent = pts;
-  const label = isLate ? "pts for late update" : "pts for on-time update";
+  const label = isLate ? "pts for late proof" : "pts for on-time proof";
   document.getElementById("pts-preview").innerHTML = `<span class="pts-num" id="pts-num">${pts}</span><span>${label}</span>`;
 }
 
@@ -7697,7 +7798,7 @@ async function loadCommunityPtsLog() {
   try {
     const snap = await getDocs(collection(db, "aac_community_pts"));
     _cptsAllDocs = [];
-    snap.forEach(d => _cptsAllDocs.push(d.data()));
+    snap.forEach(d => _cptsAllDocs.push({ _docId: d.id, ...d.data() }));
     _cptsAllDocs.sort((a, b) => (b.ts || 0) - (a.ts || 0));
     renderCommunityPtsTable();
   } catch (e) {
@@ -7723,25 +7824,92 @@ function renderCommunityPtsTable() {
           <th style="text-align:left;padding:6px 4px;font-weight:700;color:var(--text-muted);">Action</th>
           <th style="text-align:right;padding:6px 4px;font-weight:700;color:var(--text-muted);">Pts</th>
           <th style="text-align:right;padding:6px 4px;font-weight:700;color:var(--text-muted);">Date</th>
+          <th style="text-align:right;padding:6px 4px;font-weight:700;color:var(--text-muted);">Actions</th>
         </tr>
       </thead>
       <tbody>
-        ${rows.map(r => `
-          <tr style="border-bottom:1px solid var(--border);">
+        ${rows.map((r, rowIdx) => `
+          <tr id="cpts-row-${r._docId}" style="border-bottom:1px solid var(--border);">
             <td style="padding:6px 4px;">${esc(r.name || r.uid || "")}</td>
-            <td style="padding:6px 4px;">${esc(r.action || "")}</td>
-            <td style="padding:6px 4px;text-align:right;font-weight:700;color:var(--gold);">+${r.pts}</td>
+            <td style="padding:6px 4px;" id="cpts-action-${r._docId}">${esc(r.action || "")}</td>
+            <td style="padding:6px 4px;text-align:right;font-weight:700;color:var(--gold);" id="cpts-pts-${r._docId}">+${r.pts}</td>
             <td style="padding:6px 4px;text-align:right;color:var(--text-muted);">${r.ts ? new Date(r.ts).toLocaleDateString("en-US",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}) : ""}</td>
+            <td style="padding:6px 4px;text-align:right;white-space:nowrap;">
+              <button onclick="adminEditCommunityPt('${r._docId}','${esc(r.uid||"")}','${esc(r.action||"")}',${r.pts})" style="background:none;border:1px solid var(--border);color:var(--text-muted);cursor:pointer;font-size:11px;padding:2px 6px;border-radius:4px;margin-right:4px;" title="Edit">✏️</button>
+              <button onclick="adminDeleteCommunityPt('${r._docId}','${esc(r.name||r.uid||"")}','${esc(r.action||"")}',${r.pts},'${esc(r.uid||"")}')" style="background:none;border:1px solid var(--border);color:var(--danger,#e74c3c);cursor:pointer;font-size:11px;padding:2px 6px;border-radius:4px;" title="Delete">🗑</button>
+            </td>
+          </tr>
+          <tr id="cpts-edit-row-${r._docId}" style="display:none;background:var(--surface2);">
+            <td colspan="5" style="padding:8px;">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                <input type="text" id="cpts-edit-action-${r._docId}" value="${esc(r.action||"")}" class="form-input" style="flex:1;min-width:120px;font-size:12px;padding:5px 8px;height:32px;" placeholder="Action" />
+                <input type="number" id="cpts-edit-pts-${r._docId}" value="${r.pts}" class="form-input" style="width:70px;font-size:12px;padding:5px 8px;height:32px;" placeholder="Pts" />
+                <button onclick="adminSaveCommunityPt('${r._docId}','${esc(r.uid||"")}')" class="btn btn-gold btn-sm" style="height:32px;font-size:12px;">Save</button>
+                <button onclick="document.getElementById('cpts-edit-row-${r._docId}').style.display='none'" class="btn btn-outline btn-sm" style="height:32px;font-size:12px;">Cancel</button>
+              </div>
+            </td>
           </tr>`).join("")}
       </tbody>
     </table>`;
+}
+
+async function adminEditCommunityPt(docId, uid, action, pts) {
+  const editRow = document.getElementById("cpts-edit-row-" + docId);
+  if (!editRow) return;
+  editRow.style.display = editRow.style.display === "none" ? "table-row" : "none";
+}
+
+async function adminSaveCommunityPt(docId, uid) {
+  const actionEl = document.getElementById("cpts-edit-action-" + docId);
+  const ptsEl    = document.getElementById("cpts-edit-pts-"    + docId);
+  if (!actionEl || !ptsEl) return;
+  const newAction = actionEl.value.trim();
+  const newPts    = parseInt(ptsEl.value, 10);
+  if (!newAction)      { showToast("Action can't be empty."); return; }
+  if (isNaN(newPts))   { showToast("Enter a valid point value."); return; }
+
+  // Find old record to compute pts diff for registry adjustment
+  const oldDoc = _cptsAllDocs.find(d => d._docId === docId);
+  const oldPts = oldDoc ? (oldDoc.pts || 0) : 0;
+  const ptsDiff = newPts - oldPts;
+
+  try {
+    await updateDoc(doc(db, "aac_community_pts", docId), { action: newAction, pts: newPts });
+    // Adjust registry points if pts changed
+    if (ptsDiff !== 0 && uid) {
+      await updateDoc(doc(db, "aac_registry", uid), { points: increment(ptsDiff) });
+    }
+    showToast(`Entry updated.${ptsDiff !== 0 ? ` Registry adjusted by ${ptsDiff > 0 ? "+" : ""}${ptsDiff} pts.` : ""}`);
+    await loadCommunityPtsLog();
+  } catch (e) {
+    showToast("Error saving: " + e.message);
+    console.error("adminSaveCommunityPt:", e);
+  }
+}
+
+async function adminDeleteCommunityPt(docId, memberName, action, pts, uid) {
+  if (!confirm(`Delete this entry?\n\nMember: ${memberName}\nAction: ${action}\nPoints: +${pts}\n\nThis will also deduct ${pts} pts from their registry total.`)) return;
+  try {
+    await deleteDoc(doc(db, "aac_community_pts", docId));
+    // Deduct pts from registry
+    if (uid && pts) {
+      await updateDoc(doc(db, "aac_registry", uid), { points: increment(-pts) });
+    }
+    showToast(`Entry deleted. -${pts} pts deducted from registry.`);
+    await loadCommunityPtsLog();
+  } catch (e) {
+    showToast("Error deleting: " + e.message);
+    console.error("adminDeleteCommunityPt:", e);
+  }
 }
 
 // ==============================
 // BACKFILL MISSING POINTS (Admin)
 // ==============================
 const _BACKFILL_PTS_MAP = {
-  "Feed Post": 1,
+  "Feed Post": 2,
+  "Like": 1,
+  "Reply": 1,
   "Peer Review Request": 5,
   "Expert Review Request": 10,
   "Session RSVP": 2,
@@ -7789,6 +7957,9 @@ window.loadCommunityPtsLog      = loadCommunityPtsLog;
 window.renderCommunityPtsTable  = renderCommunityPtsTable;
 window.autoFillBackfillPts      = autoFillBackfillPts;
 window.adminBackfillPts         = adminBackfillPts;
+window.adminEditCommunityPt     = adminEditCommunityPt;
+window.adminSaveCommunityPt     = adminSaveCommunityPt;
+window.adminDeleteCommunityPt   = adminDeleteCommunityPt;
 
 
 
