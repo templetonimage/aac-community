@@ -3079,12 +3079,13 @@ const PTS_COWORK_ATTEND = 5;  // Coworking Session Attendance (admin-awarded)
 // COMMUNITY POINTS AUDIT LOG
 // ==============================
 // Fire-and-forget — never await at call sites
-async function logCommunityPts(uid, name, action, pts) {
+async function logCommunityPts(uid, name, action, pts, extra = {}) {
   try {
-    await addDoc(collection(db, "aac_community_pts"), {
-      uid, name, action, pts, ts: Date.now()
+    const docRef = await addDoc(collection(db, "aac_community_pts"), {
+      uid, name, action, pts, ts: Date.now(), ...extra
     });
-  } catch (e) { console.warn("logCommunityPts failed:", e.message); }
+    return docRef.id;
+  } catch (e) { console.warn("logCommunityPts failed:", e.message); return null; }
 }
 const MAX_ENG_PER_WEEK = 5;
 const MAX_LIKE_REPLY_PER_WEEK = 5;  // Like/reply limit per week
@@ -4033,7 +4034,7 @@ async function submitPost() {
   } catch (_) {}
 
   try {
-    await addDoc(collection(db, "posts"), {
+    const postRef = await addDoc(collection(db, "posts"), {
       author: currentUser.name,
       authorUid: currentUser.uid || currentUser.email,
       text,
@@ -4049,7 +4050,7 @@ async function submitPost() {
       const regRef = doc(db, "aac_registry", currentUser.uid);
       await updateDoc(regRef, { points: increment(PTS_POST) });
       currentUser.points = (currentUser.points || 0) + PTS_POST;
-      logCommunityPts(currentUser.uid, currentUser.name || "", "Feed Post", PTS_POST);
+      logCommunityPts(currentUser.uid, currentUser.name || "", "Feed Post", PTS_POST, { postId: postRef.id });
     } catch (_) {}
     document.getElementById("feed-compose").value = "";
     document.getElementById("feed-url").value = "";
@@ -4099,10 +4100,14 @@ function renderFeed(posts) {
       const rAvatar = rPhoto
         ? `<img src="${esc(rPhoto)}" alt="${esc(r.name)}" />`
         : getInitials(r.name);
+      const canDeleteReply = r.uid === currentUser.uid || currentUser.isAdmin;
       return `<div class="post-reply">
         <div class="post-reply-avatar">${rAvatar}</div>
         <div class="post-reply-bubble">
-          <div class="post-reply-author">${esc(r.name)}</div>
+          <div class="post-reply-author" style="display:flex;align-items:center;justify-content:space-between;">
+            <span>${esc(r.name)}</span>
+            ${canDeleteReply ? `<button onclick="deleteReply('${p.id}',${r.timestamp},'${esc(r.uid)}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:11px;padding:2px 4px;opacity:0.6;" title="Delete reply">🗑</button>` : ""}
+          </div>
           <div class="post-reply-text">${linkify(r.text)}</div>
           <div class="post-reply-time">${timeAgo(r.timestamp)}</div>
         </div>
@@ -4138,7 +4143,7 @@ function renderFeed(posts) {
         ${urlHtml}
       </div>
       <div class="feed-actions">
-        <button onclick="giveProps('${p.id}')">👏 ${p.propsCount || 0}</button>
+        <button onclick="giveProps('${p.id}')" style="${p.props && p.props.includes(currentUser.name) ? 'color:var(--gold);font-weight:700;' : ''}">👏 ${p.propsCount || 0}</button>
         <button onclick="togglePropsList('${p.id}')">👥</button>
         <button class="post-reply-btn" onclick="togglePostCompose('${p.id}')">💬 Reply</button>
       </div>
@@ -4254,9 +4259,38 @@ async function giveProps(postId) {
     const snap = await getDoc(ref);
     if (!snap.exists()) return;
     const data = snap.data();
-    const props = data.props || [];
-    if (props.includes(currentUser.name)) { showToast("You already gave props!"); return; }
-    // Check weekly like/reply cap (5 combined per week)
+    const props = [...(data.props || [])];
+    const alreadyLiked = props.includes(currentUser.name);
+
+    if (alreadyLiked) {
+      // Unlike: remove from props, deduct pt if one was awarded
+      const newProps = props.filter(n => n !== currentUser.name);
+      await updateDoc(ref, { props: newProps, propsCount: newProps.length });
+      // Find and delete the pts log entry for this like
+      try {
+        const likeQ = query(collection(db, "aac_community_pts"),
+          where("uid", "==", currentUser.uid),
+          where("action", "==", "Like"),
+          where("postId", "==", postId));
+        const likeSnap = await getDocs(likeQ);
+        if (!likeSnap.empty) {
+          // Delete the log entry and deduct the point
+          const logDoc = likeSnap.docs[0];
+          const ptsToDeduct = logDoc.data().pts || PTS_LIKE_REPLY;
+          await deleteDoc(logDoc.ref);
+          const regRef = doc(db, "aac_registry", currentUser.uid);
+          await updateDoc(regRef, { points: increment(-ptsToDeduct) });
+          currentUser.points = Math.max(0, (currentUser.points || 0) - ptsToDeduct);
+          showToast("Like removed. -1 pt");
+        } else {
+          showToast("Like removed.");
+        }
+      } catch (_) { showToast("Like removed."); }
+      loadFeed();
+      return;
+    }
+
+    // Not yet liked — check weekly cap
     const weekIdx = getWeekIndex();
     const weekStart = _getWeekStart(weekIdx);
     const weekEnd   = _getWeekEnd(weekIdx);
@@ -4274,7 +4308,6 @@ async function giveProps(postId) {
     const weeklyEngCount = likeSnap.size + replySnap.size;
     if (weeklyEngCount >= MAX_LIKE_REPLY_PER_WEEK) {
       showToast(`Max ${MAX_LIKE_REPLY_PER_WEEK} likes/replies per week.`);
-      // Still allow the props without points
       confirmPropsNoPoints(postId, props);
       return;
     }
@@ -4308,7 +4341,7 @@ async function confirmProps(postId, existingProps, awardPts) {
         const regRef = doc(db, "aac_registry", currentUser.uid);
         await updateDoc(regRef, { points: increment(PTS_LIKE_REPLY) });
         currentUser.points = (currentUser.points || 0) + PTS_LIKE_REPLY;
-        logCommunityPts(currentUser.uid, currentUser.name || "", "Like", PTS_LIKE_REPLY);
+        logCommunityPts(currentUser.uid, currentUser.name || "", "Like", PTS_LIKE_REPLY, { postId });
       } catch (_) {}
       showToast(`Props given! 👏 +${PTS_LIKE_REPLY} pt`);
     } else {
@@ -4328,12 +4361,123 @@ async function toggleLike(postId) {
 }
 
 async function deletePost(postId) {
-  if (!confirm("Delete this post?")) return;
+  if (!confirm("Delete this post?\n\nPoints earned from this post (and all likes/replies on it) will be deducted.")) return;
   try {
-    await deleteDoc(doc(db, "posts", postId));
-    showToast("Post deleted.");
+    // 1. Fetch post data before deleting
+    const postRef = doc(db, "posts", postId);
+    const postSnap = await getDoc(postRef);
+    if (!postSnap.exists()) { showToast("Post not found."); return; }
+    const postData = postSnap.data();
+    const authorUid = postData.authorUid;
+    const postType  = postData.type || "regular"; // "regular" | "pvr"
+
+    // 2. Delete the post document
+    await deleteDoc(postRef);
+
+    // 3. Deduct the author's post pts (Feed Post or PVR)
+    const authorAction = (postType === "pvr") ? "Peer Review Request" : "Feed Post";
+    const authorPts    = (postType === "pvr") ? PTS_PVR : PTS_POST;
+    try {
+      // Find and delete the pts log entry for the author's post
+      const authorLogQ = query(collection(db, "aac_community_pts"),
+        where("uid", "==", authorUid),
+        where("action", "==", authorAction),
+        where("postId", "==", postId));
+      const authorLogSnap = await getDocs(authorLogQ);
+      if (!authorLogSnap.empty) {
+        const logDoc = authorLogSnap.docs[0];
+        const pts = logDoc.data().pts || authorPts;
+        await deleteDoc(logDoc.ref);
+        await updateDoc(doc(db, "aac_registry", authorUid), { points: increment(-pts) });
+        if (authorUid === currentUser.uid) currentUser.points = Math.max(0, (currentUser.points || 0) - pts);
+      }
+    } catch (_) {}
+
+    // 4. Deduct pts for all likes on this post (from whoever gave them)
+    try {
+      const likeLogQ = query(collection(db, "aac_community_pts"),
+        where("action", "==", "Like"),
+        where("postId", "==", postId));
+      const likeSnap = await getDocs(likeLogQ);
+      for (const logDoc of likeSnap.docs) {
+        const { uid, pts } = logDoc.data();
+        await deleteDoc(logDoc.ref);
+        if (uid) await updateDoc(doc(db, "aac_registry", uid), { points: increment(-(pts || PTS_LIKE_REPLY)) });
+        if (uid === currentUser.uid) currentUser.points = Math.max(0, (currentUser.points || 0) - (pts || PTS_LIKE_REPLY));
+      }
+    } catch (_) {}
+
+    // 5. Deduct pts for all replies on this post
+    try {
+      const replyLogQ = query(collection(db, "aac_community_pts"),
+        where("action", "==", "Reply"),
+        where("postId", "==", postId));
+      const replySnap = await getDocs(replyLogQ);
+      for (const logDoc of replySnap.docs) {
+        const { uid, pts } = logDoc.data();
+        await deleteDoc(logDoc.ref);
+        if (uid) await updateDoc(doc(db, "aac_registry", uid), { points: increment(-(pts || PTS_LIKE_REPLY)) });
+        if (uid === currentUser.uid) currentUser.points = Math.max(0, (currentUser.points || 0) - (pts || PTS_LIKE_REPLY));
+      }
+    } catch (_) {}
+
+    showToast("Post deleted. Points adjusted.");
     loadFeed();
-  } catch { showToast("Failed to delete."); }
+  } catch (e) {
+    console.error("deletePost error:", e);
+    showToast("Failed to delete post.");
+  }
+}
+
+// ==============================
+// DELETE REPLY (with pts deduction)
+// ==============================
+async function deleteReply(postId, replyTs, replyUid) {
+  if (!confirm("Delete this reply? Points earned from it will be deducted.")) return;
+  try {
+    const postRef = doc(db, "posts", postId);
+    const postSnap = await getDoc(postRef);
+    if (!postSnap.exists()) { showToast("Post not found."); return; }
+    const data = postSnap.data();
+    const replies = (data.replies || []).filter(r => !(r.uid === replyUid && r.timestamp === replyTs));
+    await updateDoc(postRef, { replies });
+
+    // Find and delete the pts log entry for this reply
+    try {
+      // Prefer exact match by postId + replyTs
+      const replyLogQ = query(collection(db, "aac_community_pts"),
+        where("uid", "==", replyUid),
+        where("action", "==", "Reply"),
+        where("postId", "==", postId),
+        where("replyTs", "==", replyTs));
+      let replyLogSnap = await getDocs(replyLogQ);
+
+      // Fallback: match by uid + action + timestamp proximity (±5s) for older entries
+      if (replyLogSnap.empty) {
+        const fallbackQ = query(collection(db, "aac_community_pts"),
+          where("uid", "==", replyUid),
+          where("action", "==", "Reply"),
+          where("ts", ">=", replyTs - 5000),
+          where("ts", "<=", replyTs + 5000));
+        replyLogSnap = await getDocs(fallbackQ);
+      }
+
+      if (!replyLogSnap.empty) {
+        const logDoc = replyLogSnap.docs[0];
+        const ptsToDeduct = logDoc.data().pts || PTS_LIKE_REPLY;
+        await deleteDoc(logDoc.ref);
+        await updateDoc(doc(db, "aac_registry", replyUid), { points: increment(-ptsToDeduct) });
+        if (replyUid === currentUser.uid) currentUser.points = Math.max(0, (currentUser.points || 0) - ptsToDeduct);
+        showToast("Reply deleted. -1 pt deducted.");
+      } else {
+        showToast("Reply deleted.");
+      }
+    } catch (_) { showToast("Reply deleted."); }
+    loadFeed();
+  } catch (e) {
+    console.error("deleteReply error:", e);
+    showToast("Failed to delete reply.");
+  }
 }
 
 // ==============================
@@ -4464,7 +4608,7 @@ async function submitPostReply(postId) {
         const regRef = doc(db, "aac_registry", currentUser.uid);
         await updateDoc(regRef, { points: increment(PTS_LIKE_REPLY) });
         currentUser.points = (currentUser.points || 0) + PTS_LIKE_REPLY;
-        logCommunityPts(currentUser.uid, currentUser.name || "", "Reply", PTS_LIKE_REPLY);
+        logCommunityPts(currentUser.uid, currentUser.name || "", "Reply", PTS_LIKE_REPLY, { postId, replyTs: reply.timestamp });
         showToast(`Reply posted! +${PTS_LIKE_REPLY} pt`);
       } else {
         showToast("Reply posted! (weekly limit reached — no pts)");
@@ -6687,6 +6831,7 @@ window.confirmProps = confirmProps;
 window.togglePropsList = togglePropsList;
 window.toggleLike = toggleLike;
 window.deletePost = deletePost;
+window.deleteReply = deleteReply;
 window.openPostEdit = openPostEdit;
 window.closePostEdit = closePostEdit;
 window.savePostEdit = savePostEdit;
