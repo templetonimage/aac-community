@@ -1036,6 +1036,48 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   box-sizing: border-box;
 }
 .eeat-audit-note-input:focus { outline: none; border-color: var(--gold); }
+.eeat-audit-footer {
+  padding: 14px 20px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.eeat-audit-save-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #1a1a1a, #2a2200);
+  border: 1.5px solid var(--gold);
+  border-radius: 10px;
+  color: #e8d5a0;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 17px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.eeat-audit-save-btn:active { opacity: 0.75; }
+.eeat-audit-save-progress-track {
+  height: 4px;
+  background: var(--surface2);
+  border-radius: 2px;
+  overflow: hidden;
+  display: none;
+}
+.eeat-audit-save-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--gold);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+.eeat-audit-save-status {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  min-height: 14px;
+  font-family: 'DM Sans', sans-serif;
+}
 
 /* ==============================
    FEED POST THREADS (light mode)
@@ -2956,6 +2998,13 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       <div class="eeat-audit-progress-fill" id="eeat-audit-progress-fill" style="width:0%"></div>
     </div>
     <div class="eeat-audit-body" id="eeat-audit-body"></div>
+    <div class="eeat-audit-footer">
+      <div class="eeat-audit-save-progress-track" id="audit-save-track">
+        <div class="eeat-audit-save-progress-fill" id="audit-save-fill"></div>
+      </div>
+      <div class="eeat-audit-save-status" id="audit-save-status"></div>
+      <button class="eeat-audit-save-btn" onclick="saveAndCloseAdAudit()">Save &amp; Close</button>
+    </div>
   </div>
 </div>
 
@@ -7669,50 +7718,13 @@ const AD_STATUS_CYCLE = ["not-started", "in-progress", "done"];
 const AD_STATUS_LABEL = { "not-started":"To Do", "in-progress":"In Progress", "done":"\u2713 Done" };
 
 function getAdAuditData() {
-  // Prefer in-memory currentUser data, fall back to localStorage
-  if (currentUser && currentUser.auditData) return currentUser.auditData;
   return lsGet(AD_AUDIT_KEY) || {};
 }
 function saveAdAuditData(data) {
-  // Write to localStorage immediately (no flicker)
   lsSet(AD_AUDIT_KEY, data);
-  // Mirror in-memory currentUser
-  if (currentUser) currentUser.auditData = data;
-  // Persist to Firestore (Option A: aac_registry/{uid}.auditData)
-  if (currentUser && currentUser.uid) {
-    updateDoc(doc(db, "aac_registry", currentUser.uid), { auditData: data }).catch(() => {});
-  }
 }
 
-let _adAuditDebounceTimer = null;
-function saveAdAuditDataDebounced(data) {
-  // Used for note textarea input — avoids a Firestore write per keystroke
-  lsSet(AD_AUDIT_KEY, data);
-  if (currentUser) currentUser.auditData = data;
-  clearTimeout(_adAuditDebounceTimer);
-  _adAuditDebounceTimer = setTimeout(() => {
-    if (currentUser && currentUser.uid) {
-      updateDoc(doc(db, "aac_registry", currentUser.uid), { auditData: data }).catch(() => {});
-    }
-  }, 1000);
-}
-
-async function openAdAudit() {
-  // Fetch latest from Firestore before rendering (cross-device sync)
-  if (currentUser && currentUser.uid) {
-    try {
-      const snap = await getDoc(doc(db, "aac_registry", currentUser.uid));
-      if (snap.exists()) {
-        const remote = snap.data().auditData;
-        if (remote && typeof remote === "object") {
-          currentUser.auditData = remote;
-          lsSet(AD_AUDIT_KEY, remote);
-        }
-      }
-    } catch (e) {
-      // Fall through to localStorage/memory data silently
-    }
-  }
+function openAdAudit() {
   renderAdAuditModal();
   document.getElementById("eeat-audit-overlay").classList.add("open");
 }
@@ -7788,20 +7800,59 @@ function toggleAdNote(itemId) {
 function saveAdNote(itemId, value) {
   const data = getAdAuditData();
   data[itemId] = { ...(data[itemId] || {}), note: value };
-  saveAdAuditDataDebounced(data);
+  saveAdAuditData(data);
 }
 
 function resetAdAudit() {
   if (!confirm("Reset all audit progress and notes? This cannot be undone.")) return;
   lsSet(AD_AUDIT_KEY, {});
-  if (currentUser) currentUser.auditData = {};
-  if (currentUser && currentUser.uid) {
-    updateDoc(doc(db, "aac_registry", currentUser.uid), { auditData: {} }).catch(() => {});
-  }
   renderAdAuditModal();
   showToast("Audit reset.");
 }
 
+async function saveAndCloseAdAudit() {
+  const btn = document.querySelector(".eeat-audit-save-btn");
+  const track = document.getElementById("audit-save-track");
+  const fill = document.getElementById("audit-save-fill");
+  const status = document.getElementById("audit-save-status");
+
+  // Disable button, show progress track
+  if (btn) btn.disabled = true;
+  if (track) track.style.display = "block";
+  if (status) status.textContent = "Saving...";
+  if (fill) fill.style.width = "0%";
+
+  // Animate bar to 60% immediately
+  requestAnimationFrame(() => { if (fill) fill.style.width = "60%"; });
+
+  // Fire real Firestore write
+  const data = getAdAuditData();
+  try {
+    if (currentUser && currentUser.uid) {
+      await updateDoc(doc(db, "aac_registry", currentUser.uid), { auditData: data });
+    }
+  } catch (e) {
+    // Silent fail — data already saved via auto-save
+  }
+
+  // Complete the bar
+  if (fill) fill.style.width = "100%";
+  if (status) status.textContent = "Saved!";
+
+  // Close after brief pause
+  setTimeout(() => {
+    closeAdAudit();
+    // Reset progress state for next open
+    setTimeout(() => {
+      if (btn) btn.disabled = false;
+      if (track) track.style.display = "none";
+      if (fill) fill.style.width = "0%";
+      if (status) status.textContent = "";
+    }, 300);
+  }, 600);
+}
+
+window.saveAndCloseAdAudit = saveAndCloseAdAudit;
 window.openAdAudit         = openAdAudit;
 window.closeAdAudit        = closeAdAudit;
 window.closeAdAuditDirect  = closeAdAuditDirect;
