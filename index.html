@@ -527,7 +527,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .feed-meta { flex: 1; }
 .feed-author { font-weight: 600; font-size: 14px; }
 .feed-time { font-size: 12px; color: var(--text-muted); }
-.feed-body { font-size: 15px; line-height: 1.6; margin-bottom: 10px; word-break: break-word; }
+.feed-body { font-size: 15px; line-height: 1.6; margin-bottom: 10px; word-break: break-word; white-space: pre-wrap; }
 .feed-actions { display: flex; gap: 12px; align-items: center; }
 .feed-actions button {
   background: none;
@@ -671,7 +671,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   flex: 1;
 }
 .pvr-reply-author { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.9); margin-bottom: 2px; }
-.pvr-reply-text { font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.5; }
+.pvr-reply-text { font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.5; white-space: pre-wrap; }
 .pvr-reply-time { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 3px; }
 .pvr-reply-compose {
   display: none;
@@ -1130,7 +1130,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   flex: 1;
 }
 .post-reply-author { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
-.post-reply-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+.post-reply-text { font-size: 13px; color: var(--text); line-height: 1.5; white-space: pre-wrap; }
 .post-reply-time { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
 .post-reply-compose {
   display: none;
@@ -4449,24 +4449,28 @@ async function deletePost(postId) {
     }
   }
 
-  // 3. Deduct the author's post pts — silent fail if log entry missing
+  // 3. Deduct the author's post pts
   const authorAction = (postType === "pvr") ? "Peer Review Request" : "Feed Post";
   const authorPts    = (postType === "pvr") ? PTS_PVR : PTS_POST;
   try {
+    // Query by uid + postId only (avoids 3-field composite index requirement)
     const authorLogQ = query(collection(db, "aac_community_pts"),
       where("uid", "==", authorUid),
-      where("action", "==", authorAction),
       where("postId", "==", postId));
     const authorLogSnap = await getDocs(authorLogQ);
-    if (!authorLogSnap.empty) {
-      const logDoc = authorLogSnap.docs[0];
-      const pts = logDoc.data().pts || authorPts;
-      await deleteDoc(logDoc.ref);
-      const regUid = (authorUid && authorUid.length < 50) ? authorUid : currentUser.uid;
+    const authorEntry = authorLogSnap.docs.find(d => d.data().action === authorAction);
+    const regUid = (authorUid && authorUid.length < 50) ? authorUid : currentUser.uid;
+    if (authorEntry) {
+      const pts = authorEntry.data().pts || authorPts;
+      await deleteDoc(authorEntry.ref);
       await updateDoc(doc(db, "aac_registry", regUid), { points: increment(-pts) });
       if (regUid === currentUser.uid) currentUser.points = Math.max(0, (currentUser.points || 0) - pts);
+    } else {
+      // Log entry missing (index gap or race) -- deduct directly from registry
+      await updateDoc(doc(db, "aac_registry", regUid), { points: increment(-authorPts) });
+      if (regUid === currentUser.uid) currentUser.points = Math.max(0, (currentUser.points || 0) - authorPts);
     }
-  } catch (_) {}
+  } catch (e) { console.error("deletePost author pts error:", e); }
 
   // 4. Deduct pts for all likes on this post
   try {
@@ -7718,13 +7722,42 @@ const AD_STATUS_CYCLE = ["not-started", "in-progress", "done"];
 const AD_STATUS_LABEL = { "not-started":"To Do", "in-progress":"In Progress", "done":"\u2713 Done" };
 
 function getAdAuditData() {
+  if (currentUser && currentUser.auditData) return currentUser.auditData;
   return lsGet(AD_AUDIT_KEY) || {};
 }
 function saveAdAuditData(data) {
   lsSet(AD_AUDIT_KEY, data);
+  if (currentUser) currentUser.auditData = data;
+  if (currentUser && currentUser.uid) {
+    updateDoc(doc(db, "aac_registry", currentUser.uid), { auditData: data }).catch(() => {});
+  }
 }
 
-function openAdAudit() {
+let _adAuditDebounceTimer = null;
+function saveAdAuditDataDebounced(data) {
+  lsSet(AD_AUDIT_KEY, data);
+  if (currentUser) currentUser.auditData = data;
+  clearTimeout(_adAuditDebounceTimer);
+  _adAuditDebounceTimer = setTimeout(() => {
+    if (currentUser && currentUser.uid) {
+      updateDoc(doc(db, "aac_registry", currentUser.uid), { auditData: data }).catch(() => {});
+    }
+  }, 1000);
+}
+
+async function openAdAudit() {
+  if (currentUser && currentUser.uid) {
+    try {
+      const snap = await getDoc(doc(db, "aac_registry", currentUser.uid));
+      if (snap.exists()) {
+        const remote = snap.data().auditData;
+        if (remote && typeof remote === "object") {
+          currentUser.auditData = remote;
+          lsSet(AD_AUDIT_KEY, remote);
+        }
+      }
+    } catch (e) {}
+  }
   renderAdAuditModal();
   document.getElementById("eeat-audit-overlay").classList.add("open");
 }
@@ -7800,12 +7833,16 @@ function toggleAdNote(itemId) {
 function saveAdNote(itemId, value) {
   const data = getAdAuditData();
   data[itemId] = { ...(data[itemId] || {}), note: value };
-  saveAdAuditData(data);
+  saveAdAuditDataDebounced(data);
 }
 
 function resetAdAudit() {
   if (!confirm("Reset all audit progress and notes? This cannot be undone.")) return;
   lsSet(AD_AUDIT_KEY, {});
+  if (currentUser) currentUser.auditData = {};
+  if (currentUser && currentUser.uid) {
+    updateDoc(doc(db, "aac_registry", currentUser.uid), { auditData: {} }).catch(() => {});
+  }
   renderAdAuditModal();
   showToast("Audit reset.");
 }
@@ -7815,34 +7852,21 @@ async function saveAndCloseAdAudit() {
   const track = document.getElementById("audit-save-track");
   const fill = document.getElementById("audit-save-fill");
   const status = document.getElementById("audit-save-status");
-
-  // Disable button, show progress track
   if (btn) btn.disabled = true;
   if (track) track.style.display = "block";
   if (status) status.textContent = "Saving...";
   if (fill) fill.style.width = "0%";
-
-  // Animate bar to 60% immediately
   requestAnimationFrame(() => { if (fill) fill.style.width = "60%"; });
-
-  // Fire real Firestore write
   const data = getAdAuditData();
   try {
     if (currentUser && currentUser.uid) {
       await updateDoc(doc(db, "aac_registry", currentUser.uid), { auditData: data });
     }
-  } catch (e) {
-    // Silent fail — data already saved via auto-save
-  }
-
-  // Complete the bar
+  } catch (e) {}
   if (fill) fill.style.width = "100%";
   if (status) status.textContent = "Saved!";
-
-  // Close after brief pause
   setTimeout(() => {
     closeAdAudit();
-    // Reset progress state for next open
     setTimeout(() => {
       if (btn) btn.disabled = false;
       if (track) track.style.display = "none";
