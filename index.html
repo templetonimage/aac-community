@@ -7669,13 +7669,50 @@ const AD_STATUS_CYCLE = ["not-started", "in-progress", "done"];
 const AD_STATUS_LABEL = { "not-started":"To Do", "in-progress":"In Progress", "done":"\u2713 Done" };
 
 function getAdAuditData() {
+  // Prefer in-memory currentUser data, fall back to localStorage
+  if (currentUser && currentUser.auditData) return currentUser.auditData;
   return lsGet(AD_AUDIT_KEY) || {};
 }
 function saveAdAuditData(data) {
+  // Write to localStorage immediately (no flicker)
   lsSet(AD_AUDIT_KEY, data);
+  // Mirror in-memory currentUser
+  if (currentUser) currentUser.auditData = data;
+  // Persist to Firestore (Option A: aac_registry/{uid}.auditData)
+  if (currentUser && currentUser.uid) {
+    updateDoc(doc(db, "aac_registry", currentUser.uid), { auditData: data }).catch(() => {});
+  }
 }
 
-function openAdAudit() {
+let _adAuditDebounceTimer = null;
+function saveAdAuditDataDebounced(data) {
+  // Used for note textarea input — avoids a Firestore write per keystroke
+  lsSet(AD_AUDIT_KEY, data);
+  if (currentUser) currentUser.auditData = data;
+  clearTimeout(_adAuditDebounceTimer);
+  _adAuditDebounceTimer = setTimeout(() => {
+    if (currentUser && currentUser.uid) {
+      updateDoc(doc(db, "aac_registry", currentUser.uid), { auditData: data }).catch(() => {});
+    }
+  }, 1000);
+}
+
+async function openAdAudit() {
+  // Fetch latest from Firestore before rendering (cross-device sync)
+  if (currentUser && currentUser.uid) {
+    try {
+      const snap = await getDoc(doc(db, "aac_registry", currentUser.uid));
+      if (snap.exists()) {
+        const remote = snap.data().auditData;
+        if (remote && typeof remote === "object") {
+          currentUser.auditData = remote;
+          lsSet(AD_AUDIT_KEY, remote);
+        }
+      }
+    } catch (e) {
+      // Fall through to localStorage/memory data silently
+    }
+  }
   renderAdAuditModal();
   document.getElementById("eeat-audit-overlay").classList.add("open");
 }
@@ -7751,12 +7788,16 @@ function toggleAdNote(itemId) {
 function saveAdNote(itemId, value) {
   const data = getAdAuditData();
   data[itemId] = { ...(data[itemId] || {}), note: value };
-  saveAdAuditData(data);
+  saveAdAuditDataDebounced(data);
 }
 
 function resetAdAudit() {
   if (!confirm("Reset all audit progress and notes? This cannot be undone.")) return;
   lsSet(AD_AUDIT_KEY, {});
+  if (currentUser) currentUser.auditData = {};
+  if (currentUser && currentUser.uid) {
+    updateDoc(doc(db, "aac_registry", currentUser.uid), { auditData: {} }).catch(() => {});
+  }
   renderAdAuditModal();
   showToast("Audit reset.");
 }
