@@ -7696,6 +7696,8 @@ function copyAdTemplate() {
 // ==============================
 
 const AD_AUDIT_ITEMS = [
+  { id:"of_1", pillar:"OFFER",     label:"You can clearly describe your offer in one sentence" },
+  { id:"of_2", pillar:"OFFER",     label:"You've defined the single goal of your ad (leads, sales, traffic, awareness)" },
   { id:"cr_1", pillar:"CREATIVE",  label:"You have at least 1 image or video ad creative ready to test" },
   { id:"cr_2", pillar:"CREATIVE",  label:"Your ad copy leads with a clear hook in the first line" },
   { id:"cr_3", pillar:"CREATIVE",  label:"Your ad has a single, clear call to action" },
@@ -7716,8 +7718,8 @@ const AD_AUDIT_ITEMS = [
   { id:"bu_4", pillar:"BUDGET",    label:"You've paused or killed at least one underperforming ad set" },
 ];
 const AD_AUDIT_KEY = "aac_ad_audit";
-const AD_AUDIT_PILLARS = ["CREATIVE", "TARGETING", "ANALYTICS", "BUDGET"];
-const AD_PILLAR_EMOJI = { CREATIVE:"🎨", TARGETING:"🎯", ANALYTICS:"📊", BUDGET:"💳" };
+const AD_AUDIT_PILLARS = ["OFFER", "CREATIVE", "TARGETING", "ANALYTICS", "BUDGET"];
+const AD_PILLAR_EMOJI = { OFFER:"🎯", CREATIVE:"🎨", TARGETING:"👥", ANALYTICS:"📊", BUDGET:"💳" };
 const AD_STATUS_CYCLE = ["not-started", "in-progress", "done"];
 const AD_STATUS_LABEL = { "not-started":"To Do", "in-progress":"In Progress", "done":"\u2713 Done" };
 
