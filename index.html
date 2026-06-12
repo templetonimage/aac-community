@@ -2222,8 +2222,9 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       <div class="page-header">
         <div class="page-title">Resources</div>
         <div class="page-subtitle">Ad strategy guides, tools, and reference material — tap any card to read.</div>
-        <div style="margin-top:10px;">
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
           <button onclick="openAdAudit()" class="btn btn-sm" style="background:linear-gradient(135deg,#1a1a1a,#2a2200);border:1.5px solid var(--gold);color:#e8d5a0;">✅ Open Ad Readiness Audit</button>
+          <button onclick="openBuildoutChecklist()" class="btn btn-sm" style="background:linear-gradient(135deg,#1a1a1a,#2a2200);border:1.5px solid var(--gold);color:#e8d5a0;">🗂 Offer-to-Ads Checklist</button>
         </div>
       </div>
       <!-- Admin resource compose -->
@@ -2981,6 +2982,34 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 </div>
 
 <!-- AD AUDIT MODAL -->
+<!-- OFFER-TO-ADS BUILDOUT CHECKLIST MODAL -->
+<div class="eeat-audit-overlay" id="buildout-overlay" onclick="closeBuildoutDirect(event)">
+  <div class="eeat-audit-modal">
+    <div class="eeat-audit-header">
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);">Offer-to-Ads Buildout Checklist</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">Build your full offer, funnel, and ad system. Notes save automatically.</div>
+      </div>
+      <button onclick="closeBuildoutChecklist()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-muted);">✕</button>
+    </div>
+    <div style="padding:12px 20px 4px;display:flex;align-items:center;justify-content:space-between;">
+      <div id="buildout-summary" style="font-size:12px;color:var(--text-muted);">Loading...</div>
+      <button onclick="resetBuildoutChecklist()" style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;font-family:'DM Sans',sans-serif;">Reset All</button>
+    </div>
+    <div class="eeat-audit-progress-bar">
+      <div class="eeat-audit-progress-fill" id="buildout-progress-fill" style="width:0%"></div>
+    </div>
+    <div class="eeat-audit-body" id="buildout-body"></div>
+    <div class="eeat-audit-footer">
+      <div class="eeat-audit-save-progress-track" id="buildout-save-track">
+        <div class="eeat-audit-save-progress-fill" id="buildout-save-fill"></div>
+      </div>
+      <div class="eeat-audit-save-status" id="buildout-save-status"></div>
+      <button class="eeat-audit-save-btn" onclick="saveAndCloseBuildout()">Save &amp; Close</button>
+    </div>
+  </div>
+</div>
+
 <div class="eeat-audit-overlay" id="eeat-audit-overlay" onclick="closeAdAuditDirect(event)">
   <div class="eeat-audit-modal">
     <div class="eeat-audit-header">
@@ -7885,6 +7914,203 @@ window.cycleAdStatus       = cycleAdStatus;
 window.toggleAdNote        = toggleAdNote;
 window.saveAdNote          = saveAdNote;
 window.resetAdAudit        = resetAdAudit;
+
+// ==============================
+// OFFER-TO-ADS BUILDOUT CHECKLIST
+// ==============================
+
+const BUILDOUT_ITEMS = [
+  { id:"bc_of1", phase:"Offer Clarity",    task:"Name the offer",           desc:"Create a clear offer name people can remember." },
+  { id:"bc_of2", phase:"Offer Clarity",    task:"Define the buyer",          desc:"Clarify who this offer is for and who it is not for." },
+  { id:"bc_of3", phase:"Offer Clarity",    task:"Write the promise",         desc:"Create a simple outcome-driven promise." },
+  { id:"bc_of4", phase:"Offer Clarity",    task:"List what is included",     desc:"Define deliverables, access, bonuses, support, and delivery format." },
+  { id:"bc_of5", phase:"Offer Clarity",    task:"Set pricing",               desc:"Choose price, payment options, refund policy, and guarantee." },
+  { id:"bc_ol1", phase:"Offer Ladder",     task:"Map the value ladder",      desc:"Define front-end offer, upsell, downsell, mid-ticket, and high-ticket offers (if applicable)." },
+  { id:"bc_fn1", phase:"Funnel",           task:"Map the funnel",            desc:"Define every step from ad click to checkout to follow-up." },
+  { id:"bc_sp1", phase:"Sales Page",       task:"Write sales page copy",     desc:"Create headline, CTA, sections, FAQ, proof, and pricing." },
+  { id:"bc_co1", phase:"Checkout",         task:"Build checkout",            desc:"Set up product, payment processor, confirmation page, and test purchase." },
+  { id:"bc_ud1", phase:"Upsell/Downsell",  task:"Build upsell and downsell", desc:"Create pages, pricing, checkout flow, and buyer tags (if applicable)." },
+  { id:"bc_au1", phase:"Automations",      task:"Build email follow-up",     desc:"Create purchase, welcome, nurture, and next-offer emails." },
+  { id:"bc_tr1", phase:"Tracking",         task:"Install tracking",          desc:"Set up Meta Pixel, CAPI if possible, events, and UTMs." },
+  { id:"bc_cr1", phase:"Creative",         task:"Create ad assets",          desc:"Create videos, reels, carousels, and static graphics." },
+  { id:"bc_la1", phase:"Launch",           task:"Launch campaign",           desc:"Start with a small test budget and monitor early data." },
+  { id:"bc_op1", phase:"Optimize",         task:"Review and improve",        desc:"Pause weak ads, duplicate winners, fix funnel drop-offs." },
+];
+const BUILDOUT_KEY = "aac_buildout_checklist";
+const BUILDOUT_PHASES = ["Offer Clarity","Offer Ladder","Funnel","Sales Page","Checkout","Upsell/Downsell","Automations","Tracking","Creative","Launch","Optimize"];
+const BUILDOUT_PHASE_EMOJI = {
+  "Offer Clarity":"🎯","Offer Ladder":"📈","Funnel":"🔀","Sales Page":"📝",
+  "Checkout":"💳","Upsell/Downsell":"⬆️","Automations":"⚙️","Tracking":"📡",
+  "Creative":"🎨","Launch":"🚀","Optimize":"🔍"
+};
+const BUILDOUT_STATUS_CYCLE = ["not-started","in-progress","done"];
+const BUILDOUT_STATUS_LABEL = { "not-started":"To Do","in-progress":"In Progress","done":"\u2713 Done" };
+
+function getBuildoutData() {
+  if (currentUser && currentUser.buildoutData) return currentUser.buildoutData;
+  return lsGet(BUILDOUT_KEY) || {};
+}
+function saveBuildoutData(data) {
+  lsSet(BUILDOUT_KEY, data);
+  if (currentUser) currentUser.buildoutData = data;
+  if (currentUser && currentUser.uid) {
+    updateDoc(doc(db, "aac_registry", currentUser.uid), { buildoutData: data }).catch(() => {});
+  }
+}
+
+let _buildoutDebounceTimer = null;
+function saveBuildoutDataDebounced(data) {
+  lsSet(BUILDOUT_KEY, data);
+  if (currentUser) currentUser.buildoutData = data;
+  clearTimeout(_buildoutDebounceTimer);
+  _buildoutDebounceTimer = setTimeout(() => {
+    if (currentUser && currentUser.uid) {
+      updateDoc(doc(db, "aac_registry", currentUser.uid), { buildoutData: data }).catch(() => {});
+    }
+  }, 1000);
+}
+
+async function openBuildoutChecklist() {
+  if (currentUser && currentUser.uid) {
+    try {
+      const snap = await getDoc(doc(db, "aac_registry", currentUser.uid));
+      if (snap.exists()) {
+        const remote = snap.data().buildoutData;
+        if (remote && typeof remote === "object") {
+          currentUser.buildoutData = remote;
+          lsSet(BUILDOUT_KEY, remote);
+        }
+      }
+    } catch (e) {}
+  }
+  renderBuildoutModal();
+  document.getElementById("buildout-overlay").classList.add("open");
+}
+function closeBuildoutChecklist() {
+  document.getElementById("buildout-overlay").classList.remove("open");
+}
+function closeBuildoutDirect(e) {
+  if (e.target === document.getElementById("buildout-overlay")) closeBuildoutChecklist();
+}
+
+function renderBuildoutModal() {
+  const data = getBuildoutData();
+  const doneCount = BUILDOUT_ITEMS.filter(i => (data[i.id] || {}).status === "done").length;
+  const total = BUILDOUT_ITEMS.length;
+  const pct = Math.round((doneCount / total) * 100);
+
+  document.getElementById("buildout-summary").textContent = `${doneCount} of ${total} complete`;
+  document.getElementById("buildout-progress-fill").style.width = pct + "%";
+
+  const body = document.getElementById("buildout-body");
+  let html = "";
+  BUILDOUT_PHASES.forEach(phase => {
+    const items = BUILDOUT_ITEMS.filter(i => i.phase === phase);
+    if (!items.length) return;
+    html += `<div class="eeat-audit-pillar">${BUILDOUT_PHASE_EMOJI[phase]} ${phase}</div>`;
+    items.forEach(item => {
+      const itemData = data[item.id] || { status: "not-started", note: "" };
+      const status = itemData.status || "not-started";
+      const note = itemData.note || "";
+      const statusClass = status === "done" ? "done" : status === "in-progress" ? "in-progress" : "";
+      html += `<div class="eeat-audit-item" id="buildout-item-${item.id}">
+        <button class="eeat-audit-status-btn ${statusClass}" onclick="cycleBuildoutStatus('${item.id}')">${BUILDOUT_STATUS_LABEL[status]}</button>
+        <div class="eeat-audit-item-right">
+          <div class="eeat-audit-item-label" style="font-weight:600;">${esc(item.task)}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;margin-bottom:4px;">${esc(item.desc)}</div>
+          <button class="eeat-audit-note-toggle" onclick="toggleBuildoutNote('${item.id}')">${note ? "\uD83D\uDCDD Edit note" : "+ Add note"}</button>
+          <div class="eeat-audit-note-area ${note ? "open" : ""}" id="buildout-note-area-${item.id}">
+            <textarea class="eeat-audit-note-input" id="buildout-note-${item.id}" placeholder="Add your notes here..." oninput="saveBuildoutNote('${item.id}', this.value)">${esc(note)}</textarea>
+          </div>
+        </div>
+      </div>`;
+    });
+  });
+  body.innerHTML = html;
+}
+
+function cycleBuildoutStatus(itemId) {
+  const data = getBuildoutData();
+  const current = (data[itemId] || {}).status || "not-started";
+  const idx = BUILDOUT_STATUS_CYCLE.indexOf(current);
+  const next = BUILDOUT_STATUS_CYCLE[(idx + 1) % BUILDOUT_STATUS_CYCLE.length];
+  data[itemId] = { ...(data[itemId] || {}), status: next };
+  saveBuildoutData(data);
+  const btn = document.querySelector(`#buildout-item-${itemId} .eeat-audit-status-btn`);
+  if (btn) {
+    btn.textContent = BUILDOUT_STATUS_LABEL[next];
+    btn.className = "eeat-audit-status-btn" + (next === "done" ? " done" : next === "in-progress" ? " in-progress" : "");
+  }
+  const doneCount = BUILDOUT_ITEMS.filter(i => (data[i.id] || {}).status === "done").length;
+  const total = BUILDOUT_ITEMS.length;
+  document.getElementById("buildout-summary").textContent = `${doneCount} of ${total} complete`;
+  document.getElementById("buildout-progress-fill").style.width = Math.round((doneCount / total) * 100) + "%";
+}
+
+function toggleBuildoutNote(itemId) {
+  const area = document.getElementById("buildout-note-area-" + itemId);
+  if (!area) return;
+  area.classList.toggle("open");
+  if (area.classList.contains("open")) {
+    const ta = document.getElementById("buildout-note-" + itemId);
+    if (ta) ta.focus();
+  }
+}
+
+function saveBuildoutNote(itemId, value) {
+  const data = getBuildoutData();
+  data[itemId] = { ...(data[itemId] || {}), note: value };
+  saveBuildoutDataDebounced(data);
+}
+
+function resetBuildoutChecklist() {
+  if (!confirm("Reset all checklist progress and notes? This cannot be undone.")) return;
+  lsSet(BUILDOUT_KEY, {});
+  if (currentUser) currentUser.buildoutData = {};
+  if (currentUser && currentUser.uid) {
+    updateDoc(doc(db, "aac_registry", currentUser.uid), { buildoutData: {} }).catch(() => {});
+  }
+  renderBuildoutModal();
+  showToast("Checklist reset.");
+}
+
+async function saveAndCloseBuildout() {
+  const btn = document.querySelector("#buildout-overlay .eeat-audit-save-btn");
+  const track = document.getElementById("buildout-save-track");
+  const fill = document.getElementById("buildout-save-fill");
+  const status = document.getElementById("buildout-save-status");
+  if (btn) btn.disabled = true;
+  if (track) track.style.display = "block";
+  if (status) status.textContent = "Saving...";
+  if (fill) fill.style.width = "0%";
+  requestAnimationFrame(() => { if (fill) fill.style.width = "60%"; });
+  const data = getBuildoutData();
+  try {
+    if (currentUser && currentUser.uid) {
+      await updateDoc(doc(db, "aac_registry", currentUser.uid), { buildoutData: data });
+    }
+  } catch (e) {}
+  if (fill) fill.style.width = "100%";
+  if (status) status.textContent = "Saved!";
+  setTimeout(() => {
+    closeBuildoutChecklist();
+    setTimeout(() => {
+      if (btn) btn.disabled = false;
+      if (track) track.style.display = "none";
+      if (fill) fill.style.width = "0%";
+      if (status) status.textContent = "";
+    }, 300);
+  }, 600);
+}
+
+window.openBuildoutChecklist    = openBuildoutChecklist;
+window.closeBuildoutChecklist   = closeBuildoutChecklist;
+window.closeBuildoutDirect      = closeBuildoutDirect;
+window.cycleBuildoutStatus      = cycleBuildoutStatus;
+window.toggleBuildoutNote       = toggleBuildoutNote;
+window.saveBuildoutNote         = saveBuildoutNote;
+window.resetBuildoutChecklist   = resetBuildoutChecklist;
+window.saveAndCloseBuildout     = saveAndCloseBuildout;
 
 // ==============================
 // COWORKING SESSIONS
