@@ -3006,6 +3006,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       </div>
       <div class="eeat-audit-save-status" id="buildout-save-status"></div>
       <button class="eeat-audit-save-btn" onclick="saveAndCloseBuildout()">Save &amp; Close</button>
+      <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--text-muted);">Created by: Malik Mack</div>
     </div>
   </div>
 </div>
@@ -5097,8 +5098,8 @@ async function loadResources() {
     const snap = await getDocs(collection(db, "resources"));
     _allResources = [];
     snap.forEach(d => _allResources.push({ id: d.id, ...d.data() }));
-    // Sort: Ad Policy Updates first, Ad Fundamentals second, then timestamp descending
-    const _pinOrder = ["Meta & Google Ad Policy Updates", "Ad Fundamentals Playbook"];
+    // Sort: Ad Policy Updates first, Ad Fundamentals second, Buildout Checklist third, then timestamp descending
+    const _pinOrder = ["Meta & Google Ad Policy Updates", "Ad Fundamentals Playbook", "Offer-to-Ads Buildout Checklist"];
     _allResources.sort((a, b) => {
       const ai = _pinOrder.indexOf(a.title);
       const bi = _pinOrder.indexOf(b.title);
@@ -5152,6 +5153,7 @@ async function seedDefaultResources() {
       body:`TikTok's official best practices guide covers every major area of campaign setup and management. Updated September 2025.\n\n━━━━━━━━━━━━━━\nCAMPAIGN SETUP\n━━━━━━━━━━━━━━\n  • Match your campaign objective to your actual goal — reach, traffic, leads, or conversions\n  • For conversion campaigns: set a daily budget of at least 10x your target CPA; ideally 30x historical CPA for best optimization\n  • Install the TikTok Pixel before you launch — it's required to build audiences and track conversions\n\n━━━━━━━━━━━━━━\nTARGETING\n━━━━━━━━━━━━━━\n  • Start broader than you think — TikTok's algorithm is strong at finding the right people within a large audience\n  • Use Lookalike Audiences based on your best existing customers or converters\n  • Use Search Ads to capture high-intent users actively looking for what you offer (available 2025)\n\n━━━━━━━━━━━━━━\nLANDING PAGES\n━━━━━━━━━━━━━━\n  • Page speed is critical — slow pages kill TikTok conversions because users are in a fast-scroll mindset\n  • Use TikTok Instant Pages as a fast-loading alternative when your main site is slow\n  • Landing page content must match the ad — no bait-and-switch\n\n━━━━━━━━━━━━━━\nKEY TOOLS\n━━━━━━━━━━━━━━\n  • Automated Rules — Set rules to pause underperforming ads or scale winners automatically\n  • Smart Creative — Automates creative combination and rotation to fight fatigue\n  • Video Insights — Breaks down creative performance by retention and engagement\n\nAAC Action: If you haven't installed the TikTok Pixel yet, do it this week — even before you plan to run TikTok ads. Pixel data collected now becomes your retargeting and lookalike audiences later.` },
     { emoji:"🔒", title:"Privacy Policy Template", description:"A ready-to-use privacy policy template covering data collection, ad tracking pixels, and third-party tools.", tags:["Compliance","Strategy"], source:"AAC Resource Library", url:"", linkLabel:"",
       body:`Running ads means installing tracking pixels (Meta Pixel, Google Tag) on your website. That requires a Privacy Policy that discloses this to visitors.\n\nWithout a Privacy Policy:\n  • Meta and Google can restrict your ad account\n  • You may be in violation of GDPR or CCPA depending on your audience location\n  • Visitors lose trust when they can't find your policy\n\n━━━━━━━━━━━━━━\nWHAT YOUR POLICY NEEDS TO COVER\n━━━━━━━━━━━━━━\n  • What data you collect (name, email, IP, cookies)\n  • Why you collect it (to deliver your service, improve the site)\n  • Who you share it with (Meta, Google, your email platform)\n  • How people can request their data be deleted\n  • Cookie usage and tracking pixel disclosure\n\n━━━━━━━━━━━━━━\nFREE TOOLS TO GENERATE ONE\n━━━━━━━━━━━━━━\n  • Termly.io — free tier covers most solopreneurs\n  • PrivacyPolicies.com — straightforward generator\n  • Squarespace/Wix/Shopify — built-in generators if you're on those platforms\n\nAAC Action: If you don't have a Privacy Policy page on your site, generate one this week using Termly or PrivacyPolicies.com. Link to it in your site footer and in any ad landing pages you're running traffic to.` },
+    { emoji:"🗂", title:"Offer-to-Ads Buildout Checklist", description:"A beginner-friendly checklist for building the full offer, funnel, automation, and Meta ads system.", tags:["Funnel","Creative","Checklist"], source:"AAC Resource Library", url:"", linkLabel:"", body:"" },
     { emoji:"🧭", title:"Ad Fundamentals Playbook", description:"AAC's 7-part guide to paid advertising — creative, targeting, analytics, budget, and more.", tags:["ad-guide","Creative","Targeting","Analytics","Budget"], source:"AAC Resource Library", url:"", linkLabel:"", body:"" },
     { emoji:"🔔", title:"Meta & Google Ad Policy Updates", description:"The latest changes to Meta and Google advertising policies — what's restricted, what's new, and what to watch.", tags:["Compliance","Meta","Google"], source:"Meta & Google Policy Docs", url:"https://www.facebook.com/policies/ads/", linkLabel:"Meta Ad Policies →",
       body:`Ad platforms update their policies frequently. Running ads that violate policy — even accidentally — can result in ad rejection, account restriction, or permanent ban.\n\n━━━━━━━━━━━━━━\nMETA AD POLICIES — WHAT TO KNOW\n━━━━━━━━━━━━━━\nCommonly restricted content:\n  • Before/after images (especially for health, fitness, or body-related offers)\n  • Guaranteed results claims ("You WILL get 10 leads in 7 days")\n  • Targeting based on sensitive categories (health conditions, financial status)\n  • Misleading or clickbait copy\n\nCommon rejection reasons:\n  • Text over 20% of image area (use Meta's text overlay tool to check)\n  • Landing page doesn't match ad content\n  • Ad promotes a restricted product or service\n\n━━━━━━━━━━━━━━\nGOOGLE ADS POLICIES — WHAT TO KNOW\n━━━━━━━━━━━━━━\n  • Destination requirements — your landing page must match what the ad promises\n  • Prohibited content — counterfeit goods, dangerous products, dishonest practices\n  • Restricted categories — financial services, healthcare, alcohol require additional verification\n\n━━━━━━━━━━━━━━\nWHEN YOUR AD GETS REJECTED\n━━━━━━━━━━━━━━\n1. Read the specific reason (it's in your notifications)\n2. Edit the copy, creative, or landing page to address it\n3. Resubmit — don't appeal unless the rejection was clearly an error\n4. If patterns repeat, review the full policy page for that category\n\n[[AD_GUIDE_LINK]]\n\nAAC Action: Review your current ad copy this week against Meta's restricted content list. One policy violation can pause an otherwise healthy account.` },
@@ -5201,8 +5203,9 @@ function renderResources() {
     const tagsHtml = (r.tags || []).map(t => `<span class="resource-tag">${esc(t)}</span>`).join("");
     const isAdGuide = (r.tags || []).includes("ad-guide");
     const isCoreUpdate = r.title === "Meta & Google Ad Policy Updates";
-    const clickHandler = isAdGuide ? `openAdFundamentalsModal()` : `openResModal('${r.id}')`;
-    const accentStyle = (isAdGuide || isCoreUpdate)
+    const isBuildout = r.title === "Offer-to-Ads Buildout Checklist";
+    const clickHandler = isAdGuide ? `openAdFundamentalsModal()` : isBuildout ? `openBuildoutChecklist()` : `openResModal('${r.id}')`;
+    const accentStyle = (isAdGuide || isCoreUpdate || isBuildout)
       ? `border:1.5px solid var(--gold);background:linear-gradient(135deg,rgba(184,134,11,0.06),var(--surface));`
       : "";
     return `<div class="resource-card" style="${accentStyle}" onclick="${clickHandler}">
