@@ -3040,13 +3040,15 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 <!-- ROUND 1 REGISTRATION MODAL -->
 <div class="r1reg-overlay" id="r1reg-overlay">
   <div class="r1reg-modal">
-    <div class="r1reg-header">
+    <div class="r1reg-header" style="position:relative;">
+      <button onclick="closeR1RegModal()" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:28px;height:28px;font-size:15px;cursor:pointer;color:#fff;line-height:1;display:flex;align-items:center;justify-content:center;" aria-label="Close">✕</button>
       <div class="r1reg-header-logo">AAC</div>
       <div class="r1reg-header-sub">Ad Accountability Challenge</div>
     </div>
     <div class="r1reg-body">
       <div class="r1reg-headline">Round 1 Registration Is Open 🚀</div>
       <div class="r1reg-sub">Round 1 kicks off July 1 — 90 days of real campaigns, weekly proof submissions, and accountability. Lock in your spot before registration closes.</div>
+      <div style="background:rgba(201,168,76,0.08);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--text-muted);line-height:1.6;">💡 One booking from a consistently managed campaign could cover the entire cost of AAC and months of ad spend — many times over. But only if you show up every week.</div>
       <div class="r1reg-countdown-box">
         <div class="r1reg-countdown-label">Registration closes in</div>
         <div class="r1reg-countdown-timer" id="r1reg-countdown">—</div>
