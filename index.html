@@ -1810,6 +1810,108 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 }
 .welcome-dismiss:hover { color: var(--text); }
 
+/* R1 Registration modal */
+.r1reg-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 2500;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.r1reg-overlay.open { display: flex; }
+.r1reg-modal {
+  background: var(--surface);
+  border-radius: 18px;
+  width: 100%;
+  max-width: 420px;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+}
+.r1reg-header {
+  background: linear-gradient(135deg, #111010 0%, #1a1000 60%, #b89040 100%);
+  padding: 28px 24px 22px;
+  text-align: center;
+  color: #fff;
+}
+.r1reg-header-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  line-height: 1;
+}
+.r1reg-header-sub {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.75;
+  margin-top: 4px;
+}
+.r1reg-body { padding: 22px 24px 6px; }
+.r1reg-headline {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+  line-height: 1.1;
+}
+.r1reg-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+.r1reg-countdown-box {
+  background: linear-gradient(135deg, #fffbf0, #fff8e3);
+  border: 1.5px solid var(--gold);
+  border-radius: 12px;
+  padding: 14px 16px;
+  text-align: center;
+  margin-bottom: 18px;
+}
+.r1reg-countdown-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+  margin-bottom: 6px;
+}
+.r1reg-countdown-timer {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  line-height: 1;
+}
+.r1reg-countdown-deadline {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 5px;
+}
+.r1reg-footer { padding: 0 24px 24px; }
+.r1reg-cta {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: var(--gold);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: background .2s;
+}
+.r1reg-cta:hover { background: var(--gold-dark); }
+
 /* Admin tracker modal */
 .admin-tracker-modal-overlay {
   display: none;
@@ -2036,6 +2138,17 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div class="dash-welcome-meta" id="dash-date-meta"></div>
       </div>
       <div class="dash-status-strip dash-animate" id="dash-status-strip" style="animation-delay:0.15s;"></div>
+      <!-- ROUND 1 REGISTRATION CARD -->
+      <div class="dash-animate" id="r1-reg-card" style="animation-delay:0.17s;background:linear-gradient(135deg,#1a1000,#2a1800);border:1.5px solid var(--gold);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;box-shadow:0 4px 20px rgba(201,168,76,0.2);">
+        <div style="display:flex;align-items:flex-start;gap:14px;">
+          <span style="font-size:26px;flex-shrink:0;margin-top:2px;">🚀</span>
+          <div style="flex:1;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.06em;color:var(--gold);line-height:1.1;margin-bottom:3px;">Round 1 Registration Open</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.65);margin-bottom:12px;line-height:1.5;">Round 1 kicks off July 1 — 90 days, real campaigns, real data. Lock in your spot before June 30 at 11:59 PM ET.</div>
+            <a href="https://buy.stripe.com/fZu6oH99NcblgCibpfbo40a" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:7px;background:var(--gold);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.06em;padding:10px 18px;border-radius:8px;text-decoration:none;transition:background .15s;width:100%;justify-content:center;" onmouseover="this.style.background='var(--gold-dark)'" onmouseout="this.style.background='var(--gold)'">Register for Round 1 — $95 →</a>
+          </div>
+        </div>
+      </div>
       <div class="dash-animate" style="animation-delay:0.18s;background:linear-gradient(135deg,rgba(184,134,11,0.07),var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
           <span style="font-size:26px;flex-shrink:0;">📖</span>
@@ -2047,6 +2160,19 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div style="display:flex;gap:8px;">
           <button onclick="openAdFundamentalsModal()" class="btn btn-gold btn-sm" style="flex:1;">View Guide →</button>
           <button onclick="openAdAudit()" class="btn btn-sm" style="flex:1;background:linear-gradient(135deg,#1a1a1a,#2a2200);border:1.5px solid var(--gold);color:#e8d5a0;">✅ Ad Audit</button>
+        </div>
+      </div>
+      <!-- COWORKING SESSION CARD (dynamic — hidden until active session exists) -->
+      <div id="cowork-card" class="dash-animate" style="display:none;animation-delay:0.19s;background:var(--surface);border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="flex:1;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+              <span style="font-size:20px;flex-shrink:0;">📅</span>
+              <div id="cowork-card-label" style="font-weight:700;font-size:14px;color:var(--text);">Coworking Session</div>
+            </div>
+            <div id="cowork-card-sub" style="font-size:12px;color:var(--gold);font-weight:600;padding-left:28px;">RSVP to earn +2 pts. Attend to earn +5 pts.</div>
+          </div>
+          <button id="cowork-rsvp-btn" onclick="rsvpCowork()" class="btn btn-gold btn-sm" style="white-space:nowrap;flex-shrink:0;">RSVP +2</button>
         </div>
       </div>
       <div class="weekly-challenge-banner dash-animate" id="dash-challenge-banner" style="animation-delay:0.2s;">
@@ -2093,19 +2219,6 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           <span class="dash-quick-btn-icon">✅</span>
           <span class="dash-quick-btn-label">My Tracker<span class="dash-quick-btn-sub">Mark week complete</span></span>
         </button>
-      </div>
-      <!-- COWORKING SESSION CARD (dynamic — hidden until active session exists) -->
-      <div id="cowork-card" class="dash-animate" style="display:none;animation-delay:0.53s;background:var(--surface);border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-          <div style="flex:1;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
-              <span style="font-size:20px;flex-shrink:0;">📅</span>
-              <div id="cowork-card-label" style="font-weight:700;font-size:14px;color:var(--text);">Coworking Session</div>
-            </div>
-            <div id="cowork-card-sub" style="font-size:12px;color:var(--gold);font-weight:600;padding-left:28px;">RSVP to earn +2 pts. Attend to earn +5 pts.</div>
-          </div>
-          <button id="cowork-rsvp-btn" onclick="rsvpCowork()" class="btn btn-gold btn-sm" style="white-space:nowrap;flex-shrink:0;">RSVP +2</button>
-        </div>
       </div>
       <div class="dash-allstar-banner dash-animate" style="animation-delay:0.55s;">
         <div class="dash-allstar-top">
@@ -2924,6 +3037,31 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   </div>
 </div>
 
+<!-- ROUND 1 REGISTRATION MODAL -->
+<div class="r1reg-overlay" id="r1reg-overlay">
+  <div class="r1reg-modal">
+    <div class="r1reg-header">
+      <div class="r1reg-header-logo">AAC</div>
+      <div class="r1reg-header-sub">Ad Accountability Challenge</div>
+    </div>
+    <div class="r1reg-body">
+      <div class="r1reg-headline">Round 1 Registration Is Open 🚀</div>
+      <div class="r1reg-sub">Round 1 kicks off July 1 — 90 days of real campaigns, weekly proof submissions, and accountability. Lock in your spot before registration closes.</div>
+      <div class="r1reg-countdown-box">
+        <div class="r1reg-countdown-label">Registration closes in</div>
+        <div class="r1reg-countdown-timer" id="r1reg-countdown">—</div>
+        <div class="r1reg-countdown-deadline">June 30, 2026 · 11:59 PM ET</div>
+      </div>
+    </div>
+    <div class="r1reg-footer">
+      <a href="https://buy.stripe.com/fZu6oH99NcblgCibpfbo40a" target="_blank" rel="noopener" class="r1reg-cta" onclick="closeR1RegModal()">Register for Round 1 — $95 →</a>
+      <div style="text-align:center;margin-top:12px;">
+        <button onclick="dismissR1RegModal()" style="background:none;border:none;font-size:12px;color:var(--text-muted);cursor:pointer;padding:4px;">Don't show this again</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- RESOURCE MODAL -->
 <div class="modal-overlay" id="res-modal-overlay" onclick="closeResModalDirect(event)">
   <div class="modal-sheet">
@@ -3727,6 +3865,7 @@ function bootApp() {
 
   // 8. Delayed features
   setTimeout(showWelcomeModal, 600);
+  setTimeout(maybeShowR1RegModal, 1200);
   setTimeout(initPushNotifications, 1000);
   setTimeout(checkRoundEnd, 300);
   setTimeout(checkProNotifications, 2000);
@@ -6678,6 +6817,71 @@ function closeWelcomeModal() {
   const key = `wac_welcomed_${currentUser.uid}`;
   localStorage.setItem(key, "1");
   document.getElementById("welcome-overlay").classList.remove("open");
+}
+
+// ==============================
+// ROUND 1 REGISTRATION MODAL
+// Countdown to June 30, 2026 11:59 PM ET (UTC-4 = July 1 03:59:00Z)
+// ==============================
+const R1_REG_DEADLINE_TS = new Date("2026-07-01T03:59:00Z").getTime();
+let _r1regCountdownTimer = null;
+
+function _renderR1RegCountdown() {
+  const el = document.getElementById("r1reg-countdown");
+  if (!el) return;
+  const diff = R1_REG_DEADLINE_TS - Date.now();
+  if (diff <= 0) {
+    el.textContent = "Registration closed";
+    if (_r1regCountdownTimer) { clearInterval(_r1regCountdownTimer); _r1regCountdownTimer = null; }
+    // Hide the dashboard registration card too
+    const card = document.getElementById("r1-reg-card");
+    if (card) card.style.display = "none";
+    return;
+  }
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  el.textContent = `${d}d ${h}h ${m}m ${s}s`;
+}
+
+function _startR1RegCountdown() {
+  if (_r1regCountdownTimer) return;
+  _renderR1RegCountdown();
+  _r1regCountdownTimer = setInterval(_renderR1RegCountdown, 1000);
+}
+
+function _stopR1RegCountdown() {
+  if (_r1regCountdownTimer) { clearInterval(_r1regCountdownTimer); _r1regCountdownTimer = null; }
+}
+
+function _r1regDismissKey() {
+  return "aac_r1reg_dismissed_" + (currentUser?.uid || "");
+}
+
+window.closeR1RegModal = function() {
+  const ov = document.getElementById("r1reg-overlay");
+  if (ov) ov.classList.remove("open");
+  _stopR1RegCountdown();
+};
+
+window.dismissR1RegModal = function() {
+  try { localStorage.setItem(_r1regDismissKey(), "1"); } catch (_) {}
+  closeR1RegModal();
+};
+
+function maybeShowR1RegModal() {
+  // Don't show if registration period has passed
+  if (Date.now() >= R1_REG_DEADLINE_TS) {
+    const card = document.getElementById("r1-reg-card");
+    if (card) card.style.display = "none";
+    return;
+  }
+  // Don't show if permanently dismissed by this user
+  try { if (localStorage.getItem(_r1regDismissKey())) return; } catch (_) {}
+  const ov = document.getElementById("r1reg-overlay");
+  if (ov) ov.classList.add("open");
+  _startR1RegCountdown();
 }
 
 // ==============================
