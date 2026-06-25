@@ -2336,6 +2336,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div class="page-title">Resources</div>
         <div class="page-subtitle">Ad strategy guides, tools, and reference material — tap any card to read.</div>
         <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button onclick="gsOpen()" class="btn btn-sm" style="background:linear-gradient(135deg,var(--gold),var(--gold-dark));border:1.5px solid var(--gold);color:#1a1a1a;font-weight:700;">🚀 Get Started: Launch Your First Campaign</button>
           <button onclick="openAdAudit()" class="btn btn-sm" style="background:linear-gradient(135deg,#1a1a1a,#2a2200);border:1.5px solid var(--gold);color:#e8d5a0;">✅ Open Ad Readiness Audit</button>
           <button onclick="openBuildoutChecklist()" class="btn btn-sm" style="background:linear-gradient(135deg,#1a1a1a,#2a2200);border:1.5px solid var(--gold);color:#e8d5a0;">🗂 Offer-to-Ads Checklist</button>
         </div>
@@ -2961,6 +2962,146 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       </div>
     </div>
 
+<style>
+#page-getstarted{ padding:0; }
+.gs-wrap{ padding:16px 16px 90px; max-width:1100px; margin:0 auto; }
+.gs-start{ padding:16px 16px 90px; max-width:680px; margin:0 auto; }
+.gs-start-hero{ text-align:center; padding:30px 18px; border:1.5px solid var(--gold); border-radius:var(--radius,12px); background:linear-gradient(135deg,rgba(201,168,76,0.10),var(--surface,#fff)); }
+.gs-start-emoji{ font-size:42px; }
+.gs-start-title{ font-family:'Bebas Neue',sans-serif; font-size:32px; letter-spacing:.03em; margin:6px 0 8px; color:var(--text,#1a1a1a); }
+.gs-start-sub{ font-size:14px; color:var(--text-muted,#666); line-height:1.6; margin-bottom:20px; }
+.gs-cta{ background:linear-gradient(135deg,var(--gold),var(--gold-dark,#9a7b1f)); color:#1a1a1a; border:none; border-radius:10px; padding:12px 22px; font-weight:700; font-size:15px; cursor:pointer; font-family:'DM Sans',sans-serif; }
+.gs-start-list-label{ font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted,#666); margin:24px 0 8px; font-weight:700; }
+.gs-start-brief{ width:100%; display:flex; justify-content:space-between; align-items:center; gap:10px; background:var(--surface,#fff); border:1px solid var(--border,#e5e5e5); border-radius:10px; padding:12px 14px; margin-bottom:8px; cursor:pointer; font-family:'DM Sans',sans-serif; text-align:left; color:var(--text,#1a1a1a); }
+.gs-start-brief:hover{ border-color:var(--gold); }
+.gs-start-brief-name{ font-weight:600; font-size:14px; }
+.gs-start-brief-meta{ font-size:12px; color:var(--text-muted,#666); }
+
+.gs-top{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+.gs-back{ background:none; border:none; color:var(--text-muted,#666); font-size:13px; cursor:pointer; font-family:'DM Sans',sans-serif; padding:4px 0; }
+.gs-top-main{ flex:1; min-width:150px; display:flex; align-items:center; gap:8px; }
+.gs-name-input{ flex:1; min-width:110px; font-size:16px; font-weight:700; border:none; border-bottom:1.5px solid transparent; background:none; color:var(--text,#1a1a1a); font-family:'DM Sans',sans-serif; padding:4px 2px; }
+.gs-name-input:focus{ outline:none; border-bottom-color:var(--gold); }
+.gs-badge{ font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px; background:#ececec; color:#666; white-space:nowrap; }
+.gs-badge-meta{ background:#e7f0ff; color:#1b5fc4; }
+.gs-badge-google{ background:#fff0e0; color:#b5651d; }
+.gs-top-actions{ display:flex; gap:6px; }
+.gs-top-actions .btn{ white-space:nowrap; }
+
+.gs-progress{ height:6px; background:var(--border,#eee); border-radius:99px; overflow:hidden; margin-bottom:4px; }
+.gs-progress-fill{ height:100%; width:0%; background:linear-gradient(90deg,var(--gold),var(--gold-dark,#9a7b1f)); transition:width .3s; }
+.gs-save-status{ font-size:11px; color:var(--text-muted,#999); min-height:14px; text-align:right; margin-bottom:8px; }
+
+.gs-steps-toggle{ display:flex; align-items:center; gap:6px; width:100%; justify-content:center; background:var(--surface,#fff); border:1px solid var(--border,#e5e5e5); border-radius:8px; padding:9px; font-size:13px; font-weight:600; cursor:pointer; margin-bottom:10px; color:var(--text,#1a1a1a); font-family:'DM Sans',sans-serif; }
+
+.gs-layout{ display:block; }
+.gs-rail{ display:none; flex-direction:column; gap:2px; margin-bottom:14px; background:var(--surface,#fff); border:1px solid var(--border,#e5e5e5); border-radius:10px; padding:8px; }
+.gs-rail.open{ display:flex; }
+.gs-rail-group{ font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted,#999); font-weight:700; padding:8px 8px 4px; }
+.gs-rail-item{ display:flex; align-items:center; gap:8px; background:none; border:none; text-align:left; padding:8px; border-radius:7px; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:13px; color:var(--text,#333); width:100%; }
+.gs-rail-item:hover{ background:rgba(0,0,0,0.04); }
+.gs-rail-item.cur{ background:rgba(201,168,76,0.14); font-weight:700; }
+.gs-rail-item.done .gs-rail-label{ color:var(--text-muted,#888); }
+.gs-rail-check{ width:20px; height:20px; flex-shrink:0; display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--border,#eee); font-size:11px; }
+.gs-rail-item.done .gs-rail-check{ background:#2e9e6b; color:#fff; }
+.gs-rail-item.cur .gs-rail-check{ background:var(--gold); color:#1a1a1a; }
+.gs-rail-hint{ font-size:11px; color:var(--text-muted,#999); padding:8px; line-height:1.5; }
+
+.gs-pane{ background:var(--surface,#fff); border:1px solid var(--border,#e5e5e5); border-radius:12px; padding:18px 16px 20px; }
+.gs-step-group{ font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--gold-dark,#9a7b1f); font-weight:700; margin-bottom:2px; }
+.gs-step-title{ font-size:20px; font-weight:700; margin:0 0 12px; color:var(--text,#1a1a1a); line-height:1.25; }
+.gs-intro{ font-size:14px; line-height:1.65; color:var(--text,#333); margin-bottom:14px; }
+.gs-intro a{ color:var(--gold-dark,#9a7b1f); }
+.gs-launch-btn{ display:inline-block; background:linear-gradient(135deg,#1a1a1a,#2a2200); border:1.5px solid var(--gold); color:#e8d5a0; border-radius:8px; padding:10px 14px; font-size:13px; font-weight:600; cursor:pointer; margin-bottom:14px; font-family:'DM Sans',sans-serif; }
+.gs-sources{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px; padding:10px 12px; background:rgba(0,0,0,0.025); border-radius:8px; }
+.gs-sources-label{ font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted,#999); font-weight:700; }
+.gs-source-link{ font-size:12px; color:var(--gold-dark,#9a7b1f); text-decoration:none; font-weight:600; }
+.gs-source-link:hover{ text-decoration:underline; }
+
+.gs-fields{ display:flex; flex-direction:column; gap:12px; margin-bottom:16px; }
+.gs-field-label{ display:block; font-size:12px; font-weight:600; color:var(--text,#333); margin-bottom:5px; }
+.gs-input{ width:100%; border:1px solid var(--border,#ddd); border-radius:8px; padding:10px 12px; font-size:14px; font-family:'DM Sans',sans-serif; color:var(--text,#1a1a1a); background:var(--bg,#fff); box-sizing:border-box; }
+.gs-input:focus{ outline:none; border-color:var(--gold); }
+textarea.gs-input{ resize:vertical; }
+
+.gs-prompt-box{ border:1px solid var(--border,#e5e5e5); border-radius:10px; overflow:hidden; margin-bottom:16px; background:var(--bg,#fafafa); }
+.gs-prompt-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 12px; background:rgba(201,168,76,0.12); font-size:12px; font-weight:600; color:var(--text,#333); }
+.gs-copy-btn{ background:var(--gold); color:#1a1a1a; border:none; border-radius:6px; padding:4px 12px; font-size:12px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; white-space:nowrap; }
+.gs-prompt-text{ width:100%; border:none; padding:12px; font-size:12.5px; font-family:ui-monospace,Menlo,Consolas,monospace; line-height:1.55; color:var(--text,#333); background:transparent; resize:vertical; box-sizing:border-box; }
+.gs-prompt-text:focus{ outline:none; }
+.gs-prompt-hint{ font-size:11px; color:var(--text-muted,#999); padding:0 12px 10px; }
+
+.gs-tip{ font-size:12.5px; line-height:1.55; color:var(--text,#444); background:rgba(201,168,76,0.08); border-left:3px solid var(--gold); border-radius:0 8px 8px 0; padding:10px 12px; margin-bottom:16px; }
+
+.gs-notes{ margin-bottom:16px; }
+.gs-note-toggle{ background:none; border:none; color:var(--text-muted,#888); font-size:12px; cursor:pointer; text-decoration:underline; font-family:'DM Sans',sans-serif; padding:0; }
+.gs-note-area{ display:none; margin-top:8px; }
+.gs-note-area.open{ display:block; }
+
+.gs-step-footer{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; border-top:1px solid var(--border,#eee); padding-top:14px; }
+.gs-done-btn{ background:none; border:1.5px solid var(--border,#ccc); color:var(--text-muted,#666); border-radius:8px; padding:9px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
+.gs-done-btn.done{ background:#2e9e6b; border-color:#2e9e6b; color:#fff; }
+.gs-nav-btns{ display:flex; gap:8px; margin-left:auto; }
+.gs-nav-btn{ background:var(--surface,#fff); border:1px solid var(--border,#ccc); color:var(--text,#333); border-radius:8px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
+.gs-nav-btn.primary{ background:linear-gradient(135deg,var(--gold),var(--gold-dark,#9a7b1f)); border:none; color:#1a1a1a; }
+
+.gs-fork{ display:flex; flex-direction:column; gap:12px; margin-bottom:16px; }
+.gs-fork-card{ text-align:left; background:var(--surface,#fff); border:1.5px solid var(--border,#ddd); border-radius:12px; padding:16px; cursor:pointer; font-family:'DM Sans',sans-serif; }
+.gs-fork-card:hover{ border-color:var(--gold); }
+.gs-fork-card.sel{ border-color:var(--gold); background:rgba(201,168,76,0.07); }
+.gs-fork-emoji{ font-size:26px; }
+.gs-fork-name{ font-weight:700; font-size:15px; margin:6px 0 4px; color:var(--text,#1a1a1a); }
+.gs-fork-desc{ font-size:13px; color:var(--text-muted,#666); line-height:1.5; }
+
+.gs-muted{ color:var(--text-muted,#999); font-size:13px; }
+
+.gs-modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.5); display:none; align-items:flex-end; justify-content:center; z-index:1200; }
+.gs-modal-overlay.open{ display:flex; }
+.gs-modal{ background:var(--bg,#fff); width:100%; max-width:560px; max-height:85dvh; border-radius:16px 16px 0 0; display:flex; flex-direction:column; }
+.gs-modal-head{ display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid var(--border,#eee); }
+.gs-modal-title{ font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--gold-dark,#9a7b1f); }
+.gs-modal-body{ overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px 18px 24px; }
+.gs-brief-row{ display:flex; align-items:center; gap:8px; border:1px solid var(--border,#eee); border-radius:10px; padding:10px 12px; margin-bottom:8px; }
+.gs-brief-row.active{ border-color:var(--gold); }
+.gs-brief-row-main{ flex:1; cursor:pointer; min-width:0; }
+.gs-brief-row-name{ font-weight:600; font-size:14px; color:var(--text,#1a1a1a); }
+.gs-brief-active-tag{ font-size:10px; background:var(--gold); color:#1a1a1a; border-radius:4px; padding:1px 5px; font-weight:700; }
+.gs-brief-row-meta{ font-size:12px; color:var(--text-muted,#666); }
+.gs-brief-row-actions{ display:flex; gap:2px; }
+.gs-brief-row-actions button{ background:none; border:none; cursor:pointer; font-size:15px; padding:5px; border-radius:6px; }
+.gs-brief-row-actions button:hover{ background:rgba(0,0,0,0.05); }
+
+@media (min-width:860px){
+  .gs-steps-toggle{ display:none; }
+  .gs-layout{ display:grid; grid-template-columns:240px 1fr; gap:18px; align-items:start; }
+  .gs-rail{ display:flex !important; position:sticky; top:12px; margin-bottom:0; }
+}
+</style>
+
+    <!-- PAGE: GET STARTED (Launch Your First Campaign) -->
+    <div class="page" id="page-getstarted">
+      <div id="gs-start" class="gs-start" style="display:none;"></div>
+      <div id="gs-active" class="gs-wrap" style="display:none;">
+        <div class="gs-top">
+          <button class="gs-back" onclick="navTo('resources')">← Resources</button>
+          <div class="gs-top-main">
+            <input id="gs-brief-name" class="gs-name-input" placeholder="Brief name" oninput="gsRenameActive(this.value)" />
+            <span id="gs-platform-badge" class="gs-badge">—</span>
+          </div>
+          <div class="gs-top-actions">
+            <button class="btn btn-sm btn-outline" onclick="gsOpenBriefs()">🗂 Briefs</button>
+            <button class="btn btn-sm btn-outline" onclick="gsDownloadActive()" title="Download this brief">⬇</button>
+          </div>
+        </div>
+        <div class="gs-progress"><div id="gs-progress-fill" class="gs-progress-fill"></div></div>
+        <div id="gs-save-status" class="gs-save-status"></div>
+        <button class="gs-steps-toggle" onclick="gsToggleRail()">☰ Steps <span id="gs-step-counter"></span></button>
+        <div class="gs-layout">
+          <div id="gs-rail" class="gs-rail"></div>
+          <div id="gs-pane" class="gs-pane"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- BOTTOM NAV -->
@@ -3236,6 +3377,20 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <button id="eeat-prev-btn" class="btn btn-outline" style="flex:1;" onclick="adFundNav(-1)">← Prev</button>
         <button id="eeat-next-btn" class="btn btn-gold" style="flex:1;" onclick="adFundNav(1)">Next →</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- GET STARTED: CAMPAIGN BRIEFS LIBRARY MODAL -->
+<div class="gs-modal-overlay" id="gs-briefs-overlay" onclick="if(event.target===this)gsCloseBriefs()">
+  <div class="gs-modal">
+    <div class="gs-modal-head">
+      <div class="gs-modal-title">🗂 Your Campaign Briefs</div>
+      <button onclick="gsCloseBriefs()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted,#888);">✕</button>
+    </div>
+    <div class="gs-modal-body">
+      <button class="gs-cta" style="width:100%;margin-bottom:14px;" onclick="gsNewBriefPrompt()">+ New brief</button>
+      <div id="gs-briefs-list"></div>
     </div>
   </div>
 </div>
@@ -3907,6 +4062,7 @@ function navTo(page) {
     if (currentUser && (currentUser.isExpert || currentUser.isAdmin)) loadExpertPanel();
   }
   if (page === "pro") renderProPage();
+  if (page === "getstarted") gsInit();
 }
 
 function loadSubmitPage() {
@@ -5240,7 +5396,7 @@ async function loadResources() {
     _allResources = [];
     snap.forEach(d => _allResources.push({ id: d.id, ...d.data() }));
     // Sort: Ad Policy Updates first, Ad Fundamentals second, Buildout Checklist third, then timestamp descending
-    const _pinOrder = ["Meta & Google Ad Policy Updates", "Ad Fundamentals Playbook", "Offer-to-Ads Buildout Checklist"];
+    const _pinOrder = ["Get Started: Launch Your First Campaign", "Meta & Google Ad Policy Updates", "Ad Fundamentals Playbook", "Offer-to-Ads Buildout Checklist"];
     _allResources.sort((a, b) => {
       const ai = _pinOrder.indexOf(a.title);
       const bi = _pinOrder.indexOf(b.title);
@@ -5294,6 +5450,7 @@ async function seedDefaultResources() {
       body:`TikTok's official best practices guide covers every major area of campaign setup and management. Updated September 2025.\n\n━━━━━━━━━━━━━━\nCAMPAIGN SETUP\n━━━━━━━━━━━━━━\n  • Match your campaign objective to your actual goal — reach, traffic, leads, or conversions\n  • For conversion campaigns: set a daily budget of at least 10x your target CPA; ideally 30x historical CPA for best optimization\n  • Install the TikTok Pixel before you launch — it's required to build audiences and track conversions\n\n━━━━━━━━━━━━━━\nTARGETING\n━━━━━━━━━━━━━━\n  • Start broader than you think — TikTok's algorithm is strong at finding the right people within a large audience\n  • Use Lookalike Audiences based on your best existing customers or converters\n  • Use Search Ads to capture high-intent users actively looking for what you offer (available 2025)\n\n━━━━━━━━━━━━━━\nLANDING PAGES\n━━━━━━━━━━━━━━\n  • Page speed is critical — slow pages kill TikTok conversions because users are in a fast-scroll mindset\n  • Use TikTok Instant Pages as a fast-loading alternative when your main site is slow\n  • Landing page content must match the ad — no bait-and-switch\n\n━━━━━━━━━━━━━━\nKEY TOOLS\n━━━━━━━━━━━━━━\n  • Automated Rules — Set rules to pause underperforming ads or scale winners automatically\n  • Smart Creative — Automates creative combination and rotation to fight fatigue\n  • Video Insights — Breaks down creative performance by retention and engagement\n\nAAC Action: If you haven't installed the TikTok Pixel yet, do it this week — even before you plan to run TikTok ads. Pixel data collected now becomes your retargeting and lookalike audiences later.` },
     { emoji:"🔒", title:"Privacy Policy Template", description:"A ready-to-use privacy policy template covering data collection, ad tracking pixels, and third-party tools.", tags:["Compliance","Strategy"], source:"AAC Resource Library", url:"", linkLabel:"",
       body:`Running ads means installing tracking pixels (Meta Pixel, Google Tag) on your website. That requires a Privacy Policy that discloses this to visitors.\n\nWithout a Privacy Policy:\n  • Meta and Google can restrict your ad account\n  • You may be in violation of GDPR or CCPA depending on your audience location\n  • Visitors lose trust when they can't find your policy\n\n━━━━━━━━━━━━━━\nWHAT YOUR POLICY NEEDS TO COVER\n━━━━━━━━━━━━━━\n  • What data you collect (name, email, IP, cookies)\n  • Why you collect it (to deliver your service, improve the site)\n  • Who you share it with (Meta, Google, your email platform)\n  • How people can request their data be deleted\n  • Cookie usage and tracking pixel disclosure\n\n━━━━━━━━━━━━━━\nFREE TOOLS TO GENERATE ONE\n━━━━━━━━━━━━━━\n  • Termly.io — free tier covers most solopreneurs\n  • PrivacyPolicies.com — straightforward generator\n  • Squarespace/Wix/Shopify — built-in generators if you're on those platforms\n\nAAC Action: If you don't have a Privacy Policy page on your site, generate one this week using Termly or PrivacyPolicies.com. Link to it in your site footer and in any ad landing pages you're running traffic to.` },
+    { emoji:"🚀", title:"Get Started: Launch Your First Campaign", description:"An interactive, step-by-step guide from your offer to a live Meta or Google ad — with prompts, auto-save, and a campaign brief library.", tags:["Creative","Targeting","Meta","Google","Checklist"], source:"AAC Resource Library", url:"", linkLabel:"", body:"" },
     { emoji:"🗂", title:"Offer-to-Ads Buildout Checklist", description:"A beginner-friendly checklist for building the full offer, funnel, automation, and Meta ads system.", tags:["Funnel","Creative","Checklist"], source:"AAC Resource Library", url:"", linkLabel:"", body:"" },
     { emoji:"🧭", title:"Ad Fundamentals Playbook", description:"AAC's 7-part guide to paid advertising — creative, targeting, analytics, budget, and more.", tags:["ad-guide","Creative","Targeting","Analytics","Budget"], source:"AAC Resource Library", url:"", linkLabel:"", body:"" },
     { emoji:"🔔", title:"Meta & Google Ad Policy Updates", description:"The latest changes to Meta and Google advertising policies — what's restricted, what's new, and what to watch.", tags:["Compliance","Meta","Google"], source:"Meta & Google Policy Docs", url:"https://www.facebook.com/policies/ads/", linkLabel:"Meta Ad Policies →",
@@ -5345,8 +5502,9 @@ function renderResources() {
     const isAdGuide = (r.tags || []).includes("ad-guide");
     const isCoreUpdate = r.title === "Meta & Google Ad Policy Updates";
     const isBuildout = r.title === "Offer-to-Ads Buildout Checklist";
-    const clickHandler = isAdGuide ? `openAdFundamentalsModal()` : isBuildout ? `openBuildoutChecklist()` : `openResModal('${r.id}')`;
-    const accentStyle = (isAdGuide || isCoreUpdate || isBuildout)
+    const isGetStarted = r.title === "Get Started: Launch Your First Campaign";
+    const clickHandler = isGetStarted ? `gsOpen()` : isAdGuide ? `openAdFundamentalsModal()` : isBuildout ? `openBuildoutChecklist()` : `openResModal('${r.id}')`;
+    const accentStyle = (isAdGuide || isCoreUpdate || isBuildout || isGetStarted)
       ? `border:1.5px solid var(--gold);background:linear-gradient(135deg,rgba(184,134,11,0.06),var(--surface));`
       : "";
     return `<div class="resource-card" style="${accentStyle}" onclick="${clickHandler}">
@@ -6753,6 +6911,11 @@ service cloud.firestore {
     match /aac_registry/{userId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null &&
+        (request.auth.token.email == '${esc(ADMIN_EMAIL)}' ||
+         request.auth.uid == userId);
+    }
+    match /aac_registry/{userId}/campaignBriefs/{briefId} {
+      allow read, write: if request.auth != null &&
         (request.auth.token.email == '${esc(ADMIN_EMAIL)}' ||
          request.auth.uid == userId);
     }
@@ -8320,6 +8483,641 @@ window.toggleBuildoutNote       = toggleBuildoutNote;
 window.saveBuildoutNote         = saveBuildoutNote;
 window.resetBuildoutChecklist   = resetBuildoutChecklist;
 window.saveAndCloseBuildout     = saveAndCloseBuildout;
+// ==============================
+// GET STARTED GUIDE (Launch Your First Campaign)
+// ==============================
+let _gsBrief = null, _gsBriefId = null, _gsBriefs = [], _gsStepId = null;
+let _gsSaveTimer = null, _gsPromptTimer = null, _gsRailOpen = false;
+
+function _gsv(id, fb) {
+  return (_gsBrief && _gsBrief.values && _gsBrief.values[id]) ? _gsBrief.values[id] : (fb || "");
+}
+
+// ---- Source links (verified official Meta/Google help URLs + reputable 2026 secondary sources) ----
+const GS_SRC = {
+  metaSuite:   { label: "Meta Business Suite (official)", url: "https://business.facebook.com" },
+  metaBlueprint:{ label: "Meta Blueprint course", url: "https://www.facebookblueprint.com" },
+  metaStruct:  { label: "Ad structure: campaign, ad set, ad (Meta)", url: "https://www.facebook.com/business/help/621956575422138" },
+  metaCreate:  { label: "Create a campaign in Ads Manager (Meta)", url: "https://www.facebook.com/business/help/728466334381303" },
+  metaPixel:   { label: "Set up & install the Meta Pixel (Meta)", url: "https://www.facebook.com/business/help/952192354843755" },
+  metaEvents:  { label: "Events Manager: Pixel & Conversions API (Meta)", url: "https://www.facebook.com/business/help/898185560232180" },
+  metaPolicy:  { label: "Meta Advertising Standards (official)", url: "https://transparency.meta.com/policies/ad-standards/" },
+  meta2026:    { label: "Meta Ads setup guide (2026)", url: "https://adadvisor.ai/blog/complete-guide-setting-up-meta-ads-2026" },
+  gAds:        { label: "Google Ads (official)", url: "https://ads.google.com" },
+  gSearch:     { label: "Create a Search campaign (Google)", url: "https://support.google.com/google-ads/answer/9510373" },
+  gConv:       { label: "Set up conversion tracking (Google)", url: "https://support.google.com/google-ads/answer/10995481" },
+  gConvGoals:  { label: "Campaign conversion goals (Google)", url: "https://support.google.com/google-ads/answer/9143218" },
+  gPolicy:     { label: "Google Ads policies (official)", url: "https://support.google.com/adspolicy/answer/6008942" },
+  g2026:       { label: "Google Ads structure guide (2026)", url: "https://leadsbridge.com/blog/google-ads-campaign-structure/" }
+};
+
+const GS_PREP_STEPS = [
+  { id:"prep-start", group:"Prep", icon:"🎯", title:"Start & set your goal",
+    intro:"Welcome. This guide takes you from your offer to a live Meta or Google ad, one step at a time. Everything auto-saves to this brief, and you can keep multiple briefs (one per week or per offer). First, lock in the basics.",
+    sources:[GS_SRC.metaBlueprint, GS_SRC.gAds],
+    fields:[
+      { id:"po_business", label:"Business / brand name", ph:"e.g. Templeton Image" },
+      { id:"po_url", label:"Website or landing page URL", ph:"https://…" },
+      { id:"po_goal", label:"Primary goal for this campaign", type:"select", options:["Leads","Sales","Bookings","Phone calls","Website traffic"] }
+    ],
+    prompt:()=>`I'm setting up my first paid ad campaign for my business "${_gsv("po_business","[business]")}". My main goal is ${_gsv("po_goal","[goal]")} and my landing page is ${_gsv("po_url","[url]")}. In plain language, explain what a realistic outcome looks like for a beginner campaign with this goal, and the 3 things that matter most before I spend a dollar.`,
+    tip:"You'll pick Meta vs Google after the prep steps. Don't choose yet." },
+
+  { id:"prep-offer", group:"Prep", icon:"💡", title:"Sharpen your offer", launch:"buildout",
+    intro:"A weak offer is the #1 reason beginner ads fail. Open the Offer-to-Ads Buildout Checklist to pressure-test your full offer and funnel, then capture the essentials here so every later step (and AI prompt) can reuse them.",
+    sources:[],
+    fields:[
+      { id:"po_offer", label:"What you're offering (one sentence)", type:"textarea", ph:"e.g. Luxury wedding films for couples in Baltimore & Chicago" },
+      { id:"po_audience", label:"Who it's for", ph:"e.g. Engaged couples, 25-38, planning a $30k+ wedding" },
+      { id:"po_promise", label:"Core promise / outcome", ph:"e.g. A cinematic film you'll actually rewatch" },
+      { id:"po_price", label:"Price or starting price", ph:"e.g. From $4,500" }
+    ],
+    prompt:()=>`Act as a direct-response strategist. My offer: ${_gsv("po_offer","[offer]")}. Audience: ${_gsv("po_audience","[audience]")}. Core promise: ${_gsv("po_promise","[promise]")}. Price: ${_gsv("po_price","[price]")}. Critique the clarity and strength of this offer for cold paid traffic, then rewrite it into one sharp sentence I can build ads around.`,
+    tip:"Keep your offer sentence tight. If you can't say it in one line, your ads won't either." },
+
+  { id:"prep-fundamentals", group:"Prep", icon:"📖", title:"Learn the fundamentals", launch:"fundamentals",
+    intro:"Open the Ad Fundamentals Playbook (AAC's 7-part guide). You don't need to master everything, just enough to make smart choices on objective, targeting, and budget. Jot a takeaway and the one metric you'll watch.",
+    sources:[],
+    fields:[
+      { id:"pf_takeaway", label:"Biggest takeaway for your campaign", type:"textarea", ph:"e.g. Start broad and let the algorithm find buyers" },
+      { id:"pf_metric", label:"The one metric you'll watch first", type:"select", options:["Cost per lead (CPL)","Cost per purchase / CPA","Click-through rate (CTR)","Return on ad spend (ROAS)","Cost per click (CPC)"] }
+    ],
+    prompt:()=>`I'm new to paid ads. My goal is ${_gsv("po_goal","[goal]")} and I plan to watch ${_gsv("pf_metric","[metric]")} first. Explain in simple terms what a good vs bad ${_gsv("pf_metric","[metric]")} looks like for a small beginner budget, and what to do in week one if it's worse than expected.` },
+
+  { id:"prep-audit", group:"Prep", icon:"✅", title:"Run your readiness audit", launch:"audit",
+    intro:"Open the Ad Readiness Audit and work through it. The two things that block beginners most: a working ad account and conversion tracking (pixel / tag). Capture your status below so you know exactly what to fix before launch.",
+    sources:[],
+    fields:[
+      { id:"pa_account", label:"Ad account status", type:"select", options:["Not started","In progress","Ready"] },
+      { id:"pa_tracking", label:"Tracking (pixel / Google tag) status", type:"select", options:["Not started","In progress","Ready"] },
+      { id:"pa_event", label:"Your main conversion event/action", ph:"e.g. Lead form submit, Purchase, Booking" }
+    ],
+    prompt:()=>`Help me finish my ad readiness setup. Goal: ${_gsv("po_goal","[goal]")}. Landing page: ${_gsv("po_url","[url]")}. My main conversion action is "${_gsv("pa_event","[event]")}". Ad account status: ${_gsv("pa_account","[status]")}. Tracking status: ${_gsv("pa_tracking","[status]")}. Give me a short, ordered checklist to get everything to "Ready," with how to verify each item is actually working.`,
+    tip:"Heads up: if your ad account or tracking isn't at least In progress, fix that before you build the campaign. Launching without tracking means flying blind." }
+];
+
+const GS_FORK_STEP = { id:"fork", group:"Choose Platform", icon:"🔀", title:"Pick Meta or Google", custom:"fork" };
+
+const GS_META_STEPS = [
+  { id:"m1", group:"Build · Meta", icon:"🏢", title:"Set up Business Manager, Page & ad account",
+    intro:"Before any ad runs you need three things: a Meta Business (Business Manager) profile, a Facebook Page tied to your brand, and an ad account with a payment method. Create or confirm these in Meta Business Suite.",
+    sources:[GS_SRC.metaSuite, GS_SRC.metaStruct, GS_SRC.meta2026],
+    fields:[
+      { id:"m1_bm", label:"Business / portfolio name in Business Manager", ph:"e.g. Templeton Image LLC" },
+      { id:"m1_page", label:"Facebook Page running the ads", ph:"e.g. @templetonimage" },
+      { id:"m1_pay", label:"Payment method added?", type:"select", options:["Yes","Not yet"] }
+    ],
+    prompt:()=>`Walk me through confirming my Meta ad foundation is ready: a Business Manager profile for "${_gsv("po_business","[business]")}", a connected Facebook Page (${_gsv("m1_page","[page]")}), an ad account, and a payment method. Give me a quick verification checklist and the most common setup mistakes beginners make here.`,
+    tip:"Use a Business Manager profile, not a personal ad account. It keeps assets and permissions clean for the long haul." },
+
+  { id:"m2", group:"Build · Meta", icon:"📡", title:"Install the Meta Pixel + Conversions API",
+    intro:"The Pixel (now part of a dataset) plus the Conversions API tells Meta what happens after the click, so it can optimize and you can measure. Set it up in Events Manager, then define the standard event that matches your goal.",
+    sources:[GS_SRC.metaPixel, GS_SRC.metaEvents],
+    fields:[
+      { id:"m2_dataset", label:"Pixel / Dataset ID (optional)", ph:"e.g. 123456789012345" },
+      { id:"m2_event", label:"Standard event to optimize for", type:"select", options:["Lead","Purchase","Complete registration","Schedule","Contact","Subscribe","Add to cart"] }
+    ],
+    prompt:()=>`My campaign goal is ${_gsv("po_goal","[goal]")} and my conversion action is "${_gsv("pa_event","[event]")}". Which Meta standard event should I optimize for (I'm leaning ${_gsv("m2_event","[event]")}), and walk me through verifying it fires correctly using Events Manager Test Events and the Meta Pixel Helper.`,
+    tip:"No purchases/leads yet? You can still launch a Traffic objective, but conversion tracking pays off fast. Get it in early." },
+
+  { id:"m3", group:"Build · Meta", icon:"🚀", title:"Create your campaign & objective",
+    intro:"In Ads Manager click Create. At the campaign level you pick one objective. For most AAC members chasing leads or sales, choose Leads or Sales. Set your budget here too.",
+    sources:[GS_SRC.metaCreate, GS_SRC.metaStruct],
+    fields:[
+      { id:"m3_objective", label:"Campaign objective", type:"select", options:["Sales","Leads","Engagement","Traffic","Awareness","App promotion"] },
+      { id:"m3_budget", label:"Daily budget (USD)", ph:"e.g. 5  (AAC minimum is $1/day)" },
+      { id:"m3_start", label:"Start date", ph:"e.g. this Friday" }
+    ],
+    prompt:()=>`I'm creating a Meta campaign for ${_gsv("po_goal","[goal]")} with offer "${_gsv("po_offer","[offer]")}". I'm considering the ${_gsv("m3_objective","[objective]")} objective at $${_gsv("m3_budget","[budget]")}/day. Is that the right objective for my goal, and what daily budget is realistic to start and learn? Note: AAC requires at least one campaign spending $1/day every week.`,
+    tip:"AAC rule: keep at least one campaign live at $1/day minimum, every week. Higher is fine; consistency is the point." },
+
+  { id:"m4", group:"Build · Meta", icon:"🎯", title:"Build your ad set (audience, placements, budget)",
+    intro:"The ad set is where targeting lives: audience, locations, placements, and schedule. For beginners, Advantage+ placements and a fairly broad audience usually beat heavy manual narrowing.",
+    sources:[GS_SRC.metaStruct, GS_SRC.meta2026],
+    fields:[
+      { id:"m4_geo", label:"Locations", ph:"e.g. Baltimore + 25mi, Chicago" },
+      { id:"m4_audience", label:"Audience / interests", type:"textarea", ph:"e.g. Engaged, wedding planning interests, 25-38" },
+      { id:"m4_placements", label:"Placements", type:"select", options:["Advantage+ (recommended)","Manual"] }
+    ],
+    prompt:()=>`Suggest 3 starting audiences for a Meta ad set. Offer: ${_gsv("po_offer","[offer]")}. Audience: ${_gsv("po_audience","[audience]")}. Locations: ${_gsv("m4_geo","[locations]")}. Give one broad Advantage+ style audience and two interest-based options, with specific interests/behaviors to enter, and note which to test first.` },
+
+  { id:"m5", group:"Build · Meta", icon:"✍️", title:"Write your ad creative",
+    intro:"This is the ad people actually see: media, primary text, headline, and a call to action. Draft it below, or use the prompt to generate variations from your offer.",
+    sources:[GS_SRC.metaCreate],
+    fields:[
+      { id:"m5_format", label:"Format", type:"select", options:["Single image","Video / Reel","Carousel"] },
+      { id:"m5_primary", label:"Primary text", type:"textarea", ph:"The main body copy of your ad" },
+      { id:"m5_headline", label:"Headline", ph:"Short, punchy (shows under the media)" },
+      { id:"m5_cta", label:"Call-to-action button", type:"select", options:["Learn more","Sign up","Book now","Get offer","Contact us","Shop now","Send message"] },
+      { id:"m5_link", label:"Destination URL", ph:"Where the click goes" }
+    ],
+    prompt:()=>`Act as a direct-response copywriter. Write 3 Meta ad variations for this offer: ${_gsv("po_offer","[offer]")}. Audience: ${_gsv("po_audience","[audience]")}. Core promise: ${_gsv("po_promise","[promise]")}. Price: ${_gsv("po_price","[price]")}. Destination: ${_gsv("m5_link",_gsv("po_url","[url]"))}. For each variation give: primary text (lead with a strong hook in the first line), a headline under 40 characters, and the best CTA button. Keep claims policy-safe (no guaranteed results, no before/after).` },
+
+  { id:"m6", group:"Build · Meta", icon:"🛡️", title:"Policy check & publish",
+    intro:"Run your copy and creative past Meta's Advertising Standards before publishing. Watch for guaranteed-results language, personal-attribute targeting, and landing pages that don't match the ad. Then hit Publish and let it enter review.",
+    sources:[GS_SRC.metaPolicy, GS_SRC.metaEvents],
+    fields:[
+      { id:"m6_policy", label:"Policy self-review done?", type:"select", options:["Reviewed","Not yet"] }
+    ],
+    prompt:()=>`Review my Meta ad against common policy pitfalls (guaranteed results, personal attributes like "are you depressed?", sensational claims, mismatched landing page). Primary text: "${_gsv("m5_primary","[text]")}". Headline: "${_gsv("m5_headline","[headline]")}". Flag anything risky and suggest compliant rewrites.`,
+    tip:"After publishing, your ad goes 'In review' (usually under 24h). Don't keep editing while it reviews, it restarts the clock." },
+
+  { id:"m7", group:"Build · Meta", icon:"🏁", title:"Submit your proof in AAC", custom:"submit" }
+];
+
+const GS_GOOGLE_STEPS = [
+  { id:"g1", group:"Build · Google", icon:"🔧", title:"Create your account & switch to Expert Mode",
+    intro:"Sign up at Google Ads. If it pushes you into a simplified setup, use 'Create an account without a campaign,' then switch to Expert Mode to unlock real controls. Pick your time zone and currency carefully, you can't change them later.",
+    sources:[GS_SRC.gAds, GS_SRC.gSearch],
+    fields:[
+      { id:"g1_timezone", label:"Time zone", ph:"e.g. Eastern Time" },
+      { id:"g1_currency", label:"Currency", ph:"e.g. USD" },
+      { id:"g1_expert", label:"In Expert Mode?", type:"select", options:["Yes","Not yet"] }
+    ],
+    prompt:()=>`I'm brand new to Google Ads setting up for "${_gsv("po_business","[business]")}". Walk me through creating the account without a campaign, switching to Expert Mode, and the time zone/currency choices I can't undo. Keep it beginner-friendly and ordered.`,
+    tip:"Smart Mode hides the controls you need. Switch to Expert Mode early so you can manage keywords, bids, and tracking." },
+
+  { id:"g2", group:"Build · Google", icon:"📡", title:"Set up conversion tracking (Google tag / GA4)",
+    intro:"Google's bidding needs conversion data to work. Create a conversion action for your goal, then install the Google tag (or import from GA4). Verify it fires before spending.",
+    sources:[GS_SRC.gConv, GS_SRC.gConvGoals],
+    fields:[
+      { id:"g2_action", label:"Conversion action", ph:"e.g. Lead form submit, Purchase, Call" },
+      { id:"g2_method", label:"Tracking method", type:"select", options:["Google tag (gtag)","Import from GA4","Google Tag Manager"] }
+    ],
+    prompt:()=>`Help me set up Google Ads conversion tracking. My goal is ${_gsv("po_goal","[goal]")}, landing page ${_gsv("po_url","[url]")}, and the action I want to count is "${_gsv("g2_action","[action]")}" via ${_gsv("g2_method","[method]")}. Give me the exact steps to create the conversion action and confirm it's recording.` },
+
+  { id:"g3", group:"Build · Google", icon:"🧭", title:"Choose campaign type & goal",
+    intro:"Click New campaign and pick your goal, then the campaign type. If people already search for what you offer, start with Search, it captures existing intent and is the cleanest place for beginners.",
+    sources:[GS_SRC.gSearch, GS_SRC.g2026],
+    fields:[
+      { id:"g3_goal", label:"Campaign goal", type:"select", options:["Sales","Leads","Website traffic"] },
+      { id:"g3_type", label:"Campaign type", type:"select", options:["Search (recommended)","Performance Max","Display"] }
+    ],
+    prompt:()=>`For my offer "${_gsv("po_offer","[offer]")}" with goal ${_gsv("g3_goal","[goal]")}, is a Search campaign the right starting point versus Performance Max or Display? Explain the trade-off in plain terms for a beginner with a small budget.`,
+    tip:"Start with Search to capture demand. Save Performance Max for once you have conversion data flowing." },
+
+  { id:"g4", group:"Build · Google", icon:"🔑", title:"Keywords, locations & budget",
+    intro:"Add the search terms you want to show up for, set your locations, and set a daily budget. Use phrase or exact match to control spend, and add negative keywords so you don't pay for irrelevant clicks.",
+    sources:[GS_SRC.gSearch],
+    fields:[
+      { id:"g4_keywords", label:"Seed keywords (one per line)", type:"textarea", ph:"baltimore wedding videographer\nwedding film chicago" },
+      { id:"g4_geo", label:"Locations", ph:"e.g. Baltimore MD, Chicago IL" },
+      { id:"g4_budget", label:"Daily budget (USD)", ph:"e.g. 5  (AAC minimum is $1/day)" }
+    ],
+    prompt:()=>`Generate keywords for a Google Search campaign. Offer: ${_gsv("po_offer","[offer]")}. Locations: ${_gsv("g4_geo","[locations]")}. Seed terms: ${_gsv("g4_keywords","[keywords]")}. Give me 15 high-intent keywords (mark each as phrase or exact match) and 10 negative keywords to block wasted spend.`,
+    tip:"AAC rule: keep at least $1/day spending every week. Tight match types + negatives stretch a small budget." },
+
+  { id:"g5", group:"Build · Google", icon:"✍️", title:"Write your responsive search ad",
+    intro:"A responsive search ad mixes your headlines and descriptions automatically. Give it plenty to work with: up to 15 headlines (≤30 characters) and 4 descriptions (≤90 characters). Add your final URL and display paths.",
+    sources:[GS_SRC.gSearch],
+    fields:[
+      { id:"g5_final", label:"Final URL", ph:"https://… (the page the ad sends to)" },
+      { id:"g5_headlines", label:"Headlines (one per line, ≤30 chars)", type:"textarea", ph:"Baltimore Wedding Films\nCinematic Wedding Video" },
+      { id:"g5_desc", label:"Descriptions (one per line, ≤90 chars)", type:"textarea", ph:"Award-winning films you'll rewatch for years. Book your date today." },
+      { id:"g5_paths", label:"Display paths (optional)", ph:"e.g. /wedding /films" }
+    ],
+    prompt:()=>`Write a responsive search ad for ${_gsv("po_offer","[offer]")} (promise: ${_gsv("po_promise","[promise]")}). Target keywords: ${_gsv("g4_keywords","[keywords]")}. Give me 12 headlines (each ≤30 characters, work my main keyword into several) and 4 descriptions (each ≤90 characters, each with a clear CTA). Keep it policy-safe.` },
+
+  { id:"g6", group:"Build · Google", icon:"🛡️", title:"Policy check & publish",
+    intro:"Check your ad and landing page against Google Ads policies, especially that your destination matches what the ad promises. Fix any flagged issues in the review screen, then Publish.",
+    sources:[GS_SRC.gPolicy],
+    fields:[
+      { id:"g6_policy", label:"Policy self-review done?", type:"select", options:["Reviewed","Not yet"] }
+    ],
+    prompt:()=>`Review my Google Search ad against Google Ads policy basics (destination must match the ad, no prohibited/restricted claims, no misleading copy). Headlines: ${_gsv("g5_headlines","[headlines]")}. Descriptions: ${_gsv("g5_desc","[descriptions]")}. Final URL: ${_gsv("g5_final",_gsv("po_url","[url]"))}. Flag risks and suggest compliant fixes.`,
+    tip:"Use the review screen's 'Fix it' prompts before publishing. They catch most rejections early." },
+
+  { id:"g7", group:"Build · Google", icon:"🏁", title:"Submit your proof in AAC", custom:"submit" }
+];
+
+function gsStepsFor(b) {
+  const arr = [...GS_PREP_STEPS, GS_FORK_STEP];
+  if (b && b.platform === "meta") arr.push(...GS_META_STEPS);
+  else if (b && b.platform === "google") arr.push(...GS_GOOGLE_STEPS);
+  return arr;
+}
+function gsSteps() { return gsStepsFor(_gsBrief); }
+
+// ---- Entry ----
+function gsOpen() { navTo("getstarted"); }
+
+async function gsInit() {
+  if (!currentUser) return;
+  await gsLoadBriefs();
+  let activeId = currentUser.activeBriefId || lsGet("aac_gs_active_" + currentUser.uid);
+  if (activeId && _gsBriefs.find(b => b.id === activeId)) { await gsOpenBrief(activeId, true); }
+  else if (_gsBriefs.length) { await gsOpenBrief(_gsBriefs[0].id, true); }
+  else { _gsBrief = null; _gsBriefId = null; gsRenderAll(); }
+}
+
+// ---- Persistence ----
+async function gsLoadBriefs() {
+  _gsBriefs = [];
+  try {
+    const snap = await getDocs(collection(db, "aac_registry", currentUser.uid, "campaignBriefs"));
+    snap.forEach(d => _gsBriefs.push({ id: d.id, ...d.data() }));
+    _gsBriefs.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+    lsSet("aac_gs_briefs_" + currentUser.uid, _gsBriefs);
+  } catch (e) {
+    const cached = lsGet("aac_gs_briefs_" + currentUser.uid);
+    if (cached) _gsBriefs = cached;
+  }
+}
+
+async function gsOpenBrief(id, skipWrite) {
+  try {
+    const snap = await getDoc(doc(db, "aac_registry", currentUser.uid, "campaignBriefs", id));
+    if (snap.exists()) _gsBrief = { id, ...snap.data() };
+    else { const fl = _gsBriefs.find(b => b.id === id); _gsBrief = fl ? { ...fl } : null; }
+  } catch (e) {
+    const fl = _gsBriefs.find(b => b.id === id);
+    _gsBrief = fl ? { ...fl } : (lsGet("aac_gs_brief_" + currentUser.uid) || null);
+  }
+  if (!_gsBrief) { gsRenderAll(); return; }
+  _gsBriefId = id;
+  _gsBrief.values = _gsBrief.values || {};
+  _gsBrief.notes = _gsBrief.notes || {};
+  _gsBrief.done = _gsBrief.done || {};
+  _gsStepId = (_gsBrief.currentStepId && gsSteps().find(s => s.id === _gsBrief.currentStepId))
+    ? _gsBrief.currentStepId : GS_PREP_STEPS[0].id;
+  if (!skipWrite) gsSetActive(id);
+  else { currentUser.activeBriefId = id; lsSet("aac_gs_active_" + currentUser.uid, id); }
+  _gsRailOpen = false;
+  gsRenderAll();
+}
+
+function gsSetActive(id) {
+  currentUser.activeBriefId = id;
+  lsSet("aac_gs_active_" + currentUser.uid, id);
+  try { updateDoc(doc(db, "aac_registry", currentUser.uid), { activeBriefId: id }).catch(() => {}); } catch (e) {}
+}
+
+async function gsCreateBrief(name) {
+  name = (name || "").trim() || ("Campaign Brief " + (_gsBriefs.length + 1));
+  const data = { name, platform: null, values: {}, notes: {}, done: {}, currentStepId: GS_PREP_STEPS[0].id, createdAt: Date.now(), updatedAt: Date.now() };
+  let id = null;
+  try { const ref = await addDoc(collection(db, "aac_registry", currentUser.uid, "campaignBriefs"), data); id = ref.id; }
+  catch (e) { id = "local_" + Date.now(); }
+  _gsBriefs.unshift({ id, ...data });
+  lsSet("aac_gs_briefs_" + currentUser.uid, _gsBriefs);
+  await gsOpenBrief(id);
+  showToast("Brief created");
+}
+
+function gsNewBriefPrompt() {
+  gsCloseBriefs();
+  const name = prompt("Name this brief", "Campaign Brief " + (_gsBriefs.length + 1));
+  if (name === null) return;
+  gsCreateBrief(name);
+}
+
+function gsSaveDebounced() {
+  if (!_gsBrief || !_gsBriefId) return;
+  _gsBrief.updatedAt = Date.now();
+  _gsBrief.currentStepId = _gsStepId;
+  lsSet("aac_gs_brief_" + currentUser.uid, _gsBrief);
+  const li = _gsBriefs.find(b => b.id === _gsBriefId); if (li) Object.assign(li, _gsBrief);
+  lsSet("aac_gs_briefs_" + currentUser.uid, _gsBriefs);
+  const st = document.getElementById("gs-save-status"); if (st) st.textContent = "Saving…";
+  clearTimeout(_gsSaveTimer);
+  _gsSaveTimer = setTimeout(() => {
+    if (String(_gsBriefId).startsWith("local_")) { if (st) st.textContent = "Saved on this device"; return; }
+    const { id, ...payload } = _gsBrief;
+    setDoc(doc(db, "aac_registry", currentUser.uid, "campaignBriefs", _gsBriefId), payload, { merge: true })
+      .then(() => { if (st) st.textContent = "Saved"; })
+      .catch(() => { if (st) st.textContent = "Saved on this device"; });
+  }, 1000);
+}
+
+async function gsPersistBrief(id, partial) {
+  const b = _gsBriefs.find(x => x.id === id); if (b) Object.assign(b, partial, { updatedAt: Date.now() });
+  lsSet("aac_gs_briefs_" + currentUser.uid, _gsBriefs);
+  if (String(id).startsWith("local_")) return;
+  try { await setDoc(doc(db, "aac_registry", currentUser.uid, "campaignBriefs", id), { ...partial, updatedAt: Date.now() }, { merge: true }); } catch (e) {}
+}
+
+async function gsRenameBrief(id) {
+  const b = _gsBriefs.find(x => x.id === id); if (!b) return;
+  const name = prompt("Rename brief", b.name || "");
+  if (name === null) return;
+  const nm = name.trim() || b.name;
+  if (_gsBrief && _gsBriefId === id) { _gsBrief.name = nm; const ni = document.getElementById("gs-brief-name"); if (ni) ni.value = nm; }
+  await gsPersistBrief(id, { name: nm });
+  gsRenderBriefsList();
+  showToast("Renamed");
+}
+
+async function gsDuplicateBrief(id) {
+  const b = _gsBriefs.find(x => x.id === id); if (!b) return;
+  const copy = { name: (b.name || "Brief") + " (copy)", platform: b.platform || null,
+    values: { ...(b.values || {}) }, notes: { ...(b.notes || {}) }, done: { ...(b.done || {}) },
+    currentStepId: b.currentStepId || GS_PREP_STEPS[0].id, createdAt: Date.now(), updatedAt: Date.now() };
+  let newId = null;
+  try { const ref = await addDoc(collection(db, "aac_registry", currentUser.uid, "campaignBriefs"), copy); newId = ref.id; }
+  catch (e) { newId = "local_" + Date.now(); }
+  _gsBriefs.unshift({ id: newId, ...copy });
+  lsSet("aac_gs_briefs_" + currentUser.uid, _gsBriefs);
+  gsRenderBriefsList();
+  showToast("Brief duplicated");
+}
+
+async function gsDeleteBrief(id) {
+  if (!confirm("Delete this brief? This cannot be undone.")) return;
+  _gsBriefs = _gsBriefs.filter(x => x.id !== id);
+  lsSet("aac_gs_briefs_" + currentUser.uid, _gsBriefs);
+  if (!String(id).startsWith("local_")) { try { await deleteDoc(doc(db, "aac_registry", currentUser.uid, "campaignBriefs", id)); } catch (e) {} }
+  if (_gsBriefId === id) {
+    _gsBrief = null; _gsBriefId = null;
+    if (_gsBriefs.length) { await gsOpenBrief(_gsBriefs[0].id); } else { gsRenderAll(); }
+  }
+  gsRenderBriefsList();
+  showToast("Brief deleted");
+}
+
+function gsRenameActive(val) {
+  if (!_gsBrief) return;
+  _gsBrief.name = val;
+  const b = _gsBriefs.find(x => x.id === _gsBriefId); if (b) b.name = val;
+  gsSaveDebounced();
+}
+
+// ---- Field / note / done ----
+function gsSetField(id, val) { if (!_gsBrief) return; _gsBrief.values[id] = val; gsSaveDebounced(); gsRefreshPromptSoon(); }
+function gsSetNote(stepId, val) { if (!_gsBrief) return; _gsBrief.notes[stepId] = val; gsSaveDebounced(); }
+function gsToggleDone(stepId) {
+  if (!_gsBrief) return;
+  _gsBrief.done[stepId] = !_gsBrief.done[stepId];
+  gsSaveDebounced(); gsRenderRail(); gsUpdateProgress(); gsUpdateDoneBtn(stepId);
+}
+function gsToggleNote() {
+  const ta = document.getElementById("gs-note-text"); if (!ta) return;
+  ta.classList.toggle("open");
+  if (ta.classList.contains("open")) ta.focus();
+}
+function gsRefreshPromptSoon() { clearTimeout(_gsPromptTimer); _gsPromptTimer = setTimeout(gsRefreshPrompt, 400); }
+function gsRefreshPrompt() {
+  const step = gsSteps().find(s => s.id === _gsStepId);
+  if (!step || !step.prompt) return;
+  const ta = document.getElementById("gs-prompt-text");
+  if (ta) ta.value = step.prompt();
+}
+function gsCopyPrompt() {
+  const ta = document.getElementById("gs-prompt-text"); if (!ta) return;
+  navigator.clipboard.writeText(ta.value).then(() => showToast("Prompt copied!")).catch(() => showToast("Copy failed"));
+}
+function gsUpdateDoneBtn(stepId) {
+  const btn = document.getElementById("gs-done-btn"); if (!btn) return;
+  const d = _gsBrief.done[stepId];
+  btn.classList.toggle("done", !!d);
+  btn.textContent = d ? "✓ Completed" : "Mark complete";
+}
+
+// ---- Navigation ----
+function gsScrollTop() { const sc = document.getElementById("app-scroll"); if (sc) sc.scrollTop = 0; }
+function gsHasNext() { const s = gsSteps(); const i = s.findIndex(x => x.id === _gsStepId); return i < s.length - 1; }
+function gsHasPrev() { const s = gsSteps(); const i = s.findIndex(x => x.id === _gsStepId); return i > 0; }
+function gsGoToStep(id) { _gsStepId = id; _gsRailOpen = false; gsSaveDebounced(); gsRenderPane(); gsRenderRail(); gsScrollTop(); }
+function gsNext() { const s = gsSteps(); const i = s.findIndex(x => x.id === _gsStepId); if (i < s.length - 1) gsGoToStep(s[i + 1].id); }
+function gsPrev() { const s = gsSteps(); const i = s.findIndex(x => x.id === _gsStepId); if (i > 0) gsGoToStep(s[i - 1].id); }
+function gsToggleRail() { _gsRailOpen = !_gsRailOpen; const r = document.getElementById("gs-rail"); if (r) r.classList.toggle("open", _gsRailOpen); }
+function gsSetPlatform(p) {
+  if (!_gsBrief) return;
+  _gsBrief.platform = p;
+  const first = p === "meta" ? GS_META_STEPS[0].id : GS_GOOGLE_STEPS[0].id;
+  _gsStepId = first;
+  gsSaveDebounced(); gsRenderAll(); gsScrollTop();
+}
+
+// ---- Render ----
+function gsRenderAll() {
+  const active = document.getElementById("gs-active");
+  const start = document.getElementById("gs-start");
+  if (!_gsBrief) {
+    if (active) active.style.display = "none";
+    if (start) { start.style.display = ""; gsRenderStart(); }
+    return;
+  }
+  if (start) start.style.display = "none";
+  if (active) active.style.display = "";
+  gsRenderHeader(); gsRenderRail(); gsRenderPane();
+}
+
+function gsRenderStart() {
+  const el = document.getElementById("gs-start"); if (!el) return;
+  let list = "";
+  if (_gsBriefs.length) {
+    list = `<div class="gs-start-list-label">Your briefs</div>` + _gsBriefs.map(b => {
+      const steps = gsStepsFor(b); const total = steps.length;
+      const done = Object.values(b.done || {}).filter(Boolean).length;
+      const pct = total ? Math.round(done / total * 100) : 0;
+      const plat = b.platform === "meta" ? "Meta" : b.platform === "google" ? "Google" : "no platform yet";
+      return `<button class="gs-start-brief" onclick="gsOpenBrief('${b.id}')"><div><div class="gs-start-brief-name">${esc(b.name || "Untitled")}</div><div class="gs-start-brief-meta">${esc(plat)} · ${pct}% complete</div></div><span>→</span></button>`;
+    }).join("");
+  }
+  el.innerHTML = `<div class="gs-start-hero"><div class="gs-start-emoji">🚀</div>
+    <h1 class="gs-start-title">Launch Your First Campaign</h1>
+    <p class="gs-start-sub">A guided, step-by-step path from your offer to a live Meta or Google ad, with copy-paste AI prompts, auto-save, and your own campaign brief library.</p>
+    <button class="gs-cta" onclick="gsNewBriefPrompt()">+ Start a new brief</button></div>${list}`;
+}
+
+function gsRenderHeader() {
+  const nameI = document.getElementById("gs-brief-name");
+  if (nameI && _gsBrief) nameI.value = _gsBrief.name || "";
+  const badge = document.getElementById("gs-platform-badge");
+  if (badge) {
+    const p = _gsBrief && _gsBrief.platform;
+    badge.textContent = p === "meta" ? "Meta" : p === "google" ? "Google" : "No platform yet";
+    badge.className = "gs-badge" + (p ? (" gs-badge-" + p) : "");
+  }
+  gsUpdateProgress();
+}
+
+function gsUpdateProgress() {
+  const steps = gsSteps(); const total = steps.length;
+  const done = steps.filter(s => _gsBrief && _gsBrief.done[s.id]).length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  const fill = document.getElementById("gs-progress-fill"); if (fill) fill.style.width = pct + "%";
+  const ctr = document.getElementById("gs-step-counter");
+  const i = steps.findIndex(s => s.id === _gsStepId);
+  if (ctr) ctr.textContent = `(${i + 1}/${total})`;
+}
+
+function gsRenderRail() {
+  const rail = document.getElementById("gs-rail"); if (!rail) return;
+  const steps = gsSteps(); let lastGroup = null, html = "";
+  steps.forEach(s => {
+    if (s.group !== lastGroup) { html += `<div class="gs-rail-group">${esc(s.group)}</div>`; lastGroup = s.group; }
+    const cur = s.id === _gsStepId; const done = _gsBrief && _gsBrief.done[s.id];
+    html += `<button class="gs-rail-item${cur ? " cur" : ""}${done ? " done" : ""}" onclick="gsGoToStep('${s.id}')">
+      <span class="gs-rail-check">${done ? "✓" : (s.icon || "•")}</span><span class="gs-rail-label">${esc(s.title)}</span></button>`;
+  });
+  if (!(_gsBrief && _gsBrief.platform)) html += `<div class="gs-rail-hint">Pick Meta or Google to unlock the build steps.</div>`;
+  rail.innerHTML = html;
+  rail.classList.toggle("open", _gsRailOpen);
+}
+
+function gsRenderPane() {
+  const pane = document.getElementById("gs-pane"); if (!pane) return;
+  const step = gsSteps().find(s => s.id === _gsStepId) || GS_PREP_STEPS[0];
+  pane.innerHTML = gsStepHTML(step);
+  gsUpdateProgress();
+}
+
+function gsNotesHTML(step) {
+  const note = (_gsBrief.notes[step.id] || "");
+  return `<div class="gs-notes"><button class="gs-note-toggle" onclick="gsToggleNote()">${note ? "📝 Notes" : "+ Add notes"}</button>
+    <textarea id="gs-note-text" class="gs-input gs-note-area${note ? " open" : ""}" rows="3" placeholder="Your notes for this step…" oninput="gsSetNote('${step.id}',this.value)">${esc(note)}</textarea></div>`;
+}
+
+function gsStepFooterHTML(step, withDone) {
+  const done = _gsBrief.done[step.id];
+  const doneBtn = withDone === false ? "" : `<button id="gs-done-btn" class="gs-done-btn${done ? " done" : ""}" onclick="gsToggleDone('${step.id}')">${done ? "✓ Completed" : "Mark complete"}</button>`;
+  const next = gsHasNext() ? `<button class="gs-nav-btn primary" onclick="gsNext()">Next →</button>` : "";
+  const prev = gsHasPrev() ? `<button class="gs-nav-btn" onclick="gsPrev()">← Back</button>` : "";
+  return `<div class="gs-step-footer">${doneBtn}<div class="gs-nav-btns">${prev}${next}</div></div>`;
+}
+
+function gsStepHTML(step) {
+  if (step.custom === "fork") return gsForkHTML(step);
+  if (step.custom === "submit") return gsSubmitHTML(step);
+  const v = _gsBrief.values;
+  let h = `<div class="gs-step-group">${esc(step.group)}</div><h2 class="gs-step-title">${step.icon || ""} ${esc(step.title)}</h2>`;
+  if (step.intro) h += `<div class="gs-intro">${step.intro}</div>`;
+  if (step.launch) {
+    const map = { audit: ["openAdAudit", "✅ Open Ad Readiness Audit"], buildout: ["openBuildoutChecklist", "🗂 Open Offer-to-Ads Checklist"], fundamentals: ["openAdFundamentalsModal", "📖 Open Ad Fundamentals Playbook"] };
+    const m = map[step.launch];
+    if (m) h += `<button class="gs-launch-btn" onclick="${m[0]}()">${m[1]} →</button>`;
+  }
+  if (step.sources && step.sources.length) {
+    h += `<div class="gs-sources"><span class="gs-sources-label">Sources</span>` +
+      step.sources.map(s => `<a href="${esc(s.url)}" target="_blank" rel="noopener" class="gs-source-link">${esc(s.label)} ↗</a>`).join("") + `</div>`;
+  }
+  if (step.fields && step.fields.length) {
+    h += `<div class="gs-fields">`;
+    step.fields.forEach(f => {
+      const val = v[f.id] || "";
+      h += `<div class="gs-field"><label class="gs-field-label">${esc(f.label)}</label>`;
+      if (f.type === "textarea") h += `<textarea class="gs-input" rows="3" placeholder="${esc(f.ph || "")}" oninput="gsSetField('${f.id}',this.value)">${esc(val)}</textarea>`;
+      else if (f.type === "select") h += `<select class="gs-input" onchange="gsSetField('${f.id}',this.value)"><option value="">Select…</option>` + f.options.map(o => `<option value="${esc(o)}"${val === o ? " selected" : ""}>${esc(o)}</option>`).join("") + `</select>`;
+      else h += `<input type="text" class="gs-input" placeholder="${esc(f.ph || "")}" value="${esc(val)}" oninput="gsSetField('${f.id}',this.value)" />`;
+      h += `</div>`;
+    });
+    h += `</div>`;
+  }
+  if (step.prompt) {
+    h += `<div class="gs-prompt-box"><div class="gs-prompt-head"><span>🤖 AI prompt — paste into ChatGPT or Claude</span><button class="gs-copy-btn" onclick="gsCopyPrompt()">Copy</button></div>
+      <textarea id="gs-prompt-text" class="gs-prompt-text" rows="7" readonly>${esc(step.prompt())}</textarea>
+      <div class="gs-prompt-hint">Fill the fields above and this updates automatically.</div></div>`;
+  }
+  if (step.tip) h += `<div class="gs-tip">💡 ${esc(step.tip)}</div>`;
+  h += gsNotesHTML(step);
+  h += gsStepFooterHTML(step, true);
+  return h;
+}
+
+function gsForkHTML(step) {
+  const p = _gsBrief.platform;
+  return `<div class="gs-step-group">Choose Platform</div><h2 class="gs-step-title">🔀 Pick Meta or Google</h2>
+  <div class="gs-intro">Prep is done. Now choose where you'll launch your first campaign. You can switch later by coming back to this step.</div>
+  <div class="gs-fork">
+    <button class="gs-fork-card${p === "meta" ? " sel" : ""}" onclick="gsSetPlatform('meta')">
+      <div class="gs-fork-emoji">📘</div><div class="gs-fork-name">Meta — Facebook & Instagram</div>
+      <div class="gs-fork-desc">Best for creating demand with visual ads and precise interest targeting. Strong for service businesses building awareness.</div></button>
+    <button class="gs-fork-card${p === "google" ? " sel" : ""}" onclick="gsSetPlatform('google')">
+      <div class="gs-fork-emoji">🔍</div><div class="gs-fork-name">Google — Search</div>
+      <div class="gs-fork-desc">Best for capturing demand from people already searching for exactly what you offer. High intent, fast to tie to revenue.</div></button>
+  </div>
+  <div class="gs-tip">💡 Not sure? Open the "Facebook vs. Google" guide on the Resources page. Quick rule: if people already search for your offer, start with Google; if you need to create awareness, start with Meta.</div>
+  ${gsStepFooterHTML(step, false)}`;
+}
+
+function gsSubmitHTML(step) {
+  const platName = _gsBrief.platform === "google" ? "Google Ads" : "Ads Manager";
+  return `<div class="gs-step-group">${esc(step.group)}</div><h2 class="gs-step-title">🏁 ${esc(step.title)}</h2>
+  <div class="gs-intro">Your campaign is live — now lock in your AAC proof. Screenshot your active campaign in ${esc(platName)} showing it's spending, then submit it. Keep at least one campaign running at the $1/day minimum every single week.</div>
+  <button class="gs-launch-btn" onclick="navTo('submit')">📸 Go to Submit Proof →</button>
+  <div class="gs-tip">💡 First 48 hours: don't panic-edit. Let delivery exit the learning phase before you judge results. Note your early numbers and bring questions to the Feed or a Coworking session.</div>
+  ${gsNotesHTML(step)}
+  ${gsStepFooterHTML(step, true)}`;
+}
+
+// ---- Briefs library modal ----
+function gsOpenBriefs() { gsRenderBriefsList(); const o = document.getElementById("gs-briefs-overlay"); if (o) o.classList.add("open"); }
+function gsCloseBriefs() { const o = document.getElementById("gs-briefs-overlay"); if (o) o.classList.remove("open"); }
+function gsRenderBriefsList() {
+  const el = document.getElementById("gs-briefs-list"); if (!el) return;
+  if (!_gsBriefs.length) { el.innerHTML = '<p class="gs-muted">No briefs yet. Create your first one above.</p>'; return; }
+  el.innerHTML = _gsBriefs.map(b => {
+    const steps = gsStepsFor(b); const total = steps.length;
+    const done = Object.values(b.done || {}).filter(Boolean).length;
+    const pct = total ? Math.round(done / total * 100) : 0;
+    const plat = b.platform === "meta" ? "Meta" : b.platform === "google" ? "Google" : "no platform";
+    const active = b.id === _gsBriefId;
+    const when = b.updatedAt ? timeAgo(b.updatedAt) : "";
+    return `<div class="gs-brief-row${active ? " active" : ""}">
+      <div class="gs-brief-row-main" onclick="gsCloseBriefs();gsOpenBrief('${b.id}')">
+        <div class="gs-brief-row-name">${esc(b.name || "Untitled")}${active ? ' <span class="gs-brief-active-tag">open</span>' : ""}</div>
+        <div class="gs-brief-row-meta">${esc(plat)} · ${pct}% · ${esc(when)}</div></div>
+      <div class="gs-brief-row-actions">
+        <button title="Rename" onclick="gsRenameBrief('${b.id}')">✏️</button>
+        <button title="Duplicate" onclick="gsDuplicateBrief('${b.id}')">⧉</button>
+        <button title="Download" onclick="gsDownloadBrief('${b.id}')">⬇</button>
+        <button title="Delete" onclick="gsDeleteBrief('${b.id}')">🗑</button>
+      </div></div>`;
+  }).join("");
+}
+
+// ---- Download (Markdown) ----
+function gsDownloadActive() { if (_gsBriefId) gsDownloadBrief(_gsBriefId); else showToast("No brief open"); }
+function gsDownloadBrief(id) {
+  const b = (_gsBriefId === id && _gsBrief) ? _gsBrief : _gsBriefs.find(x => x.id === id);
+  if (!b) return;
+  const md = gsBuildMarkdown(b);
+  const blob = new Blob([md], { type: "text/markdown" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "Campaign Brief - " + (b.name || "untitled").replace(/[^\w\- ]/g, "").trim() + ".md";
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  showToast("Brief downloaded");
+}
+function gsBuildMarkdown(b) {
+  const steps = gsStepsFor(b); const v = b.values || {}, notes = b.notes || {}, done = b.done || {};
+  const plat = b.platform === "meta" ? "Meta" : b.platform === "google" ? "Google" : "Not chosen yet";
+  let md = `# Campaign Brief — ${b.name || "Untitled"}\n\n- Platform: ${plat}\n- Generated: ${new Date().toLocaleString()}\n\n`;
+  steps.forEach(s => {
+    if (s.custom === "fork") return;
+    md += `## ${done[s.id] ? "✅ " : ""}${s.title}\n`;
+    (s.fields || []).forEach(f => { if (v[f.id]) md += `- **${f.label}:** ${v[f.id]}\n`; });
+    if (notes[s.id]) md += `\n> Notes: ${notes[s.id]}\n`;
+    md += `\n`;
+  });
+  return md;
+}
+
+window.gsOpen = gsOpen;
+window.gsInit = gsInit;
+window.gsOpenBrief = gsOpenBrief;
+window.gsNewBriefPrompt = gsNewBriefPrompt;
+window.gsRenameActive = gsRenameActive;
+window.gsSetField = gsSetField;
+window.gsSetNote = gsSetNote;
+window.gsToggleDone = gsToggleDone;
+window.gsToggleNote = gsToggleNote;
+window.gsCopyPrompt = gsCopyPrompt;
+window.gsGoToStep = gsGoToStep;
+window.gsNext = gsNext;
+window.gsPrev = gsPrev;
+window.gsToggleRail = gsToggleRail;
+window.gsSetPlatform = gsSetPlatform;
+window.gsOpenBriefs = gsOpenBriefs;
+window.gsCloseBriefs = gsCloseBriefs;
+window.gsRenameBrief = gsRenameBrief;
+window.gsDuplicateBrief = gsDuplicateBrief;
+window.gsDeleteBrief = gsDeleteBrief;
+window.gsDownloadBrief = gsDownloadBrief;
+window.gsDownloadActive = gsDownloadActive;
 
 // ==============================
 // COWORKING SESSIONS
