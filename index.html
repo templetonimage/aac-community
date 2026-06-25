@@ -192,14 +192,14 @@ input, textarea, select { font-family: 'DM Sans', sans-serif; font-size: 15px; }
 .bottomnav {
   position: fixed;
   bottom: 0; left: 0; right: 0;
-  z-index: 200;
+  z-index: 1000;
   background: linear-gradient(135deg, #111010 0%, #111010 45%, #BB9D49 100%);
   border-top: 1px solid rgba(187,157,73,0.25);
   display: flex;
   align-items: stretch;
-  min-height: 68px;
-  height: calc(68px + env(safe-area-inset-bottom));
-  padding-bottom: env(safe-area-inset-bottom);
+  min-height: 64px;
+  height: auto;
+  padding-bottom: max(env(safe-area-inset-bottom), 10px);
 }
 .nav-item {
   flex: 1;
@@ -230,7 +230,7 @@ input, textarea, select { font-family: 'DM Sans', sans-serif; font-size: 15px; }
 #app-scroll {
   position: fixed;
   top: 60px;
-  bottom: calc(68px + env(safe-area-inset-bottom));
+  bottom: calc(64px + max(env(safe-area-inset-bottom), 10px));
   left: 0; right: 0;
   overflow-y: auto;
   overflow-x: hidden;
@@ -2149,17 +2149,17 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           </div>
         </div>
       </div>
-      <div class="dash-animate" style="animation-delay:0.18s;background:linear-gradient(135deg,rgba(184,134,11,0.07),var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
+      <div class="dash-animate" style="animation-delay:0.18s;background:linear-gradient(135deg,rgba(184,134,11,0.10),var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
-          <span style="font-size:26px;flex-shrink:0;">📖</span>
+          <span style="font-size:26px;flex-shrink:0;">🚀</span>
           <div style="flex:1;">
-            <div style="font-weight:700;font-size:14px;color:var(--text);">Ad Fundamentals Playbook</div>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">AAC's 7-part guide to paid advertising — creative, targeting, analytics, and more.</div>
+            <div style="font-weight:700;font-size:14px;color:var(--text);">Get Started: Launch Your First Campaign</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Your step-by-step guide from offer to a live Meta or Google ad — with prompts, auto-save, and a brief library.</div>
           </div>
         </div>
         <div style="display:flex;gap:8px;">
-          <button onclick="openAdFundamentalsModal()" class="btn btn-gold btn-sm" style="flex:1;">View Guide →</button>
-          <button onclick="openAdAudit()" class="btn btn-sm" style="flex:1;background:linear-gradient(135deg,#1a1a1a,#2a2200);border:1.5px solid var(--gold);color:#e8d5a0;">✅ Ad Audit</button>
+          <button onclick="gsOpen()" class="btn btn-gold btn-sm" style="flex:1;">🚀 Launch the Guide →</button>
+          <button onclick="openAdFundamentalsModal()" class="btn btn-sm" style="flex:1;background:linear-gradient(135deg,#1a1a1a,#2a2200);border:1.5px solid var(--gold);color:#e8d5a0;">📖 Fundamentals</button>
         </div>
       </div>
       <!-- COWORKING SESSION CARD (dynamic — hidden until active session exists) -->
@@ -5645,7 +5645,8 @@ async function submitUpdate() {
     const challengeEl = document.getElementById("submit-challenge");
     if (!challengeEl || !challengeEl.checked) { showToast("Check the Weekly Challenge box to earn your +5 pts."); return; }
   } else {
-    if (!url || !note) { showToast("URL and description are required."); return; }
+    if (!note) { showToast("A short description is required."); return; }
+    if (!_screenshotData) { showToast("A campaign screenshot is required."); return; }
   }
 
   if (url && !/^https?:\/\//i.test(url)) url = "https://" + url;
@@ -6908,32 +6909,74 @@ function showFirebaseSetupCard() {
       <div id="firebase-rules-block" style="background:#f8f8f8;border:1px solid var(--border);border-radius:6px;padding:12px;font-family:monospace;font-size:11px;line-height:1.7;white-space:pre-wrap;overflow-x:auto;">rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /aac_registry/{userId} {
+    match /aac_registry/{uid} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null &&
-        (request.auth.token.email == '${esc(ADMIN_EMAIL)}' ||
-         request.auth.uid == userId);
+      allow write: if request.auth.uid == uid;
+      allow read, write: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
+
+      match /campaignBriefs/{briefId} {
+        allow read, write: if request.auth.uid == uid;
+        allow read, write: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
+      }
     }
-    match /aac_registry/{userId}/campaignBriefs/{briefId} {
-      allow read, write: if request.auth != null &&
-        (request.auth.token.email == '${esc(ADMIN_EMAIL)}' ||
-         request.auth.uid == userId);
-    }
-    match /announcements/{id} {
+    match /submissions/{docId} {
+      allow create: if request.auth != null;
       allow read: if request.auth != null;
-      allow create, update, delete: if request.auth != null &&
-        request.auth.token.email == '${esc(ADMIN_EMAIL)}';
+      allow update, delete: if resource.data.authorUid == request.auth.uid
+        || request.auth.token.email == '${esc(ADMIN_EMAIL)}';
     }
-    match /posts/{postId} {
+    match /engagements/{docId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null;
+      allow update, delete: if resource.data.authorUid == request.auth.uid
+        || request.auth.token.email == '${esc(ADMIN_EMAIL)}';
+    }
+    match /trackers/{uid} {
+      allow read, write: if request.auth.uid == uid;
+      allow read, write: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
+    }
+    match /posts/{docId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null;
-      allow update, delete: if request.auth != null &&
-        (request.auth.token.email == '${esc(ADMIN_EMAIL)}' ||
-         request.auth.uid == resource.data.authorUid ||
-         resource.data.authorUid == request.auth.token.email);
+      allow update, delete: if resource.data.authorUid == request.auth.uid
+        || resource.data.authorUid == request.auth.token.email
+        || request.auth.token.email == '${esc(ADMIN_EMAIL)}';
     }
-    match /{document=**} {
+    match /announcements/{docId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
+    }
+    match /resources/{docId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
+    }
+    match /expert_reviews/{docId} {
       allow read, write: if request.auth != null;
+    }
+    match /mail/{docId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
+    }
+    match /bug_reports/{docId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
+    }
+    match /aac_coworking_sessions/{sessionId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
+      match /rsvps/{uid} {
+        allow read: if request.auth != null;
+        allow write: if request.auth.uid == uid;
+      }
+      match /attendees/{uid} {
+        allow read: if request.auth != null;
+        allow write: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
+      }
+    }
+    match /aac_community_pts/{docId} {
+      allow read, delete: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
+      allow create: if request.auth != null;
+      allow delete: if resource.data.uid == request.auth.uid;
     }
   }
 }</div>
@@ -8523,6 +8566,15 @@ const GS_PREP_STEPS = [
     prompt:()=>`I'm setting up my first paid ad campaign for my business "${_gsv("po_business","[business]")}". My main goal is ${_gsv("po_goal","[goal]")} and my landing page is ${_gsv("po_url","[url]")}. In plain language, explain what a realistic outcome looks like for a beginner campaign with this goal, and the 3 things that matter most before I spend a dollar.`,
     tip:"You'll pick Meta vs Google after the prep steps. Don't choose yet." },
 
+  { id:"prep-fundamentals", group:"Prep", icon:"📖", title:"Learn the fundamentals", launch:"fundamentals",
+    intro:"Open the Ad Fundamentals Playbook (AAC's 7-part guide). You don't need to master everything, just enough to make smart choices on objective, targeting, and budget. Jot a takeaway and the one metric you'll watch.",
+    sources:[],
+    fields:[
+      { id:"pf_takeaway", label:"Biggest takeaway for your campaign", type:"textarea", ph:"e.g. Start broad and let the algorithm find buyers" },
+      { id:"pf_metric", label:"The one metric you'll watch first", type:"select", options:["Cost per lead (CPL)","Cost per purchase / CPA","Click-through rate (CTR)","Return on ad spend (ROAS)","Cost per click (CPC)"] }
+    ],
+    prompt:()=>`I'm new to paid ads. My goal is ${_gsv("po_goal","[goal]")} and I plan to watch ${_gsv("pf_metric","[metric]")} first. Explain in simple terms what a good vs bad ${_gsv("pf_metric","[metric]")} looks like for a small beginner budget, and what to do in week one if it's worse than expected.` },
+
   { id:"prep-offer", group:"Prep", icon:"💡", title:"Sharpen your offer", launch:"buildout",
     intro:"A weak offer is the #1 reason beginner ads fail. Open the Offer-to-Ads Buildout Checklist to pressure-test your full offer and funnel, then capture the essentials here so every later step (and AI prompt) can reuse them.",
     sources:[],
@@ -8534,15 +8586,6 @@ const GS_PREP_STEPS = [
     ],
     prompt:()=>`Act as a direct-response strategist. My offer: ${_gsv("po_offer","[offer]")}. Audience: ${_gsv("po_audience","[audience]")}. Core promise: ${_gsv("po_promise","[promise]")}. Price: ${_gsv("po_price","[price]")}. Critique the clarity and strength of this offer for cold paid traffic, then rewrite it into one sharp sentence I can build ads around.`,
     tip:"Keep your offer sentence tight. If you can't say it in one line, your ads won't either." },
-
-  { id:"prep-fundamentals", group:"Prep", icon:"📖", title:"Learn the fundamentals", launch:"fundamentals",
-    intro:"Open the Ad Fundamentals Playbook (AAC's 7-part guide). You don't need to master everything, just enough to make smart choices on objective, targeting, and budget. Jot a takeaway and the one metric you'll watch.",
-    sources:[],
-    fields:[
-      { id:"pf_takeaway", label:"Biggest takeaway for your campaign", type:"textarea", ph:"e.g. Start broad and let the algorithm find buyers" },
-      { id:"pf_metric", label:"The one metric you'll watch first", type:"select", options:["Cost per lead (CPL)","Cost per purchase / CPA","Click-through rate (CTR)","Return on ad spend (ROAS)","Cost per click (CPC)"] }
-    ],
-    prompt:()=>`I'm new to paid ads. My goal is ${_gsv("po_goal","[goal]")} and I plan to watch ${_gsv("pf_metric","[metric]")} first. Explain in simple terms what a good vs bad ${_gsv("pf_metric","[metric]")} looks like for a small beginner budget, and what to do in week one if it's worse than expected.` },
 
   { id:"prep-audit", group:"Prep", icon:"✅", title:"Run your readiness audit", launch:"audit",
     intro:"Open the Ad Readiness Audit and work through it. The two things that block beginners most: a working ad account and conversion tracking (pixel / tag). Capture your status below so you know exactly what to fix before launch.",
