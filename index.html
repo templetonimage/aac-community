@@ -1393,6 +1393,17 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   padding: 12px 14px;
   margin-bottom: 14px;
 }
+.dash-trial-convert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg,rgba(184,134,11,0.10),var(--surface));
+  border: 1.5px solid var(--gold);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.dash-trial-convert button { flex-shrink: 0; }
 
 /* ==============================
    SUBMIT PAGE
@@ -1850,18 +1861,6 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 }
 .welcome-dismiss:hover { color: var(--text); }
 
-/* Admin tracker modal */
-.admin-tracker-modal-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
-  z-index: 1500;
-  align-items: flex-end;
-  justify-content: center;
-}
-.admin-tracker-modal-overlay.open { display: flex; }
-
 /* ==============================
    SUBMISSIONS HISTORY
    ============================== */
@@ -2081,6 +2080,14 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           <div style="font-weight:700;font-size:13px;">Missed last week's proof deadline</div>
           <div style="font-size:12px;color:var(--text-muted);">Submit proof this week or your access locks after one more missed deadline.</div>
         </div>
+      </div>
+      <div id="dash-trial-convert" class="dash-trial-convert" style="display:none;">
+        <span style="font-size:18px;">🚀</span>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:13px;" id="dash-trial-convert-title">Your free trial ends soon</div>
+          <div style="font-size:12px;color:var(--text-muted);">Add a card to continue at $27/mo. Cancel anytime — access continues to the end of your billing period.</div>
+        </div>
+        <button class="btn btn-gold btn-sm" id="dash-trial-convert-btn" onclick="startStripeCheckout()">Add Card</button>
       </div>
       <div class="dash-status-strip dash-animate" id="dash-status-strip" style="animation-delay:0.15s;"></div>
       <div class="dash-animate" style="animation-delay:0.18s;background:linear-gradient(135deg,rgba(184,134,11,0.10),var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
@@ -2682,14 +2689,6 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div class="form-group"><input type="text" id="cm-ig" class="form-input" placeholder="Instagram handle (optional, e.g. @username)" /></div>
         <div class="form-group"><input type="text" id="cm-biz" class="form-input" placeholder="Business Name" /></div>
         <div class="form-group"><input type="text" id="cm-type" class="form-input" placeholder="Business Type" /></div>
-        <div class="form-group">
-          <label class="form-label">Rounds</label>
-          <div style="display:flex;gap:12px;">
-            <label style="font-size:13px;"><input type="checkbox" id="cm-r1" checked /> R1</label>
-            <label style="font-size:13px;"><input type="checkbox" id="cm-r2" /> R2</label>
-            <label style="font-size:13px;"><input type="checkbox" id="cm-r3" /> R3</label>
-          </div>
-        </div>
         <div class="form-group" style="display:flex;gap:12px;">
           <label style="font-size:13px;"><input type="checkbox" id="cm-founder" /> Founder</label>
           <label style="font-size:13px;"><input type="checkbox" id="cm-vip" /> VIP</label>
@@ -3139,16 +3138,6 @@ textarea.gs-input{ resize:vertical; }
   </div>
 </div>
 
-<!-- ADMIN TRACKER EDITOR MODAL -->
-<div class="admin-tracker-modal-overlay" id="admin-tracker-overlay" onclick="closeTrackerModalDirect(event)">
-  <div class="modal-sheet">
-    <div class="modal-header">
-      <button class="modal-close" onclick="closeTrackerModal()">✕</button>
-    </div>
-    <div id="admin-tracker-content"></div>
-  </div>
-</div>
-
 <!-- ARCHIVED ANNOUNCEMENTS MODAL -->
 <div class="modal-overlay" id="archived-anns-overlay" onclick="closeArchivedAnnsModalDirect(event)">
   <div class="modal-sheet">
@@ -3342,6 +3331,8 @@ const FIREBASE_CONFIG = {
   appId: "1:1024222300619:web:622893178fc8e1f3f3ce4e",
   measurementId: "G-CZT403HJL3"
 };
+// Region the createCheckoutSession/stripeWebhook Cloud Functions are deployed to.
+const STRIPE_FN_REGION = "us-central1";
 
 // ==============================
 // CONSTANTS
@@ -3432,6 +3423,9 @@ function sanitizeMember(m) {
     subscriptionStatus:  m.subscriptionStatus  || "trial",
     preRestrictionStatus: m.preRestrictionStatus || null,
     joinWeekIdx:          typeof m.joinWeekIdx === "number" ? m.joinWeekIdx : null,
+    addedAt:              typeof m.addedAt === "number" ? m.addedAt : null,
+    stripeCustomerId:     m.stripeCustomerId     || null,
+    stripeSubscriptionId: m.stripeSubscriptionId || null,
   };
 }
 
@@ -3490,27 +3484,6 @@ function getCurrentMonthWeekIdxs() {
   const monthOffset = Math.floor(cur / 4);
   return [0, 1, 2, 3].map(i => monthOffset * 4 + i);
 }
-
-const WEEKS = [
-  {id:"w1",  label:"Week 1", dates:"Jul 1–7",    month:"July",      required:1},
-  {id:"w2",  label:"Week 2", dates:"Jul 8–14",   month:"July",      required:1},
-  {id:"w3",  label:"Week 3", dates:"Jul 15–21",  month:"July",      required:1},
-  {id:"w4",  label:"Week 4", dates:"Jul 22–31",  month:"July",      required:1},
-  {id:"w5",  label:"Week 1", dates:"Aug 1–7",    month:"August",    required:2},
-  {id:"w6",  label:"Week 2", dates:"Aug 8–14",   month:"August",    required:2},
-  {id:"w7",  label:"Week 3", dates:"Aug 15–21",  month:"August",    required:2},
-  {id:"w8",  label:"Week 4", dates:"Aug 22–31",  month:"August",    required:2},
-  {id:"w9",  label:"Week 1", dates:"Sep 1–7",    month:"September", required:3},
-  {id:"w10", label:"Week 2", dates:"Sep 8–14",   month:"September", required:3},
-  {id:"w11", label:"Week 3", dates:"Sep 15–21",  month:"September", required:3},
-  {id:"w12", label:"Week 4", dates:"Sep 22–30",  month:"September", required:3},
-];
-const MONTHS = ["July", "August", "September"];
-const MONTH_REQS = {
-  "July":      "1 active ad/week",
-  "August":    "A/B test this month",
-  "September": "Retargeting campaign this month"
-};
 
 // AAC Free Trial - June 2026 - full scoring enabled (Firestore-backed)
 const TRIAL_WEEKS = [
@@ -3780,6 +3753,9 @@ async function resolveUser(user) {
     subscriptionStatus: d.subscriptionStatus || "trial",
     preRestrictionStatus: d.preRestrictionStatus || null,
     joinWeekIdx: d.joinWeekIdx,
+    addedAt: d.addedAt || null,
+    stripeCustomerId: d.stripeCustomerId || null,
+    stripeSubscriptionId: d.stripeSubscriptionId || null,
   };
 }
 
@@ -3833,6 +3809,7 @@ onAuthStateChanged(auth, async (user) => {
 
   _booted = true;
   bootApp();
+  handleStripeReturnParams();
 });
 
 // ==============================
@@ -4204,6 +4181,9 @@ window.loadDashboard = async function() {
     // Access restriction check (1 missed week = warning, 2 consecutive = lockout)
     evaluateAccessStatus(subs);
 
+    // Trial-to-paid conversion prompt (Stripe Path 2)
+    evaluateTrialConversion();
+
     // This-week submission check
     const currentWeekIdx = getWeekIndex();
     const weekSubmitted = currentWeekIdx >= 0 && subs.some(s => s.weekIdx === currentWeekIdx && !s.isTrial);
@@ -4299,7 +4279,7 @@ function _renderDashboard({total, postPts, engPts, communityPts, trackerPostCoun
   const dotsEl = document.getElementById('dash-week-dots');
   if (dotsEl) {
     dotsEl.innerHTML = '';
-    (trackerDots.length ? trackerDots : WEEKS.map(() => 'future')).forEach((s, i) => {
+    (trackerDots.length ? trackerDots : Array(4).fill('future')).forEach((s, i) => {
       const dot = document.createElement('div');
       if (s === 'complete') { dot.className = 'dash-week-dot complete'; dot.textContent = '✓'; }
       else if (s === 'current') { dot.className = 'dash-week-dot current'; dot.textContent = 'W' + (i + 1); }
@@ -5657,6 +5637,76 @@ async function evaluateAccessStatus(subs) {
   }
 }
 
+// ==============================
+// TRIAL-TO-PAID CONVERSION (Stripe Path 2)
+// No Stripe subscription exists during the 30-day trial. Prompt to add a card
+// starting day 23, hard prompt from day 30 on. Trial start = registry addedAt.
+// ==============================
+function getTrialDayCount() {
+  if (!currentUser || !currentUser.addedAt) return null;
+  return Math.floor((Date.now() - currentUser.addedAt) / 86400000);
+}
+
+function showTrialConvertBanner(daysIn) {
+  const el = document.getElementById("dash-trial-convert");
+  const titleEl = document.getElementById("dash-trial-convert-title");
+  if (!el) return;
+  if (titleEl) {
+    titleEl.textContent = daysIn >= 30
+      ? "Your free trial has ended"
+      : `Your free trial ends in ${Math.max(0, 30 - daysIn)} day${(30 - daysIn) === 1 ? "" : "s"}`;
+  }
+  el.style.display = "flex";
+}
+function hideTrialConvertBanner() {
+  const el = document.getElementById("dash-trial-convert");
+  if (el) el.style.display = "none";
+}
+
+function evaluateTrialConversion() {
+  hideTrialConvertBanner();
+  if (!currentUser || currentUser.isAdmin) return;
+  if (currentUser.subscriptionStatus !== "trial") return;
+  const daysIn = getTrialDayCount();
+  if (daysIn === null) return; // grandfathered member, no addedAt on record
+  if (daysIn >= 23) showTrialConvertBanner(daysIn);
+}
+
+window.startStripeCheckout = async function() {
+  if (!currentUser || !currentUser.uid) return;
+  const btn = document.getElementById("dash-trial-convert-btn");
+  if (btn) { btn.disabled = true; btn.textContent = "Loading..."; }
+  try {
+    const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js");
+    const fns = getFunctions(app, STRIPE_FN_REGION);
+    const createCheckoutSession = httpsCallable(fns, "createCheckoutSession");
+    const result = await createCheckoutSession({});
+    const url = result && result.data && result.data.url;
+    if (!url) throw new Error("No checkout URL returned");
+    window.location.href = url;
+  } catch (e) {
+    console.error("startStripeCheckout error:", e);
+    showToast("Couldn't open checkout. Try again or contact info@jointheaac.com.");
+    logPlatformError("startStripeCheckout", e.message);
+    if (btn) { btn.disabled = false; btn.textContent = "Add Card"; }
+  }
+};
+
+// Handle return from Stripe Checkout (success_url=...&stripe=success / cancel_url=...&stripe=cancel)
+function handleStripeReturnParams() {
+  const params = new URLSearchParams(window.location.search);
+  const stripeParam = params.get("stripe");
+  if (!stripeParam) return;
+  if (stripeParam === "success") {
+    showToast("Payment received — your membership is now active. (May take a few seconds to reflect.)");
+  } else if (stripeParam === "cancel") {
+    showToast("Checkout cancelled — no charge was made.");
+  }
+  params.delete("stripe");
+  const newUrl = window.location.pathname + (params.toString() ? "?" + params.toString() : "") + window.location.hash;
+  window.history.replaceState({}, "", newUrl);
+}
+
 async function submitUpdate() {
   let url = document.getElementById("submit-url").value.trim();
   const note = document.getElementById("submit-note").value.trim();
@@ -5971,23 +6021,21 @@ async function deleteSubmission(id, pts, weekIdx, isTrial) {
 // Slots 0..realCount-1 → true; slots at realCount+ preserve manual state.
 async function syncTrackerFromSubmissions(weekIdx, isTrial) {
   if (!db || !currentUser || currentUser.isAdmin) return;
-  if (!isTrial && !WEEKS[weekIdx]) return; // legacy tracker only covers the original Jul-Sep window
+  if (!isTrial) return; // non-trial weekly record is now live-computed from `submissions`, no stored tracker doc
   const uid = currentUser.uid;
   const { getDocs, collection, query, where, doc: fsDoc, getDoc: fsGetDoc, setDoc: fsSetDoc }
     = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
 
   let realCount = 0;
   try {
-    const q = isTrial
-      ? query(collection(db, 'submissions'), where('authorUid', '==', uid), where('trialWeekIdx', '==', weekIdx))
-      : query(collection(db, 'submissions'), where('authorUid', '==', uid), where('weekIdx', '==', weekIdx), where('isTrial', '==', false));
+    const q = query(collection(db, 'submissions'), where('authorUid', '==', uid), where('trialWeekIdx', '==', weekIdx));
     const snap = await getDocs(q);
     realCount = snap.size;
   } catch (e) { console.warn('syncTrackerFromSubmissions: query failed', e); return; }
 
-  const slotLength = isTrial ? 1 : WEEKS[weekIdx].required;
-  const weekId     = isTrial ? TRIAL_WEEKS[weekIdx].id : WEEKS[weekIdx].id;
-  const trackerKey = isTrial ? 'trial' : 'tracked';
+  const slotLength = 1;
+  const weekId     = TRIAL_WEEKS[weekIdx].id;
+  const trackerKey = 'trial';
 
   const ref = fsDoc(db, 'trackers', uid);
   let trackerData = {};
@@ -6006,20 +6054,17 @@ async function syncTrackerFromSubmissions(weekIdx, isTrial) {
 }
 
 async function buildTracker() {
-  const trackerUid = currentUser.isAdmin ? "admin-test" : currentUser.uid;
-
-  // Read Firestore tracker doc
+  // ── Trial section (Firestore-backed, unchanged) ──
   let trackerDoc = {};
   try {
+    const trackerUid = currentUser.isAdmin ? "admin-test" : currentUser.uid;
     const ref = doc(db, "trackers", trackerUid);
     const snap = await getDoc(ref);
     if (snap.exists()) trackerDoc = snap.data();
   } catch {}
+  const trial = trackerDoc.trial || {};
 
-  const tracked = trackerDoc.tracked || {};   // Round 1 slot arrays
-  const trial   = trackerDoc.trial   || {};   // Trial week slot arrays
-
-  // ── Lazy backfill: run once per session for non-admin members ──
+  // ── Lazy backfill: run once per session for non-admin members (trial weeks only) ──
   if (!window._trackerBackfillDone && db && currentUser && !currentUser.isAdmin) {
     window._trackerBackfillDone = true;
     (async () => {
@@ -6035,17 +6080,12 @@ async function buildTracker() {
           const existing = (trial[TRIAL_WEEKS[i].id] || []).filter(Boolean).length;
           if (count > existing) { await syncTrackerFromSubmissions(i, true); needsRebuild = true; }
         }
-        for (let i = 0; i < WEEKS.length; i++) {
-          const count    = subs.filter(s => !s.isTrial && s.weekIdx === i).length;
-          const existing = (tracked[WEEKS[i].id] || []).filter(Boolean).length;
-          if (count > existing) { await syncTrackerFromSubmissions(i, false); needsRebuild = true; }
-        }
         if (needsRebuild) buildTracker();
       } catch (e) { console.warn('Tracker backfill failed:', e); }
     })();
   }
 
-  // ── Trial section (Firestore-backed) ──
+  // ── Trial section render ──
   const trialEl = document.getElementById("trial-tracker-body");
   if (trialEl) {
     let trialHtml = `<p class="text-sm text-muted" style="margin-bottom:12px;">Your tracker updates automatically when you submit proof. Tap any empty box to mark it manually.</p><div class="tracker-month-group">`;
@@ -6067,83 +6107,64 @@ async function buildTracker() {
     trialEl.innerHTML = trialHtml;
   }
 
-  // ── Round 1 tracker ──
-  const completed = WEEKS.filter(w => {
-    const slots = tracked[w.id] || [];
-    return slots.length === w.required && slots.every(Boolean);
-  }).length;
-  const pct = Math.round((completed / 12) * 100);
+  // ── Monthly accountability record (live, computed from `submissions`) ──
+  const monthWeekIdxs = getCurrentMonthWeekIdxs();
+  const currentWeekIdx = getWeekIndex();
+  let submittedThisMonth = new Set();
+  if (!currentUser.isAdmin) {
+    try {
+      const { getDocs, collection: col, query: q, where: wh }
+        = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      const snap = await getDocs(q(col(db, 'submissions'), wh('authorUid', '==', currentUser.uid), wh('isTrial', '==', false)));
+      submittedThisMonth = new Set(snap.docs.map(d => d.data().weekIdx).filter(w => monthWeekIdxs.includes(w)));
+    } catch (e) { console.warn('buildTracker: month query failed', e); }
+  }
+  const completed = monthWeekIdxs.filter(w => submittedThisMonth.has(w)).length;
+  const pct = Math.round((completed / monthWeekIdxs.length) * 100);
 
   const headerEl = document.getElementById("tracker-header");
   headerEl.innerHTML = `
     <div class="flex-between mb-8">
-      <span class="text-sm" style="font-weight:600;">${completed}/12 weeks complete</span>
+      <span class="text-sm" style="font-weight:600;">${completed}/${monthWeekIdxs.length} weeks complete this month</span>
       <span class="text-sm text-muted">${pct}%</span>
     </div>
     <div class="tracker-progress"><div class="tracker-progress-bar" style="width:${pct}%"></div></div>
-    ${currentUser.isAdmin ? `<div style="font-size:11px;color:var(--text-muted);margin-top:6px;padding:4px 8px;background:var(--surface2);border-radius:4px;">Admin test tracker — use Reports → All-Star Progress to manage member trackers</div>` : ""}
+    ${currentUser.isAdmin ? `<div style="font-size:11px;color:var(--text-muted);margin-top:6px;padding:4px 8px;background:var(--surface2);border-radius:4px;">Admin view — Reports → All-Star Progress shows every member's monthly record</div>` : ""}
   `;
 
-  let html = "";
-  for (const month of MONTHS) {
-    const monthWeeks = WEEKS.filter(w => w.month === month);
-    html += `<div class="tracker-month-group">
-      <div class="tracker-month-title">${month}</div>
-      <div class="tracker-month-req">${MONTH_REQS[month]}</div>`;
-    for (let wi = 0; wi < monthWeeks.length; wi++) {
-      const w     = monthWeeks[wi];
-      const slots = tracked[w.id] || Array(w.required).fill(false);
-      slots.forEach((filled, slotIdx) => {
-        const cls = filled ? "checked" : "";
-        html += `<div class="tracker-week ${cls}" data-week="${w.id}" onclick="toggleCheck('${w.id}', ${slotIdx}, false)">
-          <div>
-            <div class="tracker-week-label">${w.label}${w.required > 1 ? ` <span style="font-size:11px;color:var(--text-muted);">(${slotIdx + 1}/${w.required})</span>` : ""}</div>
-            <div class="tracker-week-dates">${w.dates}</div>
-          </div>
-          <div class="tracker-check">${filled ? "✓" : ""}</div>
-        </div>`;
-      });
-    }
-    html += `</div>`;
-  }
+  let html = `<div class="tracker-month-group">`;
+  monthWeekIdxs.forEach((w, i) => {
+    const filled = submittedThisMonth.has(w);
+    const cls = filled ? "checked" : "";
+    html += `<div class="tracker-week ${cls}">
+      <div>
+        <div class="tracker-week-label">Week ${i + 1}${w === currentWeekIdx ? ` <span style="font-size:11px;color:var(--gold-dark);">(this week)</span>` : ""}</div>
+        <div class="tracker-week-dates">${getWeekLabel(w)}</div>
+      </div>
+      <div class="tracker-check">${filled ? "✓" : ""}</div>
+    </div>`;
+  });
+  html += `</div>`;
   document.getElementById("tracker-body").innerHTML = html;
 }
 
 
 async function toggleCheck(weekId, slotIndex, isTrial) {
+  if (!isTrial) return; // monthly record is live-derived from submissions, no longer manually editable
   const trackerUid = currentUser.isAdmin ? "admin-test" : currentUser.uid;
-  const trackerKey = isTrial ? 'trial' : 'tracked';
+  const trackerKey = 'trial';
   try {
     const ref  = doc(db, "trackers", trackerUid);
     const snap = await getDoc(ref);
     let data   = snap.exists() ? snap.data() : { uid: trackerUid };
     const section  = data[trackerKey] || {};
     const existing = section[weekId] || [];
-    // Ensure array is long enough
-    const slotLen = isTrial ? 1 : (() => { const w = WEEKS.find(x => x.id === weekId); return w ? w.required : 1; })();
-    const slots   = Array.from({ length: slotLen }, (_, i) => existing[i] === true);
+    const slotLen  = 1;
+    const slots    = Array.from({ length: slotLen }, (_, i) => existing[i] === true);
     slots[slotIndex] = !slots[slotIndex];
     await setDoc(ref, { [`${trackerKey}.${weekId}`]: slots, uid: trackerUid }, { merge: true });
-    if (!currentUser.isAdmin && !isTrial) {
-      // Re-read full doc for AllStar check
-      const updated = await getDoc(ref);
-      if (updated.exists()) await checkAllStar(updated.data().tracked || {});
-    }
     buildTracker();
   } catch (e) { showToast("Failed to update tracker."); }
-}
-
-async function checkAllStar(tracked) {
-  const allDone = WEEKS.every(w => {
-    const slots = tracked[w.id] || [];
-    return slots.length === w.required && slots.every(Boolean);
-  });
-  if (allDone) {
-    const regRef = doc(db, "aac_registry", currentUser.uid);
-    await updateDoc(regRef, { isAllStar: true });
-    currentUser.isAllStar = true;
-    lsSet("wac_session", currentUser);
-  }
 }
 
 // ==============================
@@ -6380,15 +6401,18 @@ async function openMemberProfile(member) {
   if (member.isVIP) badges.push("⚡ VIP");
   const milestone = getMilestoneBadges(member.totalPosts || 0);
 
-  // Load tracker data
-  let trackerData = {};
+  // Live monthly accountability record (current calendar month)
+  const monthWeekIdxs = getCurrentMonthWeekIdxs();
+  let memberSubmittedWeeks = new Set();
   try {
-    const snap = await getDoc(doc(db, "trackers", member.id));
-    if (snap.exists()) trackerData = snap.data();
+    const { getDocs, collection: col, query: q, where: wh }
+      = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const snap = await getDocs(q(col(db, 'submissions'), wh('authorUid', '==', member.id), wh('isTrial', '==', false)));
+    memberSubmittedWeeks = new Set(snap.docs.map(d => d.data().weekIdx).filter(w => monthWeekIdxs.includes(w)));
   } catch {}
-  const weeksCompleted = WEEKS.filter(w => trackerData[w.id]).length;
+  const weeksCompleted = monthWeekIdxs.filter(w => memberSubmittedWeeks.has(w)).length;
 
-  const dots = WEEKS.map(w => `<div class="member-dot ${trackerData[w.id] ? 'done' : ''}"></div>`).join("");
+  const dots = monthWeekIdxs.map(w => `<div class="member-dot ${memberSubmittedWeeks.has(w) ? 'done' : ''}"></div>`).join("");
   const websiteBtn = member.website ? `<a href="${esc(normalizeUrl(member.website))}" target="_blank" rel="noopener" class="btn btn-gold btn-block btn-sm mt-16">Visit Website</a>` : "";
   const modalAvatarContent = member.photoURL
     ? `<img src="${esc(member.photoURL)}" alt="${esc(member.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;" />`
@@ -6423,34 +6447,38 @@ function closeMemberModalDirect(e) {
 async function loadTrackerReport() {
   try {
     const members = await getRegistryForCurrentRound();
-    // Load all trackers
-    const trackerSnap = await getDocs(collection(db, "trackers"));
-    const trackerMap = {};
-    trackerSnap.forEach(d => { trackerMap[d.id] = d.data(); });
+
+    // Live monthly record: which weeks of the current calendar month did each member submit
+    const monthWeekIdxs = getCurrentMonthWeekIdxs();
+    const monthStartTs = _weekRange(monthWeekIdxs[0])[0];
+    const monthSubSnap = await getDocs(query(collection(db, "submissions"), where("timestamp", ">=", monthStartTs)));
+    const weeksByUid = {};
+    monthSubSnap.forEach(d => {
+      const s = d.data();
+      if (s.isTrial) return;
+      const set = weeksByUid[s.authorUid] || (weeksByUid[s.authorUid] = new Set());
+      set.add(s.weekIdx);
+    });
 
     let rows = members.map(m => {
-      const t = trackerMap[m.id] || {};
-      const completed = WEEKS.filter(w => t[w.id]).length;
-      return { ...m, tracker: t, completed };
+      const weeks = weeksByUid[m.id] || new Set();
+      const completed = monthWeekIdxs.filter(w => weeks.has(w)).length;
+      return { ...m, weeks, completed };
     });
     rows.sort((a, b) => b.completed - a.completed || (b.points || 0) - (a.points || 0));
 
     const el = document.getElementById("report-table-wrap");
     let html = `<table class="report-table"><thead><tr><th>Member</th>`;
-    WEEKS.forEach((w, i) => { html += `<th>W${i + 1}</th>`; });
+    monthWeekIdxs.forEach((w, i) => { html += `<th>W${i + 1}</th>`; });
     html += `<th>Done</th><th>Pts</th>`;
-    if (currentUser.isAdmin) html += `<th></th>`;
     html += `</tr></thead><tbody>`;
     rows.forEach(r => {
       html += `<tr><td style="font-weight:600;font-size:12px;">${esc(r.name)}</td>`;
-      WEEKS.forEach(w => {
-        html += `<td>${r.tracker[w.id] ? "✅" : "⬜"}</td>`;
+      monthWeekIdxs.forEach(w => {
+        html += `<td>${r.weeks.has(w) ? "✅" : "⬜"}</td>`;
       });
-      html += `<td style="font-weight:700;">${r.completed}/12</td>`;
+      html += `<td style="font-weight:700;">${r.completed}/${monthWeekIdxs.length}</td>`;
       html += `<td style="font-weight:700;color:var(--gold);">${r.points || 0}</td>`;
-      if (currentUser.isAdmin) {
-        html += `<td><button onclick="openAdminTrackerEditor('${r.id}','${esc(r.name)}')" style="background:none;border:none;cursor:pointer;">✏️</button></td>`;
-      }
       html += `</tr>`;
     });
     html += `</tbody></table>`;
@@ -6502,50 +6530,6 @@ function exportCSV() {
   a.click();
 }
 
-// ==============================
-// ADMIN TRACKER EDITOR
-// ==============================
-let _editingTrackerUid = null;
-
-async function openAdminTrackerEditor(uid, name) {
-  _editingTrackerUid = uid;
-  let data = {};
-  try {
-    const snap = await getDoc(doc(db, "trackers", uid));
-    if (snap.exists()) data = snap.data();
-  } catch {}
-  renderAdminTrackerModal(name, data);
-  document.getElementById("admin-tracker-overlay").classList.add("open");
-}
-
-function renderAdminTrackerModal(name, data) {
-  let html = `<h3 style="font-size:18px;font-weight:700;margin-bottom:16px;">Edit Tracker: ${esc(name)}</h3>`;
-  WEEKS.forEach(w => {
-    const checked = data[w.id] ? "checked" : "";
-    html += `<label style="display:flex;align-items:center;gap:10px;padding:8px 0;font-size:14px;cursor:pointer;">
-      <input type="checkbox" ${checked} onchange="adminToggleCheck('${w.id}', this.checked)" />
-      <span>${w.label} — ${w.dates}</span>
-    </label>`;
-  });
-  document.getElementById("admin-tracker-content").innerHTML = html;
-}
-
-async function adminToggleCheck(weekId, val) {
-  if (!_editingTrackerUid) return;
-  try {
-    const ref = doc(db, "trackers", _editingTrackerUid);
-    await setDoc(ref, { uid: _editingTrackerUid, [weekId]: val }, { merge: true });
-  } catch (e) { showToast("Failed to save."); }
-}
-
-function closeTrackerModal() {
-  document.getElementById("admin-tracker-overlay").classList.remove("open");
-  _editingTrackerUid = null;
-  loadTrackerReport();
-}
-function closeTrackerModalDirect(e) {
-  if (e.target === document.getElementById("admin-tracker-overlay")) closeTrackerModal();
-}
 
 // ==============================
 // ADMIN REGISTRY CONTROLS
@@ -6619,10 +6603,7 @@ async function createMemberAccount() {
 
   if (!name || !email || !pass) { showToast("Name, email, and password required."); return; }
 
-  const rounds = [];
-  if (document.getElementById("cm-r1").checked) rounds.push("R1");
-  if (document.getElementById("cm-r2").checked) rounds.push("R2");
-  if (document.getElementById("cm-r3").checked) rounds.push("R3");
+  const rounds = []; // rounds field is unused (access is subscriptionStatus-driven), kept only for schema compat
   const isFounder = document.getElementById("cm-founder").checked;
   const isVIP = document.getElementById("cm-vip").checked;
 
@@ -6680,6 +6661,7 @@ async function addRegistryMember(uid, name, email, website, ig, biz, type, round
     isPro: false, proSince: null, proExpiry: null, trialUntil: null,
     // Rolling membership state
     subscriptionStatus: "trial", preRestrictionStatus: null, joinWeekIdx: getWeekIndex(),
+    stripeCustomerId: null, stripeSubscriptionId: null,
     addedAt: Date.now()
   });
 }
@@ -7392,10 +7374,6 @@ window.syncTrackerFromSubmissions = syncTrackerFromSubmissions;
 window.handleMemberCardClick = handleMemberCardClick;
 window.closeMemberModal = closeMemberModal;
 window.closeMemberModalDirect = closeMemberModalDirect;
-window.openAdminTrackerEditor = openAdminTrackerEditor;
-window.adminToggleCheck = adminToggleCheck;
-window.closeTrackerModal = closeTrackerModal;
-window.closeTrackerModalDirect = closeTrackerModalDirect;
 window.setRegistryStatus = setRegistryStatus;
 window.toggleRegistryFlag = toggleRegistryFlag;
 window.removeRegistryMember = removeRegistryMember;
