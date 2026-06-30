@@ -1381,22 +1381,22 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 }
 
 /* ==============================
+   ACCESS WARNING BANNER
+   ============================== */
+.dash-access-warning {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff8e8;
+  border: 1px solid #f0c987;
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+
+/* ==============================
    SUBMIT PAGE
    ============================== */
-.round-ended-banner {
-  display: none;
-  align-items: center;
-  gap: 12px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: var(--radius);
-  padding: 16px;
-  margin-bottom: 16px;
-}
-.round-ended-icon { font-size: 28px; }
-.round-ended-title { font-weight: 700; color: var(--danger); }
-.round-ended-sub { font-size: 13px; color: var(--text-muted); }
-
 .format-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
 .format-btn {
   padding: 8px 16px;
@@ -1757,6 +1757,33 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .admin-member-controls button.active-flag { background: var(--gold); color: #fff; border-color: var(--gold); }
 
 /* ==============================
+   ACCESS RESTRICTED OVERLAY
+   ============================== */
+.restrict-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 4000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.restrict-overlay.open { display: flex; }
+.restrict-modal {
+  background: var(--surface);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 380px;
+  padding: 30px 26px;
+  text-align: center;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+}
+.restrict-icon { font-size: 40px; margin-bottom: 10px; }
+.restrict-modal h3 { font-size: 19px; margin-bottom: 10px; }
+.restrict-modal p { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px; }
+
+/* ==============================
    WELCOME MODAL
    ============================== */
 .welcome-overlay {
@@ -1809,108 +1836,6 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   cursor: pointer;
 }
 .welcome-dismiss:hover { color: var(--text); }
-
-/* R1 Registration modal */
-.r1reg-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.65);
-  z-index: 2500;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-.r1reg-overlay.open { display: flex; }
-.r1reg-modal {
-  background: var(--surface);
-  border-radius: 18px;
-  width: 100%;
-  max-width: 420px;
-  overflow: hidden;
-  animation: slideUp 0.3s ease;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.3);
-}
-.r1reg-header {
-  background: linear-gradient(135deg, #111010 0%, #1a1000 60%, #b89040 100%);
-  padding: 28px 24px 22px;
-  text-align: center;
-  color: #fff;
-}
-.r1reg-header-logo {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 48px;
-  letter-spacing: 0.08em;
-  color: var(--gold);
-  line-height: 1;
-}
-.r1reg-header-sub {
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  opacity: 0.75;
-  margin-top: 4px;
-}
-.r1reg-body { padding: 22px 24px 6px; }
-.r1reg-headline {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 24px;
-  letter-spacing: 0.04em;
-  margin-bottom: 6px;
-  line-height: 1.1;
-}
-.r1reg-sub {
-  font-size: 13px;
-  color: var(--text-muted);
-  line-height: 1.6;
-  margin-bottom: 18px;
-}
-.r1reg-countdown-box {
-  background: linear-gradient(135deg, #fffbf0, #fff8e3);
-  border: 1.5px solid var(--gold);
-  border-radius: 12px;
-  padding: 14px 16px;
-  text-align: center;
-  margin-bottom: 18px;
-}
-.r1reg-countdown-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--gold-dark);
-  margin-bottom: 6px;
-}
-.r1reg-countdown-timer {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 32px;
-  letter-spacing: 0.04em;
-  color: var(--text);
-  line-height: 1;
-}
-.r1reg-countdown-deadline {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 5px;
-}
-.r1reg-footer { padding: 0 24px 24px; }
-.r1reg-cta {
-  display: block;
-  width: 100%;
-  padding: 14px;
-  background: var(--gold);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius);
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 20px;
-  letter-spacing: 0.08em;
-  cursor: pointer;
-  text-decoration: none;
-  text-align: center;
-  transition: background .2s;
-}
-.r1reg-cta:hover { background: var(--gold-dark); }
 
 /* Admin tracker modal */
 .admin-tracker-modal-overlay {
@@ -2133,22 +2058,18 @@ textarea.form-input { resize: vertical; min-height: 80px; }
     <!-- PAGE: DASHBOARD -->
     <div class="page active" id="page-dashboard">
       <div class="dash-welcome dash-animate" style="animation-delay:0.05s;">
-        <div class="dash-welcome-sub"><span id="dash-round-label">Round 1</span> · <span id="dash-week-label">Week —</span></div>
+        <div class="dash-welcome-sub"><span id="dash-round-label">—</span> · <span id="dash-week-label">Week —</span></div>
         <div class="dash-welcome-name">Welcome back,<br><span id="dash-name">—</span></div>
         <div class="dash-welcome-meta" id="dash-date-meta"></div>
       </div>
-      <div class="dash-status-strip dash-animate" id="dash-status-strip" style="animation-delay:0.15s;"></div>
-      <!-- ROUND 1 REGISTRATION CARD -->
-      <div class="dash-animate" id="r1-reg-card" style="animation-delay:0.17s;background:linear-gradient(135deg,#1a1000,#2a1800);border:1.5px solid var(--gold);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;box-shadow:0 4px 20px rgba(201,168,76,0.2);">
-        <div style="display:flex;align-items:flex-start;gap:14px;">
-          <span style="font-size:26px;flex-shrink:0;margin-top:2px;">🚀</span>
-          <div style="flex:1;">
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.06em;color:var(--gold);line-height:1.1;margin-bottom:3px;">Round 1 Registration Open</div>
-            <div style="font-size:12px;color:rgba(255,255,255,0.65);margin-bottom:12px;line-height:1.5;">Round 1 kicks off July 1 — 90 days, real campaigns, real data. Lock in your spot before June 30 at 11:59 PM ET.</div>
-            <a href="https://buy.stripe.com/fZu6oH99NcblgCibpfbo40a" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:7px;background:var(--gold);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.06em;padding:10px 18px;border-radius:8px;text-decoration:none;transition:background .15s;width:100%;justify-content:center;" onmouseover="this.style.background='var(--gold-dark)'" onmouseout="this.style.background='var(--gold)'">Register for Round 1 — $95 →</a>
-          </div>
+      <div id="dash-access-warning" class="dash-access-warning" style="display:none;">
+        <span style="font-size:18px;">⚠️</span>
+        <div>
+          <div style="font-weight:700;font-size:13px;">Missed last week's proof deadline</div>
+          <div style="font-size:12px;color:var(--text-muted);">Submit proof this week or your access locks after one more missed deadline.</div>
         </div>
       </div>
+      <div class="dash-status-strip dash-animate" id="dash-status-strip" style="animation-delay:0.15s;"></div>
       <div class="dash-animate" style="animation-delay:0.18s;background:linear-gradient(135deg,rgba(184,134,11,0.10),var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
           <span style="font-size:26px;flex-shrink:0;">🚀</span>
@@ -2239,7 +2160,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       <div class="dash-card dash-animate" style="animation-delay:0.62s;">
         <div class="dash-card-title-row">
           <div class="dash-card-title">🏆 Top 10 Standings</div>
-          <div class="dash-card-meta">Live · Round 1</div>
+          <div class="dash-card-meta">This Month</div>
         </div>
         <div id="dash-lb-list">
           <div style="padding:24px;text-align:center;">
@@ -2251,6 +2172,9 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           View Full Leaderboard
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
+      </div>
+      <div style="text-align:center;margin-top:18px;padding-bottom:6px;">
+        <a href="https://cash.app/pay/link/3dck8lst" target="_blank" rel="noopener" style="font-size:12px;color:var(--text-muted);text-decoration:underline;text-underline-offset:3px;font-family:'DM Sans',sans-serif;">Found value in AAC? Buy me a coffee ☕</a>
       </div>
     </div>
 
@@ -2374,13 +2298,6 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       </div>
       <!-- RER Status Card (visible when user has a request this month) -->
       <div id="rer-status-card" style="display:none;margin-bottom:14px;"></div>
-      <div id="round-ended-banner" class="round-ended-banner" style="display:none;">
-        <div class="round-ended-icon">🏁</div>
-        <div>
-          <div class="round-ended-title">Round 1 Has Ended</div>
-          <div class="round-ended-sub">Submissions are closed. Thanks for an amazing 90 days!</div>
-        </div>
-      </div>
       <div class="card">
         <div class="card-title">Weekly Campaign Proof</div>
         <div id="pts-preview" class="pts-preview">
@@ -2454,7 +2371,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div class="page-title">Leaderboard</div>
         <div class="page-subtitle">Real-time points standings.</div>
       </div>
-      <div class="text-sm text-muted mb-16">Round 1 · Jul–Sep 2026</div>
+      <div class="text-sm text-muted mb-16">Resets monthly</div>
       <div id="leaderboard-list"></div>
       <div class="points-card">
         <h4>How Points Work</h4>
@@ -2474,7 +2391,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
     <div class="page" id="page-tracker">
       <div class="page-header">
         <div class="page-title">⭐ All-Star Tracker</div>
-        <div class="page-subtitle">Your 12-week accountability record — May through July.</div>
+        <div class="page-subtitle">Your weekly accountability record.</div>
       </div>
       <!-- April Free Trial section (local only) -->
       <div class="card mb-16">
@@ -2482,14 +2399,14 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <p class="text-sm text-muted" style="margin-bottom:14px;">Trial weeks — full scoring enabled. Proof submissions auto-fill your tracker.</p>
         <div id="trial-tracker-body"></div>
       </div>
-      <!-- Main Round 1 tracker -->
+      <!-- Legacy Jul-Sep tracker (original 90-day window) -->
       <div class="card">
         <div id="tracker-header" class="mb-16"></div>
         <div id="tracker-body"></div>
       </div>
       <div class="card mt-16" style="background:linear-gradient(135deg,rgba(184,134,11,0.06),var(--surface));">
         <div class="card-title">⭐ AAC All-Star</div>
-        <p class="text-sm text-muted">Submit campaign proof every week across all 12 weeks to earn All-Star status and qualify for the prize pool. That's 12 consecutive weekly submissions over 90 days.</p>
+        <p class="text-sm text-muted">Submit proof of an active campaign 4 weeks in a row within a calendar month to earn All-Star status for that month. All-Star perks: an Ad Audit Session with Nate and Ad Credit giveaway eligibility. Status and the leaderboard reset on the 1st.</p>
       </div>
     </div>
 
@@ -2630,7 +2547,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       <!-- ADMIN: Reset Points Tool -->
       <div id="admin-reset-points" style="display:none;margin-top:28px;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.05em;margin-bottom:4px;">🔄 Reset Member Points</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Zeroes out <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px;">points</code> and <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px;">totalPosts</code> for every member in the registry. Submission and engagement history in Firestore is preserved. Use at the end of the April trial before Round 1 begins.</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Zeroes out <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px;">points</code> and <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px;">totalPosts</code> (lifetime stats) for every member in the registry. Submission and engagement history in Firestore is preserved. The monthly Leaderboard resets automatically and doesn't need this tool.</div>
         <div class="pro-global-danger">
           <div class="pro-global-danger-title">⚠️ Destructive Action</div>
           <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;line-height:1.5;">This cannot be undone. All member point totals will be set to zero. Requires double confirmation.</div>
@@ -3155,21 +3072,21 @@ textarea.gs-input{ resize:vertical; }
       <div class="welcome-logo">AAC</div>
       <div style="font-size:13px;letter-spacing:0.12em;text-transform:uppercase;opacity:0.85;">Ad Accountability Challenge</div>
     </div>
-    <!-- Standard R1 welcome (default) -->
+    <!-- Standard welcome (default) -->
     <div class="welcome-body" id="welcome-body-standard">
-      <h3>Welcome to AAC Round 1! 👋</h3>
+      <h3>Welcome to AAC! 👋</h3>
       <div class="welcome-step"><span class="welcome-step-icon">📖</span><span>Read the Ad Fundamentals Playbook — AAC's 7-part guide to paid advertising</span></div>
-      <div class="welcome-step"><span class="welcome-step-icon">✅</span><span>Complete Your Ad Audit to Prepare for Live Submissions on 6/15</span></div>
+      <div class="welcome-step"><span class="welcome-step-icon">✅</span><span>Complete Your Ad Audit to prepare for weekly proof submissions</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">💬</span><span>Use the Community Feed — post wins, ask questions, and share what's working</span></div>
-      <div class="welcome-step"><span class="welcome-step-icon">⭐</span><span>Earn All-Star status — submit proof every week across all 12 weeks</span></div>
+      <div class="welcome-step"><span class="welcome-step-icon">⭐</span><span>Earn All-Star status — submit proof 4 weeks in a row within a calendar month</span></div>
     </div>
-    <!-- Trial-to-R1 transition welcome (shown to trialCompleted members on first R1 login) -->
+    <!-- Trial-to-paid transition welcome (shown to trialCompleted members) -->
     <div class="welcome-body" id="welcome-body-transition" style="display:none;">
-      <h3>The Trial's Over. Round 1 Starts Now. 🚀</h3>
-      <div class="welcome-step"><span class="welcome-step-icon">🏁</span><span>Your Free Trial is complete — everything you built in June carries into Round 1</span></div>
+      <h3>Your Free Trial Is Complete 🚀</h3>
+      <div class="welcome-step"><span class="welcome-step-icon">🏁</span><span>Your 30-day free trial is complete — everything you've built carries forward</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">📸</span><span>Same proof standard — screenshot your live campaign in Ads Manager each week to earn +10 pts</span></div>
-      <div class="welcome-step"><span class="welcome-step-icon">🏆</span><span>12 consecutive weeks of proof earns All-Star status and qualifies you for the prize pool</span></div>
-      <div class="welcome-step"><span class="welcome-step-icon">📅</span><span>Weekly challenge modifiers are back — check the dashboard each week for this round's focus</span></div>
+      <div class="welcome-step"><span class="welcome-step-icon">🏆</span><span>4 consecutive weekly submissions in a calendar month earns All-Star status</span></div>
+      <div class="welcome-step"><span class="welcome-step-icon">📅</span><span>Weekly challenge modifiers are still live — check the dashboard each week</span></div>
     </div>
     <div class="welcome-footer">
       <button class="btn btn-gold btn-block" onclick="closeWelcomeModal()">Let's Go! 🚀</button>
@@ -3178,30 +3095,13 @@ textarea.gs-input{ resize:vertical; }
   </div>
 </div>
 
-<!-- ROUND 1 REGISTRATION MODAL -->
-<div class="r1reg-overlay" id="r1reg-overlay">
-  <div class="r1reg-modal">
-    <div class="r1reg-header" style="position:relative;">
-      <button onclick="closeR1RegModal()" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:28px;height:28px;font-size:15px;cursor:pointer;color:#fff;line-height:1;display:flex;align-items:center;justify-content:center;" aria-label="Close">✕</button>
-      <div class="r1reg-header-logo">AAC</div>
-      <div class="r1reg-header-sub">Ad Accountability Challenge</div>
-    </div>
-    <div class="r1reg-body">
-      <div class="r1reg-headline">Round 1 Registration Is Open 🚀</div>
-      <div class="r1reg-sub">Round 1 kicks off July 1 — 90 days of real campaigns, weekly proof submissions, and accountability. Lock in your spot before registration closes.</div>
-      <div style="background:rgba(201,168,76,0.08);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--text-muted);line-height:1.6;">💡 One booking from a consistently managed campaign could cover the entire cost of AAC and months of ad spend — many times over. But only if you show up every week.</div>
-      <div class="r1reg-countdown-box">
-        <div class="r1reg-countdown-label">Registration closes in</div>
-        <div class="r1reg-countdown-timer" id="r1reg-countdown">—</div>
-        <div class="r1reg-countdown-deadline">June 30, 2026 · 11:59 PM ET</div>
-      </div>
-    </div>
-    <div class="r1reg-footer">
-      <a href="https://buy.stripe.com/fZu6oH99NcblgCibpfbo40a" target="_blank" rel="noopener" class="r1reg-cta" onclick="closeR1RegModal()">Register for Round 1 — $95 →</a>
-      <div style="text-align:center;margin-top:12px;">
-        <button onclick="dismissR1RegModal()" style="background:none;border:none;font-size:12px;color:var(--text-muted);cursor:pointer;padding:4px;">Don't show this again</button>
-      </div>
-    </div>
+<!-- ACCESS RESTRICTED OVERLAY (2 consecutive missed weekly deadlines) -->
+<div class="restrict-overlay" id="restrict-overlay">
+  <div class="restrict-modal">
+    <div class="restrict-icon">🔒</div>
+    <h3>Upload Proof of an Active Campaign</h3>
+    <p>You've missed 2 weekly proof deadlines in a row. AAC is accountability infrastructure, not just a community — access is paused until you submit proof of an active, spending ad campaign.</p>
+    <button class="btn btn-gold btn-block" onclick="goRestoreAccess()">Upload Proof Now</button>
   </div>
 </div>
 
@@ -3466,7 +3366,7 @@ const MAX_LIKE_REPLY_PER_WEEK = 5;  // Like/reply limit per week
 
 // Weekly Challenge Modifiers — one per week, keyed by weekIdx (0–11)
 const WEEKLY_CHALLENGES = [
-  { title: "Launch Your First Round 1 Campaign",           desc: "Get your first active Round 1 ad live. Any platform counts — Facebook, Google, Instagram, wherever your audience is. The goal this week is motion: a live campaign with a budget, an audience, and a creative.", pillar: "All" },
+  { title: "Launch Your First Active Campaign",           desc: "Get your first active ad live. Any platform counts — Facebook, Google, Instagram, wherever your audience is. The goal this week is motion: a live campaign with a budget, an audience, and a creative.", pillar: "All" },
   { title: "Audit Your Ad Creative",                       desc: "Pull up your current ad and ask: does the hook stop the scroll in the first 2 seconds? Review your headline, first line of copy, and image or video thumbnail. Make at least one improvement and document what you changed.", pillar: "Creative" },
   { title: "Build a Lookalike Audience",                   desc: "Create a Lookalike Audience based on your best existing audience — your email list, website visitors, or past purchasers. Lookalikes are one of the most powerful targeting tools available. Set it up this week even if you don\'t run ads to it yet.", pillar: "Targeting" },
   { title: "Kill or Scale — Make a Data Decision",         desc: "Review your July campaign results and make one concrete decision based on the numbers. Pause an underperforming ad set, increase budget on a winner, or adjust targeting based on cost per result. Data decisions compound.", pillar: "Analytics" },
@@ -3514,6 +3414,10 @@ function sanitizeMember(m) {
     trialUntil:     m.trialUntil     || null,
     trialCompleted: m.trialCompleted || false,
     lastLogin:      m.lastLogin      || null,
+    // Rolling membership state: trial | active | restricted | cancelled
+    subscriptionStatus:  m.subscriptionStatus  || "trial",
+    preRestrictionStatus: m.preRestrictionStatus || null,
+    joinWeekIdx:          typeof m.joinWeekIdx === "number" ? m.joinWeekIdx : null,
   };
 }
 
@@ -3536,26 +3440,42 @@ function getTrialExpiryStr() {
   return new Date(currentUser.trialUntil).toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
 }
 
-// AAC Round 1: Jul 1 - Sep 30, 2026 (Oct 1 UTC = Sep 30 ET end)
-const ROUND_END_TS = Date.UTC(2026, 9, 1, 3, 59, 59, 999);
-
-// AAC Round 1 week schedule - July through September 2026
-const WEEK_SCHEDULE = [
-  [Date.UTC(2026,6,1,4,0,0),   Date.UTC(2026,6,8,3,59,59,999)],
-  [Date.UTC(2026,6,8,4,0,0),   Date.UTC(2026,6,15,3,59,59,999)],
-  [Date.UTC(2026,6,15,4,0,0),  Date.UTC(2026,6,22,3,59,59,999)],
-  [Date.UTC(2026,6,22,4,0,0),  Date.UTC(2026,7,1,3,59,59,999)],
-  [Date.UTC(2026,7,1,4,0,0),   Date.UTC(2026,7,8,3,59,59,999)],
-  [Date.UTC(2026,7,8,4,0,0),   Date.UTC(2026,7,15,3,59,59,999)],
-  [Date.UTC(2026,7,15,4,0,0),  Date.UTC(2026,7,22,3,59,59,999)],
-  [Date.UTC(2026,7,22,4,0,0),  Date.UTC(2026,8,1,3,59,59,999)],
-  [Date.UTC(2026,8,1,4,0,0),   Date.UTC(2026,8,8,3,59,59,999)],
-  [Date.UTC(2026,8,8,4,0,0),   Date.UTC(2026,8,15,3,59,59,999)],
-  [Date.UTC(2026,8,15,4,0,0),  Date.UTC(2026,8,22,3,59,59,999)],
-  [Date.UTC(2026,8,22,4,0,0),  Date.UTC(2026,9,1,3,59,59,999)],
-];
-// Fix week 12 end timestamp explicitly
-WEEK_SCHEDULE[11][1] = Date.UTC(2026, 9, 1, 3, 59, 59, 999);
+// Rolling weekly schedule (no round end). Every calendar month splits into 4
+// submission weeks: 1-7, 8-14, 15-21, 22-end of month. weekIdx = monthOffset*4 + weekInMonth,
+// anchored at July 2026 (monthOffset 0). Timestamps approximate ET as UTC-4 year-round,
+// consistent with the original schedule (not DST-adjusted).
+function _weekMonthInfo(monthOffset) {
+  const base = new Date(Date.UTC(2026, 6 + monthOffset, 1));
+  const year = base.getUTCFullYear();
+  const month = base.getUTCMonth();
+  const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  return { year, month, daysInMonth };
+}
+function _weekBoundsInMonth(wInMonth, daysInMonth) {
+  return [[1, 7], [8, 14], [15, 21], [22, daysInMonth]][wInMonth];
+}
+function _weekRange(weekIdx) {
+  const monthOffset = Math.floor(weekIdx / 4);
+  const wInMonth = weekIdx % 4;
+  const { year, month, daysInMonth } = _weekMonthInfo(monthOffset);
+  const [startDay, endDay] = _weekBoundsInMonth(wInMonth, daysInMonth);
+  const start = Date.UTC(year, month, startDay, 4, 0, 0);
+  const end = Date.UTC(year, month, endDay + 1, 3, 59, 59, 999);
+  return [start, end];
+}
+function getWeekLabel(weekIdx) {
+  const monthOffset = Math.floor(weekIdx / 4);
+  const wInMonth = weekIdx % 4;
+  const { year, month, daysInMonth } = _weekMonthInfo(monthOffset);
+  const [startDay, endDay] = _weekBoundsInMonth(wInMonth, daysInMonth);
+  const monthName = new Date(Date.UTC(year, month, 1)).toLocaleDateString("en-US", { month: "short", timeZone: "UTC" });
+  return `${monthName} ${startDay}\u2013${endDay}`;
+}
+function getCurrentMonthWeekIdxs() {
+  const cur = getWeekIndex();
+  const monthOffset = Math.floor(cur / 4);
+  return [0, 1, 2, 3].map(i => monthOffset * 4 + i);
+}
 
 const WEEKS = [
   {id:"w1",  label:"Week 1", dates:"Jul 1–7",    month:"July",      required:1},
@@ -3668,25 +3588,29 @@ function timeAgo(ts) {
 
 function getWeekIndex() {
   const now = Date.now();
-  for (let i = 0; i < WEEK_SCHEDULE.length; i++) {
-    if (now >= WEEK_SCHEDULE[i][0] && now <= WEEK_SCHEDULE[i][1]) return i;
-  }
-  // If before round start, return 0; if after, return 11
-  if (now < WEEK_SCHEDULE[0][0]) return 0;
-  return 11;
+  const shifted = new Date(now - 4 * 3600 * 1000); // approx ET, matches schedule convention
+  const y = shifted.getUTCFullYear(), m = shifted.getUTCMonth(), day = shifted.getUTCDate();
+  const monthOffset = (y - 2026) * 12 + (m - 6);
+  let wInMonth = 0;
+  if (day <= 7) wInMonth = 0;
+  else if (day <= 14) wInMonth = 1;
+  else if (day <= 21) wInMonth = 2;
+  else wInMonth = 3;
+  const idx = monthOffset * 4 + wInMonth;
+  return idx < 0 ? 0 : idx;
 }
 
 function getWeekDeadline(weekIdx) {
-  return WEEK_SCHEDULE[weekIdx] ? WEEK_SCHEDULE[weekIdx][1] : WEEK_SCHEDULE[11][1];
+  return _weekRange(weekIdx)[1];
 }
 
 function _getWeekStart(weekIdx) {
   const idx = (weekIdx !== undefined && weekIdx !== null) ? weekIdx : getWeekIndex();
-  return WEEK_SCHEDULE[idx] ? WEEK_SCHEDULE[idx][0] : WEEK_SCHEDULE[0][0];
+  return _weekRange(idx)[0];
 }
 function _getWeekEnd(weekIdx) {
   const idx = (weekIdx !== undefined && weekIdx !== null) ? weekIdx : getWeekIndex();
-  return WEEK_SCHEDULE[idx] ? WEEK_SCHEDULE[idx][1] : WEEK_SCHEDULE[11][1];
+  return _weekRange(idx)[1];
 }
 
 function showToast(msg) {
@@ -3817,7 +3741,7 @@ async function resolveUser(user) {
   const snap = await getDoc(doc(db, "aac_registry", uid));
   if (!snap.exists()) return null;
   const d = sanitizeMember({ id: snap.id, ...snap.data() });
-  if (!d.rounds?.includes(CURRENT_ROUND) && !d.isFounder) return null;
+  if (d.subscriptionStatus === "cancelled") return null;
   return {
     name: d.name,
     email,
@@ -3839,6 +3763,9 @@ async function resolveUser(user) {
     proSince: d.proSince || null,
     proExpiry: d.proExpiry || null,
     trialUntil: d.trialUntil || null,
+    subscriptionStatus: d.subscriptionStatus || "trial",
+    preRestrictionStatus: d.preRestrictionStatus || null,
+    joinWeekIdx: d.joinWeekIdx,
   };
 }
 
@@ -3877,7 +3804,7 @@ onAuthStateChanged(auth, async (user) => {
     try {
       const resolved = await resolveUser(user);
       if (!resolved) {
-        document.getElementById("auth-error").textContent = "You're not enrolled in Round 1 yet. Contact Nate.";
+        document.getElementById("auth-error").textContent = "Your access has ended. Contact Nate.";
         document.getElementById("auth-error").style.display = "block";
         await signOut(auth);
         return;
@@ -4022,9 +3949,7 @@ function bootApp() {
 
   // 8. Delayed features
   setTimeout(showWelcomeModal, 600);
-  setTimeout(maybeShowR1RegModal, 1200);
   setTimeout(initPushNotifications, 1000);
-  setTimeout(checkRoundEnd, 300);
   setTimeout(checkProNotifications, 2000);
   setTimeout(checkRERNotification, 2500);
 
@@ -4036,6 +3961,10 @@ function bootApp() {
 // NAVIGATION
 // ==============================
 function navTo(page) {
+  if (_isRestrictedLocked && page !== "submit") {
+    page = "submit";
+    showAccessLockOverlay();
+  }
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   const target = document.getElementById("page-" + page);
   if (target) target.classList.add("active");
@@ -4208,22 +4137,19 @@ window.loadDashboard = async function() {
   const roundEl = document.getElementById('dash-round-label');
   const trialIdx = getTrialWeekIndex();
   const TRIAL_START_TS = Date.UTC(2026,5,1,4,0,0);
-  const ROUND_START_TS = Date.UTC(2026,6,1,4,0,0);
   if (trialIdx !== -1) {
-    // Active trial period
+    // Active legacy June trial period (original beta cohort)
     if (roundEl) roundEl.textContent = 'Free Trial · June 1–30';
     if (weekEl) weekEl.textContent = `Week ${trialIdx + 1} of 4`;
   } else if (now < TRIAL_START_TS) {
     // Pre-trial (before June 1)
     if (roundEl) roundEl.textContent = 'Free Trial · June 1–30';
     if (weekEl) weekEl.textContent = 'Starting Soon';
-  } else if (now < ROUND_START_TS) {
-    // Between trial end and Round 1 start (shouldn't happen but safe fallback)
-    if (roundEl) roundEl.textContent = 'Round 1';
-    if (weekEl) weekEl.textContent = 'Starting July 1';
   } else {
-    if (roundEl) roundEl.textContent = 'Round 1';
-    if (weekEl) weekEl.textContent = weekIdx >= 0 ? 'Week ' + (weekIdx + 1) + ' of 12' : '—';
+    const monthLabel = new Date(_weekRange(weekIdx)[0]).toLocaleDateString('en-US', {month:'long', year:'numeric', timeZone:'UTC'});
+    const wInMonth = weekIdx % 4;
+    if (roundEl) roundEl.textContent = monthLabel;
+    if (weekEl) weekEl.textContent = 'Week ' + (wInMonth + 1) + ' of 4';
   }
 
   const metaEl = document.getElementById('dash-date-meta');
@@ -4239,15 +4165,15 @@ window.loadDashboard = async function() {
     const uid = currentUser.uid;
     const registryId = currentUser.registryId || uid;
 
-    const [regSnap, subSnap, engSnap, trackerSnap, lbSnap] = await Promise.all([
+    const monthWeekIdxs = getCurrentMonthWeekIdxs();
+    const monthStartTs = _weekRange(monthWeekIdxs[0])[0];
+
+    const [regSnap, subSnap, engSnap, monthSubSnap, allRegSnap] = await Promise.all([
       getDoc(dc(db, 'aac_registry', registryId)),
       getDocs(q(col(db, 'submissions'), where('authorUid', '==', uid))),
       getDocs(q(col(db, 'engagements'), where('authorUid', '==', uid))),
-      getDoc(dc(db, 'trackers', uid)),
-      (async () => {
-        try { return await getDocs(q(col(db, 'aac_registry'), ob('points', 'desc'), lim(12))); }
-        catch(e) { return await getDocs(col(db, 'aac_registry')); }
-      })()
+      getDocs(q(col(db, 'submissions'), where('timestamp', '>=', monthStartTs))),
+      getDocs(col(db, 'aac_registry'))
     ]);
 
     const regData = regSnap.exists() ? regSnap.data() : {};
@@ -4257,36 +4183,43 @@ window.loadDashboard = async function() {
     const postPts = subs.reduce((a, s) => a + (s.pts || 0), 0);
     const engPts = engs.reduce((a, e) => a + (e.pts || 0), 0);
 
-    // Tracker-based post count
-    const trackerData = trackerSnap.exists() ? trackerSnap.data() : {};
-    const tracked = trackerData.tracked || {};
-    const trackerPostCount = WEEKS.reduce((sum, w) => {
-      return sum + (tracked[w.id] || []).filter(Boolean).length;
-    }, 0);
+    // Access restriction check (1 missed week = warning, 2 consecutive = lockout)
+    evaluateAccessStatus(subs);
 
     // This-week submission check
     const currentWeekIdx = getWeekIndex();
-    const weekSubmitted = currentWeekIdx >= 0 && subs.some(s => s.weekIdx === currentWeekIdx);
+    const weekSubmitted = currentWeekIdx >= 0 && subs.some(s => s.weekIdx === currentWeekIdx && !s.isTrial);
 
-    // Tracker updated this week
-    const currentWeekId = currentWeekIdx >= 0 ? WEEKS[currentWeekIdx].id : null;
-    const trackerThisWeek = currentWeekId ? ((tracked[currentWeekId] || []).some(Boolean)) : false;
-
-    // Week dots
-    const trackerDots = WEEKS.map((w, i) => {
-      const checks = tracked[w.id] || [];
-      const met = checks.filter(Boolean).length >= w.required;
-      if (i === currentWeekIdx) return 'current';
-      if (met && i < currentWeekIdx) return 'complete';
+    // Monthly All-Star: 4 consecutive weekly submissions within the current calendar month
+    const mySubmittedWeeksThisMonth = new Set(
+      monthSubSnap.docs.map(d => d.data()).filter(s => s.authorUid === uid && !s.isTrial).map(s => s.weekIdx)
+    );
+    const trackerPostCount = monthWeekIdxs.filter(w => mySubmittedWeeksThisMonth.has(w)).length;
+    const trackerThisWeek = mySubmittedWeeksThisMonth.has(currentWeekIdx);
+    const trackerDots = monthWeekIdxs.map(w => {
+      if (mySubmittedWeeksThisMonth.has(w)) return 'complete';
+      if (w === currentWeekIdx) return 'current';
       return 'future';
     });
 
-    // Leaderboard top 10 (exclude admin)
-    const lbMembers = lbSnap.docs
+    // Monthly leaderboard (resets each month — ranked by this month's submission points)
+    const monthlyByUid = {};
+    monthSubSnap.docs.forEach(d => {
+      const s = d.data();
+      if (s.isTrial) return;
+      const e = monthlyByUid[s.authorUid] || (monthlyByUid[s.authorUid] = { pts: 0, weeks: new Set() });
+      e.pts += (s.pts || 0);
+      e.weeks.add(s.weekIdx);
+    });
+    const lbMembers = allRegSnap.docs
       .map(d => sanitizeMember({id:d.id, ...d.data()}))
-      .filter(m => m.isFounder || (m.rounds || []).includes(CURRENT_ROUND))
-      .sort((a, b) => (b.points || 0) - (a.points || 0))
+      .filter(m => m.subscriptionStatus !== 'cancelled')
       .filter(m => !m.isAdmin && m.email !== ADMIN_EMAIL)
+      .map(m => {
+        const e = monthlyByUid[m.id] || { pts: 0, weeks: new Set() };
+        return { ...m, points: e.pts, totalPosts: e.weeks.size, isAllStar: monthWeekIdxs.every(w => e.weeks.has(w)) };
+      })
+      .sort((a, b) => (b.points || 0) - (a.points || 0))
       .slice(0, 10);
 
     const communityPts = Math.max(0, totalPts - postPts);
@@ -4332,11 +4265,11 @@ function _renderDashboard({total, postPts, engPts, communityPts, trackerPostCoun
   _dashCountUp(document.getElementById('dash-val-count'),     trackerPostCount, 280);
   _dashCountUp(document.getElementById('dash-val-community'), communityPts,     360);
 
-  // All-Star progress bar (24 total required updates across 12 weeks)
-  const totalRequired = 24;
+  // All-Star progress bar — 4 consecutive weekly submissions within the current calendar month
+  const totalRequired = 4;
   const pct = Math.min(Math.round((trackerPostCount / totalRequired) * 100), 100);
   const subEl = document.getElementById('dash-allstar-sub');
-  if (subEl) subEl.textContent = `${trackerPostCount} of ${totalRequired} updates completed`;
+  if (subEl) subEl.textContent = `${trackerPostCount} of ${totalRequired} weeks submitted this month`;
   const pctEl = document.getElementById('dash-prog-pct');
   if (pctEl) pctEl.textContent = pct + '%';
   setTimeout(() => {
@@ -5077,7 +5010,6 @@ async function submitPVR() {
   const prompt = document.getElementById("pvr-prompt").value.trim();
   if (!prompt) { showToast("Describe the feedback you're looking for."); return; }
   if (url && !/^https?:\/\//i.test(url)) url = "https://" + url;
-  if (isRoundOver()) { showToast("Round has ended."); return; }
   const weekIdx = getWeekIndex();
   const count = await getWeeklyPVRCount();
   if (count >= 1) { showToast("One Ad Peer Review Request per week."); return; }
@@ -5142,7 +5074,6 @@ async function submitPVRReply(postId, postAuthorUid) {
   const text = input ? input.value.trim() : "";
   if (!text) { showToast("Write your feedback first."); return; }
   if (postAuthorUid === currentUser.uid) { showToast("You can't reply to your own request."); return; }
-  if (isRoundOver()) { showToast("Round has ended."); return; }
 
   // Check weekly engagement cap
   const engCount = await getWeeklyEngCount();
@@ -5633,6 +5564,77 @@ function clearEngScreenshot() {
   if (inp) inp.value = "";
 }
 
+// ==============================
+// ACCESS RESTRICTION (rolling membership)
+// 1 missed weekly deadline -> warning banner. 2 consecutive -> full lockout,
+// restored on next successful (non-trial) proof submission.
+// ==============================
+let _isRestrictedLocked = false;
+
+function _getJoinWeekIdx() {
+  if (currentUser && typeof currentUser.joinWeekIdx === "number") return currentUser.joinWeekIdx;
+  return getWeekIndex(); // grandfather pre-existing members: no missed-week history before this field existed
+}
+
+function computeMissedWeekStreak(subs, currentWeekIdx, joinWeekIdx) {
+  const submittedWeeks = subs.filter(s => !s.isTrial).map(s => s.weekIdx);
+  const lastSubmittedWeekIdx = submittedWeeks.length ? Math.max(...submittedWeeks) : (joinWeekIdx - 1);
+  const baseline = Math.max(lastSubmittedWeekIdx, joinWeekIdx - 1);
+  return Math.max(0, (currentWeekIdx - 1) - baseline);
+}
+
+function showAccessWarningBanner() {
+  const el = document.getElementById("dash-access-warning");
+  if (el) el.style.display = "flex";
+}
+function hideAccessWarningBanner() {
+  const el = document.getElementById("dash-access-warning");
+  if (el) el.style.display = "none";
+}
+function showAccessLockOverlay() {
+  const el = document.getElementById("restrict-overlay");
+  if (el) el.classList.add("open");
+}
+function hideAccessLockOverlay() {
+  const el = document.getElementById("restrict-overlay");
+  if (el) el.classList.remove("open");
+}
+window.goRestoreAccess = function() {
+  hideAccessLockOverlay();
+  navTo("submit");
+};
+
+async function evaluateAccessStatus(subs) {
+  if (!currentUser || currentUser.isAdmin) { _isRestrictedLocked = false; return; }
+  if (currentUser.subscriptionStatus === "cancelled") { _isRestrictedLocked = false; return; }
+
+  const currentWeekIdx = getWeekIndex();
+  const joinWeekIdx = _getJoinWeekIdx();
+  const missedStreak = computeMissedWeekStreak(subs, currentWeekIdx, joinWeekIdx);
+  const status = currentUser.subscriptionStatus || "trial";
+
+  _isRestrictedLocked = false;
+  hideAccessWarningBanner();
+  hideAccessLockOverlay();
+
+  if (missedStreak >= 2) {
+    _isRestrictedLocked = true;
+    if (status !== "restricted") {
+      try {
+        await updateDoc(doc(db, "aac_registry", currentUser.registryId || currentUser.uid), {
+          subscriptionStatus: "restricted",
+          preRestrictionStatus: status
+        });
+        currentUser.preRestrictionStatus = status;
+        currentUser.subscriptionStatus = "restricted";
+      } catch (e) { console.warn("evaluateAccessStatus: restrict write failed", e); }
+    }
+    showAccessLockOverlay();
+  } else if (missedStreak === 1) {
+    showAccessWarningBanner();
+  }
+}
+
 async function submitUpdate() {
   let url = document.getElementById("submit-url").value.trim();
   const note = document.getElementById("submit-note").value.trim();
@@ -5650,7 +5652,6 @@ async function submitUpdate() {
   }
 
   if (url && !/^https?:\/\//i.test(url)) url = "https://" + url;
-  if (isRoundOver()) { showToast("Round has ended."); return; }
 
   const isTrial = trialIdx !== -1;
   const weekIdx = getWeekIndex();
@@ -5675,7 +5676,7 @@ async function submitUpdate() {
       const tsnap = await getDocs(tq);
       if (tsnap.size >= 1) { showToast("You've already submitted for this trial week."); return; }
     } else {
-      const required = WEEKS[weekIdx].required;
+      const required = 1; // rolling membership: 1 active-campaign proof per week, minimum
       const q = query(collection(db, "submissions"),
         where("authorUid", "==", currentUser.uid),
         where("weekIdx", "==", weekIdx));
@@ -5692,7 +5693,7 @@ async function submitUpdate() {
     const trialWeek = isTrial ? TRIAL_WEEKS[trialIdx] : null;
     const weekLabel = isTrial
       ? `${trialWeek.label} (${trialWeek.dates})`
-      : WEEKS[weekIdx].label + " (" + WEEKS[weekIdx].dates + ")";
+      : getWeekLabel(weekIdx);
 
     await addDoc(collection(db, "submissions"), {
       author: currentUser.name,
@@ -5721,6 +5722,20 @@ async function submitUpdate() {
     currentUser.points = (currentUser.points || 0) + pts;
     currentUser.totalPosts = (currentUser.totalPosts || 0) + 1;
     lsSet("wac_session", currentUser);
+
+    // Restore access if this submission breaks a restriction lockout
+    if (!isTrial && currentUser.subscriptionStatus === "restricted") {
+      const restoreTo = currentUser.preRestrictionStatus || "active";
+      try {
+        await updateDoc(regRef, { subscriptionStatus: restoreTo, preRestrictionStatus: null });
+        currentUser.subscriptionStatus = restoreTo;
+        currentUser.preRestrictionStatus = null;
+        _isRestrictedLocked = false;
+        hideAccessLockOverlay();
+        hideAccessWarningBanner();
+        showToast("Access restored!");
+      } catch (e) { console.warn("restore access failed", e); }
+    }
 
     // Sync tracker slot from submission count
     await syncTrackerFromSubmissions(isTrial ? trialIdx : weekIdx, isTrial);
@@ -5768,7 +5783,6 @@ async function submitEngagement() {
   if (!_selectedEngType) { showToast("Select engagement type."); return; }
   const isTrial = getTrialWeekIndex() !== -1;
   if (!isTrial && !_engScreenshotData) { showToast("A screenshot is required."); return; }
-  if (isRoundOver()) { showToast("Round has ended."); return; }
 
   const count = await getWeeklyEngCount();
   if (count >= MAX_ENG_PER_WEEK) { showToast(`Max ${MAX_ENG_PER_WEEK} engagements per week.`); return; }
@@ -5935,6 +5949,7 @@ async function deleteSubmission(id, pts, weekIdx, isTrial) {
 // Slots 0..realCount-1 → true; slots at realCount+ preserve manual state.
 async function syncTrackerFromSubmissions(weekIdx, isTrial) {
   if (!db || !currentUser || currentUser.isAdmin) return;
+  if (!isTrial && !WEEKS[weekIdx]) return; // legacy tracker only covers the original Jul-Sep window
   const uid = currentUser.uid;
   const { getDocs, collection, query, where, doc: fsDoc, getDoc: fsGetDoc, setDoc: fsSetDoc }
     = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
@@ -6115,20 +6130,28 @@ async function checkAllStar(tracked) {
 async function loadLeaderboard() {
   try {
     let members = [];
-    // Try ordered query first
-    try {
-      const q = query(collection(db, "aac_registry"), orderBy("points", "desc"));
-      const snap = await getDocs(q);
-      snap.forEach(d => members.push({ id: d.id, ...d.data() }));
-    } catch {
-      // Fallback: unordered + client sort
-      const snap = await getDocs(collection(db, "aac_registry"));
-      snap.forEach(d => members.push({ id: d.id, ...d.data() }));
-      members.sort((a, b) => (b.points || 0) - (a.points || 0));
-    }
+    const snap = await getDocs(collection(db, "aac_registry"));
+    snap.forEach(d => members.push(sanitizeMember({ id: d.id, ...d.data() })));
 
-    // Filter to current round + founders
-    members = members.filter(m => (m.rounds || []).includes(CURRENT_ROUND) || m.isFounder);
+    // Exclude cancelled members
+    members = members.filter(m => m.subscriptionStatus !== "cancelled");
+
+    // Monthly leaderboard: ranked by this calendar month's submission points (resets on the 1st)
+    const monthWeekIdxs = getCurrentMonthWeekIdxs();
+    const monthStartTs = _weekRange(monthWeekIdxs[0])[0];
+    const monthSubSnap = await getDocs(query(collection(db, "submissions"), where("timestamp", ">=", monthStartTs)));
+    const monthlyByUid = {};
+    monthSubSnap.forEach(d => {
+      const s = d.data();
+      if (s.isTrial) return;
+      const e = monthlyByUid[s.authorUid] || (monthlyByUid[s.authorUid] = { pts: 0, weeks: new Set() });
+      e.pts += (s.pts || 0);
+      e.weeks.add(s.weekIdx);
+    });
+    members = members.map(m => {
+      const e = monthlyByUid[m.id] || { pts: 0, weeks: new Set() };
+      return { ...m, points: e.pts, totalPosts: e.weeks.size, isAllStar: monthWeekIdxs.every(w => e.weeks.has(w)) };
+    }).sort((a, b) => (b.points || 0) - (a.points || 0));
 
     // Inject admin as synthetic entry
     const adminEntry = {
@@ -6611,6 +6634,8 @@ async function addRegistryMember(uid, name, email, website, ig, biz, type, round
     isFounder, isVIP, isAllStar: false,
     // AAC Pro fields — default inactive
     isPro: false, proSince: null, proExpiry: null, trialUntil: null,
+    // Rolling membership state
+    subscriptionStatus: "trial", preRestrictionStatus: null, joinWeekIdx: getWeekIndex(),
     addedAt: Date.now()
   });
 }
@@ -6624,8 +6649,8 @@ Here's how to get started:
 
 1. Log in at https://app.jointheaac.com
 2. Complete your Profile (name, business, Instagram)
-3. The free trial kicks off June 1 — get your first ad ready
-4. Round 1 starts July 1
+3. You're on a 30-day free trial — no card required
+4. Get your first ad live and submit weekly proof to stay active
 
 Email: ${email}
 Temporary Password: ${pass}
@@ -6987,22 +7012,6 @@ service cloud.firestore {
 }
 
 // ==============================
-// ROUND END
-// ==============================
-function isRoundOver() { return Date.now() > ROUND_END_TS; }
-
-function checkRoundEnd() {
-  if (!isRoundOver()) return;
-  const banner = document.getElementById("round-ended-banner");
-  if (banner) banner.style.display = "flex";
-  document.querySelectorAll('#page-submit .btn-post, #eng-submit-btn').forEach(btn => {
-    btn.disabled = true;
-    btn.textContent = "Round Ended";
-    btn.style.opacity = "0.5";
-  });
-}
-
-// ==============================
 // WELCOME MODAL
 // ==============================
 function showWelcomeModal() {
@@ -7025,71 +7034,6 @@ function closeWelcomeModal() {
   const key = `wac_welcomed_${currentUser.uid}`;
   localStorage.setItem(key, "1");
   document.getElementById("welcome-overlay").classList.remove("open");
-}
-
-// ==============================
-// ROUND 1 REGISTRATION MODAL
-// Countdown to June 30, 2026 11:59 PM ET (UTC-4 = July 1 03:59:00Z)
-// ==============================
-const R1_REG_DEADLINE_TS = new Date("2026-07-01T03:59:00Z").getTime();
-let _r1regCountdownTimer = null;
-
-function _renderR1RegCountdown() {
-  const el = document.getElementById("r1reg-countdown");
-  if (!el) return;
-  const diff = R1_REG_DEADLINE_TS - Date.now();
-  if (diff <= 0) {
-    el.textContent = "Registration closed";
-    if (_r1regCountdownTimer) { clearInterval(_r1regCountdownTimer); _r1regCountdownTimer = null; }
-    // Hide the dashboard registration card too
-    const card = document.getElementById("r1-reg-card");
-    if (card) card.style.display = "none";
-    return;
-  }
-  const d = Math.floor(diff / 86400000);
-  const h = Math.floor((diff % 86400000) / 3600000);
-  const m = Math.floor((diff % 3600000) / 60000);
-  const s = Math.floor((diff % 60000) / 1000);
-  el.textContent = `${d}d ${h}h ${m}m ${s}s`;
-}
-
-function _startR1RegCountdown() {
-  if (_r1regCountdownTimer) return;
-  _renderR1RegCountdown();
-  _r1regCountdownTimer = setInterval(_renderR1RegCountdown, 1000);
-}
-
-function _stopR1RegCountdown() {
-  if (_r1regCountdownTimer) { clearInterval(_r1regCountdownTimer); _r1regCountdownTimer = null; }
-}
-
-function _r1regDismissKey() {
-  return "aac_r1reg_dismissed_" + (currentUser?.uid || "");
-}
-
-window.closeR1RegModal = function() {
-  const ov = document.getElementById("r1reg-overlay");
-  if (ov) ov.classList.remove("open");
-  _stopR1RegCountdown();
-};
-
-window.dismissR1RegModal = function() {
-  try { localStorage.setItem(_r1regDismissKey(), "1"); } catch (_) {}
-  closeR1RegModal();
-};
-
-function maybeShowR1RegModal() {
-  // Don't show if registration period has passed
-  if (Date.now() >= R1_REG_DEADLINE_TS) {
-    const card = document.getElementById("r1-reg-card");
-    if (card) card.style.display = "none";
-    return;
-  }
-  // Don't show if permanently dismissed by this user
-  try { if (localStorage.getItem(_r1regDismissKey())) return; } catch (_) {}
-  const ov = document.getElementById("r1reg-overlay");
-  if (ov) ov.classList.add("open");
-  _startR1RegCountdown();
 }
 
 // ==============================
@@ -7124,21 +7068,23 @@ function requestPushPermission() {
 }
 
 function schedulePushReminders() {
-  WEEK_SCHEDULE.forEach(([start, end], i) => {
+  const cur = getWeekIndex();
+  for (let i = cur; i <= cur + 5; i++) {
+    const end = getWeekDeadline(i);
     const reminderTime = end - (24 * 60 * 60 * 1000);
     const delay = reminderTime - Date.now();
-    if (delay <= 0 || delay > 2147483647) return;
+    if (delay <= 0 || delay > 2147483647) continue;
     setTimeout(() => {
       if (Notification.permission === "granted") {
-        const w = WEEKS[i];
+        const label = getWeekLabel(i);
         new Notification("⏰ AAC Deadline Tomorrow", {
-          body: `${w.month} ${w.label} ends tomorrow — don't forget to submit your update!`,
+          body: `${label} ends tomorrow — don't forget to submit your update!`,
           icon: "./icon-192.png",
           tag: "wac-reminder-w" + i
         });
       }
     }, delay);
-  });
+  }
 }
 
 // ==============================
@@ -7319,8 +7265,7 @@ async function clearFeedPostsByWeek() {
   const statusEl = document.getElementById("clear-feed-status");
   if (statusEl) { statusEl.style.display = "block"; statusEl.textContent = "Finding posts..."; }
   try {
-    const weekStart = WEEK_SCHEDULE[weekIdx] ? WEEK_SCHEDULE[weekIdx][0] : null;
-    const weekEnd = WEEK_SCHEDULE[weekIdx] ? WEEK_SCHEDULE[weekIdx][1] : null;
+    const [weekStart, weekEnd] = _weekRange(weekIdx);
     let snap;
     if (weekStart && weekEnd) {
       snap = await getDocs(query(collection(db, "posts"), where("timestamp", ">=", weekStart), where("timestamp", "<=", weekEnd)));
