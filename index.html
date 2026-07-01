@@ -2028,7 +2028,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   <div class="auth-card-wrap">
     <div class="auth-logo">AAC</div>
     <div class="auth-subtitle">Ad Accountability<br>Challenge</div>
-    <div class="auth-round-badge">Free Trial · June 1–30</div>
+    <div class="auth-round-badge">July 2026</div>
     <div class="auth-form-area">
       <div class="auth-form-group">
         <label class="auth-form-label">EMAIL ADDRESS</label>
@@ -2426,7 +2426,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       </div>
       <div class="card mt-16" style="background:linear-gradient(135deg,rgba(184,134,11,0.06),var(--surface));">
         <div class="card-title">⭐ AAC All-Star</div>
-        <p class="text-sm text-muted">Submit proof of an active campaign 4 weeks in a row within a calendar month to earn All-Star status for that month. All-Star perks: an Ad Audit Session with Nate and Ad Credit giveaway eligibility. Status and the leaderboard reset on the 1st.</p>
+        <p class="text-sm text-muted">Submit proof of an active campaign 4 weeks in a row to earn All-Star status and a one-time +25pt bonus. All-Star perks: an Ad Audit Session with Nate and Ad Credit giveaway eligibility. Your gold star stays active while you keep the streak going, or for 4 weeks after you last held it.</p>
       </div>
     </div>
 
@@ -3090,14 +3090,14 @@ textarea.gs-input{ resize:vertical; }
       <div class="welcome-step"><span class="welcome-step-icon">📖</span><span>Read the Ad Fundamentals Playbook — AAC's 7-part guide to paid advertising</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">✅</span><span>Complete Your Ad Audit to prepare for weekly proof submissions</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">💬</span><span>Use the Community Feed — post wins, ask questions, and share what's working</span></div>
-      <div class="welcome-step"><span class="welcome-step-icon">⭐</span><span>Earn All-Star status — submit proof 4 weeks in a row within a calendar month</span></div>
+      <div class="welcome-step"><span class="welcome-step-icon">⭐</span><span>Earn All-Star status — submit proof 4 weeks in a row for a gold star + 25pt bonus</span></div>
     </div>
     <!-- Trial-to-paid transition welcome (shown to trialCompleted members) -->
     <div class="welcome-body" id="welcome-body-transition" style="display:none;">
       <h3>Your Free Trial Is Complete 🚀</h3>
       <div class="welcome-step"><span class="welcome-step-icon">🏁</span><span>Your 30-day free trial is complete — everything you've built carries forward</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">📸</span><span>Same proof standard — screenshot your live campaign in Ads Manager each week to earn +10 pts</span></div>
-      <div class="welcome-step"><span class="welcome-step-icon">🏆</span><span>4 consecutive weekly submissions in a calendar month earns All-Star status</span></div>
+      <div class="welcome-step"><span class="welcome-step-icon">🏆</span><span>4 consecutive weekly submissions earns All-Star status + 25pt bonus</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">📅</span><span>Weekly challenge modifiers are still live — check the dashboard each week</span></div>
     </div>
     <div class="welcome-footer">
@@ -3353,6 +3353,7 @@ const MAX_POST_PER_WEEK  = 2;  // Post limit per week
 const PTS_LIKE_REPLY = 1;  // Like (props) or reply (+1 pt, 5x/week max)
 const PTS_COWORK_RSVP   = 2;  // Coworking Session RSVP
 const PTS_COWORK_ATTEND = 5;  // Coworking Session Attendance (admin-awarded)
+const PTS_ALLSTAR_BONUS = 25; // One-time bonus per distinct 4-week All-Star streak
 
 // ==============================
 // COMMUNITY POINTS AUDIT LOG
@@ -3409,6 +3410,9 @@ function sanitizeMember(m) {
     isExpert:   m.isExpert   || false,
     isFounder:  m.isFounder  || false,
     isAllStar:  m.isAllStar  || false,
+    allStarStreak:            typeof m.allStarStreak === "number" ? m.allStarStreak : 0,
+    allStarStreakWeekIdx:     typeof m.allStarStreakWeekIdx === "number" ? m.allStarStreakWeekIdx : null,
+    allStarBadgeUntilWeekIdx: typeof m.allStarBadgeUntilWeekIdx === "number" ? m.allStarBadgeUntilWeekIdx : null,
     isVIP:      m.isVIP      || false,
     business:   m.business   || "",
     type:       m.type       || "",
@@ -3483,6 +3487,80 @@ function getCurrentMonthWeekIdxs() {
   const cur = getWeekIndex();
   const monthOffset = Math.floor(cur / 4);
   return [0, 1, 2, 3].map(i => monthOffset * 4 + i);
+}
+
+// All-Star badge display: rolling streak (not calendar-month bound).
+// True if admin manually flagged isAllStar, OR the member has an active/recently-active
+// 4+ consecutive weekly submission streak (badge decays 4 weeks after the streak last held).
+function isAllStarBadgeActive(m, currentWeekIdx) {
+  if (!m) return false;
+  if (m.isAllStar) return true;
+  const until = m.allStarBadgeUntilWeekIdx;
+  return typeof until === "number" && currentWeekIdx <= until;
+}
+
+// Advances a member's rolling All-Star streak on a new (non-trial) weekly submission.
+// Persists allStarStreak / allStarStreakWeekIdx / allStarBadgeUntilWeekIdx on the registry doc.
+// Awards a one-time +25pt bonus (PTS_ALLSTAR_BONUS) the moment the streak reaches exactly 4 —
+// re-fires only after the member breaks and rebuilds a fresh 4-week streak.
+// Returns true if the bonus was just awarded.
+// Recomputes allStarStreak/allStarStreakWeekIdx from full submission history — used after a
+// deletion, where incremental streak math can't safely account for a removed week.
+// Does NOT touch allStarBadgeUntilWeekIdx or claw back an already-awarded bonus.
+async function recomputeAllStarStreak(regRef, uid) {
+  try {
+    const snap = await getDocs(query(collection(db, "submissions"), where("authorUid", "==", uid)));
+    const weekIdxs = snap.docs.map(d => d.data())
+      .filter(s => !s.isTrial && typeof s.weekIdx === "number")
+      .map(s => s.weekIdx);
+    if (!weekIdxs.length) {
+      await updateDoc(regRef, { allStarStreak: 0, allStarStreakWeekIdx: null });
+      return;
+    }
+    const set = new Set(weekIdxs);
+    const maxW = Math.max(...weekIdxs);
+    let streak = 0, w = maxW;
+    while (set.has(w)) { streak++; w--; }
+    await updateDoc(regRef, { allStarStreak: streak, allStarStreakWeekIdx: maxW });
+  } catch (e) { console.error("recomputeAllStarStreak error:", e); }
+}
+
+async function awardAllStarProgress(regRef, weekIdx) {
+  try {
+    const snap = await getDoc(regRef);
+    const d = snap.exists() ? snap.data() : {};
+    const prevStreak = typeof d.allStarStreak === "number" ? d.allStarStreak : 0;
+    const prevWeekIdx = typeof d.allStarStreakWeekIdx === "number" ? d.allStarStreakWeekIdx : null;
+
+    let newStreak;
+    if (prevWeekIdx !== null && weekIdx === prevWeekIdx) {
+      newStreak = prevStreak; // duplicate event for the same week, no change
+    } else if (prevWeekIdx !== null && weekIdx === prevWeekIdx + 1) {
+      newStreak = prevStreak + 1; // consecutive week, streak continues
+    } else {
+      newStreak = 1; // gap (or first-ever submission) — streak restarts
+    }
+
+    const updates = {
+      allStarStreak: newStreak,
+      allStarStreakWeekIdx: prevWeekIdx === null ? weekIdx : Math.max(weekIdx, prevWeekIdx)
+    };
+
+    let bonusAwarded = false;
+    if (newStreak >= 4) {
+      updates.allStarBadgeUntilWeekIdx = weekIdx + 4;
+      if (newStreak === 4) {
+        updates.points = increment(PTS_ALLSTAR_BONUS);
+        bonusAwarded = true;
+      }
+    }
+
+    await updateDoc(regRef, updates);
+    return { bonusAwarded, streak: newStreak, streakWeekIdx: updates.allStarStreakWeekIdx, badgeUntilWeekIdx: updates.allStarBadgeUntilWeekIdx ?? null };
+  } catch (e) {
+    console.error("awardAllStarProgress error:", e);
+    return { bonusAwarded: false, streak: null, streakWeekIdx: null, badgeUntilWeekIdx: null }; // fail closed — no badge/bonus claim without a confirmed write
+  }
 }
 
 // AAC Free Trial - June 2026 - full scoring enabled (Firestore-backed)
@@ -3746,6 +3824,9 @@ async function resolveUser(user) {
     isExpert: d.isExpert || false,
     isVIP: d.isVIP || false,
     isAllStar: d.isAllStar || false,
+    allStarStreak: d.allStarStreak || 0,
+    allStarStreakWeekIdx: typeof d.allStarStreakWeekIdx === "number" ? d.allStarStreakWeekIdx : null,
+    allStarBadgeUntilWeekIdx: typeof d.allStarBadgeUntilWeekIdx === "number" ? d.allStarBadgeUntilWeekIdx : null,
     isPro: d.isPro || false,
     proSince: d.proSince || null,
     proExpiry: d.proExpiry || null,
@@ -4215,7 +4296,7 @@ window.loadDashboard = async function() {
       .filter(m => !m.isAdmin && m.email !== ADMIN_EMAIL)
       .map(m => {
         const e = monthlyByUid[m.id] || { pts: 0, weeks: new Set() };
-        return { ...m, points: e.pts, totalPosts: e.weeks.size, isAllStar: monthWeekIdxs.every(w => e.weeks.has(w)) };
+        return { ...m, points: e.pts, totalPosts: e.weeks.size, isAllStar: isAllStarBadgeActive(m, currentWeekIdx) };
       })
       .sort((a, b) => (b.points || 0) - (a.points || 0))
       .slice(0, 10);
@@ -4429,7 +4510,7 @@ function renderFeed(posts) {
       <div class="feed-post-header">
         <div class="feed-avatar">${avatarContent}</div>
         <div class="feed-meta">
-          <div class="feed-author">${esc(p.author)}</div>
+          <div class="feed-author">${esc(p.author)}${(p.authorUid===currentUser.uid ? isAllStarBadgeActive(currentUser, getWeekIndex()) : memberData && isAllStarBadgeActive(memberData, getWeekIndex())) ? ' ⭐' : ''}</div>
           <div class="feed-time">${timeAgo(p.timestamp)}</div>
         </div>
         ${isOwner ? `<div style="display:flex;gap:6px;margin-left:auto;">
@@ -4517,7 +4598,7 @@ function renderPVRCard(p) {
     <div class="feed-post-header" style="margin-bottom:8px;">
       <div class="feed-avatar" style="border:2px solid rgba(201,168,76,0.4);">${avatarContent}</div>
       <div class="feed-meta">
-        <div class="feed-author" style="color:#fff;">${esc(p.author)}</div>
+        <div class="feed-author" style="color:#fff;">${esc(p.author)}${(p.authorUid===currentUser.uid ? isAllStarBadgeActive(currentUser, getWeekIndex()) : memberData && isAllStarBadgeActive(memberData, getWeekIndex())) ? ' ⭐' : ''}</div>
         <div class="feed-time">${timeAgo(p.timestamp)}</div>
       </div>
       ${isOwner ? `<div style="display:flex;gap:6px;margin-left:auto;">
@@ -5793,6 +5874,20 @@ async function submitUpdate() {
     // Update local user
     currentUser.points = (currentUser.points || 0) + pts;
     currentUser.totalPosts = (currentUser.totalPosts || 0) + 1;
+
+    // Rolling All-Star streak: +25 one-time bonus at 4 consecutive weekly submissions
+    if (!isTrial) {
+      const result = await awardAllStarProgress(regRef, weekIdx);
+      if (result.streak !== null) {
+        currentUser.allStarStreak = result.streak;
+        currentUser.allStarStreakWeekIdx = result.streakWeekIdx;
+        if (result.badgeUntilWeekIdx !== null) currentUser.allStarBadgeUntilWeekIdx = result.badgeUntilWeekIdx;
+      }
+      if (result.bonusAwarded) {
+        currentUser.points = (currentUser.points || 0) + PTS_ALLSTAR_BONUS;
+        showToast("⭐ All-Star! 4 weeks in a row — +25 bonus points!");
+      }
+    }
     lsSet("wac_session", currentUser);
 
     // Restore access if this submission breaks a restriction lockout
@@ -6007,6 +6102,9 @@ async function deleteSubmission(id, pts, weekIdx, isTrial) {
     if (weekIdx != null && weekIdx >= 0) {
       await syncTrackerFromSubmissions(weekIdx, isTrial);
     }
+    if (!isTrial) {
+      await recomputeAllStarStreak(regRef, currentUser.uid);
+    }
     showToast(`Submission deleted. -${pts} pts`);
     loadMySubmissions();
     updatePtsPreview();
@@ -6191,9 +6289,10 @@ async function loadLeaderboard() {
       e.pts += (s.pts || 0);
       e.weeks.add(s.weekIdx);
     });
+    const currentWeekIdx = getWeekIndex();
     members = members.map(m => {
       const e = monthlyByUid[m.id] || { pts: 0, weeks: new Set() };
-      return { ...m, points: e.pts, totalPosts: e.weeks.size, isAllStar: monthWeekIdxs.every(w => e.weeks.has(w)) };
+      return { ...m, points: e.pts, totalPosts: e.weeks.size, isAllStar: isAllStarBadgeActive(m, currentWeekIdx) };
     }).sort((a, b) => (b.points || 0) - (a.points || 0));
 
     // Inject admin as synthetic entry
@@ -6280,6 +6379,7 @@ async function renderAdminRegistry() {
     const el = document.getElementById("admin-registry");
     el.innerHTML = `<div class="card"><div class="card-title">Full Registry — ${all.length} member${all.length !== 1 ? "s" : ""}</div>` +
       all.map(m => {
+        const showAllStar = isAllStarBadgeActive(m, currentWeekIdx); // rolling streak (or manual override), display-only
         const docId = m.id || m.uid || "";
         const status = m.subscriptionStatus || "trial";
         const notCancelled = status !== "cancelled";
@@ -6309,7 +6409,7 @@ async function renderAdminRegistry() {
             ${m.isFounder ? `<span style="font-size:10px;background:var(--gold);color:#000;padding:1px 6px;border-radius:4px;font-weight:700;">🏅 Founder</span>` : ""}
             ${m.isExpert ? `<span style="font-size:10px;background:rgba(184,134,11,0.12);color:var(--gold);padding:1px 6px;border-radius:4px;font-weight:700;">🎯 Expert</span>` : ""}
             ${m.isVIP ? `<span style="font-size:10px;background:#e8f4fd;color:#2980b9;padding:1px 6px;border-radius:4px;font-weight:700;">⚡ VIP</span>` : ""}
-            ${m.isAllStar ? `<span style="font-size:10px;background:#fffbf0;color:var(--gold-dark);padding:1px 6px;border-radius:4px;font-weight:700;">⭐ All-Star</span>` : ""}
+            ${showAllStar ? `<span style="font-size:10px;background:#fffbf0;color:var(--gold-dark);padding:1px 6px;border-radius:4px;font-weight:700;">⭐ All-Star${m.allStarStreak >= 4 ? ` (${m.allStarStreak}wk streak)` : ""}</span>` : ""}
             ${proBadgeHtml}${trialHtml}
           </div>
           <div class="text-sm text-muted" style="margin-bottom:2px;">
@@ -6331,7 +6431,7 @@ async function renderAdminRegistry() {
             <button class="${m.isFounder?'active-flag':''}" onclick="toggleRegistryFlag('${docId}','isFounder')">🏅 Founder</button>
             <button class="${m.isExpert?'active-flag':''}" onclick="toggleRegistryFlag('${docId}','isExpert')" style="${m.isExpert ? 'background:rgba(184,134,11,0.12);border-color:var(--gold);color:var(--gold);font-weight:600;' : ''}">🎯 Expert</button>
             <button class="${m.isVIP?'active-flag':''}" onclick="toggleRegistryFlag('${docId}','isVIP')">⚡ VIP</button>
-            <button class="${m.isAllStar?'active-flag':''}" onclick="toggleRegistryFlag('${docId}','isAllStar')">⭐ All-Star</button>
+            <button class="${m.isAllStar?'active-flag':''}" onclick="toggleRegistryFlag('${docId}','isAllStar')" title="Manual permanent override — separate from the automatic 4-week streak badge">⭐ Manual All-Star</button>
             <button onclick="editRegistryEmail('${docId}','${esc(m.email)}')">✏️ Email</button>
             <button onclick="toggleProAccess('${docId}',${!!m.isPro})" style="${m.isPro ? "background:#fffbf0;border-color:var(--gold);color:var(--gold-dark);font-weight:600;" : ""}">${m.isPro ? "★ Remove Pro" : "★ Grant Pro"}</button>
             <button onclick="setTrialAccess('${docId}','${esc(m.name)}')">⏱ Trial Access</button>
@@ -6344,8 +6444,12 @@ async function renderAdminRegistry() {
 
 async function renderMemberGrid() {
   const members = await getRegistryForCurrentRound();
+  const currentWeekIdx = getWeekIndex();
   _memberMap = {};
-  members.forEach(m => { _memberMap[m.id] = m; });
+  members.forEach(m => {
+    m.isAllStar = isAllStarBadgeActive(m, currentWeekIdx); // rolling streak (or manual override)
+    _memberMap[m.id] = m;
+  });
   // All-Stars first, then alpha
   members.sort((a, b) => {
     if (a.isAllStar && !b.isAllStar) return -1;
@@ -6657,6 +6761,7 @@ async function addRegistryMember(uid, name, email, website, ig, biz, type, round
     type: type || "",
     rounds, points: 0, totalPosts: 0,
     isFounder, isVIP, isAllStar: false,
+    allStarStreak: 0, allStarStreakWeekIdx: null, allStarBadgeUntilWeekIdx: null,
     // AAC Pro fields — default inactive
     isPro: false, proSince: null, proExpiry: null, trialUntil: null,
     // Rolling membership state
@@ -6706,7 +6811,7 @@ function renderProfileHero() {
     ? `<div class="profile-avatar" style="padding:0;overflow:hidden;"><img src="${currentUser.photoURL}" alt="${esc(currentUser.name)}" /></div>`
     : `<div class="profile-avatar">${initials}</div>`;
   const badges = [];
-  if (currentUser.isAllStar) badges.push("⭐ All-Star");
+  if (isAllStarBadgeActive(currentUser, getWeekIndex())) badges.push("⭐ All-Star");
   if (currentUser.isFounder) badges.push("🏅 Founder");
   if (currentUser.isVIP) badges.push("⚡ VIP");
   if (currentUser.isAdmin) badges.push("👑 Admin");
@@ -7565,6 +7670,9 @@ window.adminDeleteSubmission = async function(docId, collName, authorUid, pts) {
       points: increment(-pts),
       totalPosts: increment(-1)
     });
+    if (collName === "submissions") {
+      await recomputeAllStarStreak(doc(db, "aac_registry", authorUid), authorUid);
+    }
     showToast("Submission deleted. Points deducted.");
     await loadAdminSubmissions();
     await populateAdminSubFilters();
