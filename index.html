@@ -3092,14 +3092,7 @@ textarea.gs-input{ resize:vertical; }
       <div class="welcome-step"><span class="welcome-step-icon">💬</span><span>Use the Community Feed — post wins, ask questions, and share what's working</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">⭐</span><span>Earn All-Star status — submit proof 4 weeks in a row for a gold star + 25pt bonus</span></div>
     </div>
-    <!-- Trial-to-paid transition welcome (shown to trialCompleted members) -->
-    <div class="welcome-body" id="welcome-body-transition" style="display:none;">
-      <h3>Your Free Trial Is Complete 🚀</h3>
-      <div class="welcome-step"><span class="welcome-step-icon">🏁</span><span>Your 30-day free trial is complete — everything you've built carries forward</span></div>
-      <div class="welcome-step"><span class="welcome-step-icon">📸</span><span>Same proof standard — screenshot your live campaign in Ads Manager each week to earn +10 pts</span></div>
-      <div class="welcome-step"><span class="welcome-step-icon">🏆</span><span>4 consecutive weekly submissions earns All-Star status + 25pt bonus</span></div>
-      <div class="welcome-step"><span class="welcome-step-icon">📅</span><span>Weekly challenge modifiers are still live — check the dashboard each week</span></div>
-    </div>
+    <!-- Trial-to-paid transition welcome removed (rolling monthly model has no cohort transition) -->
     <div class="welcome-footer">
       <button class="btn btn-gold btn-block" onclick="closeWelcomeModal()">Let's Go! 🚀</button>
       <button class="welcome-dismiss" onclick="closeWelcomeModal()">Don't show this again</button>
@@ -3905,13 +3898,6 @@ function bootApp() {
   // 1a. Record login timestamp (non-admin only)
   if (currentUser && !currentUser.isAdmin && currentUser.uid) {
     updateDoc(doc(db, "aac_registry", currentUser.uid), { lastLogin: Date.now() }).catch(() => {});
-  }
-
-  // 1b. Auto-set trialCompleted when trial period has ended and flag not yet written
-  const _trialNowOver = getTrialWeekIndex() === -1 && Date.now() >= Date.UTC(2026,6,1,4,0,0);
-  if (currentUser && !currentUser.isAdmin && currentUser.uid && _trialNowOver && !currentUser.trialCompleted) {
-    updateDoc(doc(db, "aac_registry", currentUser.uid), { trialCompleted: true }).catch(() => {});
-    currentUser.trialCompleted = true;
   }
 
   const _submitOpen = new Date("2026-06-15T00:00:00").getTime();
@@ -7148,16 +7134,6 @@ service cloud.firestore {
 function showWelcomeModal() {
   const key = `wac_welcomed_${currentUser.uid}`;
   if (localStorage.getItem(key)) return;
-
-  // Detect trial-to-Round 1 transition: trial is over AND user completed it
-  const trialOver = getTrialWeekIndex() === -1 && Date.now() >= Date.UTC(2026,6,1,4,0,0);
-  const isTransition = trialOver && currentUser.trialCompleted === true;
-
-  if (isTransition) {
-    document.getElementById("welcome-body-standard").style.display = "none";
-    document.getElementById("welcome-body-transition").style.display = "";
-  }
-
   document.getElementById("welcome-overlay").classList.add("open");
 }
 
