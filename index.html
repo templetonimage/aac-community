@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
 <title>AAC — Ad Accountability Challenge</title>
 <link rel="manifest" href="manifest.json" />
-<link rel="apple-touch-icon" href="aac-icon.png" />
+<link rel="icon" href="data:," />
+
 <meta name="theme-color" content="#c9a84c" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -2736,7 +2737,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       <!-- Add to Device card (always visible) -->
       <div class="card" id="add-to-device-card" style="margin-bottom:16px;">
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
-          <img src="icons/icon-192.png" alt="AAC icon" style="width:52px;height:52px;border-radius:12px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);" onerror="this.outerHTML='<div style=\'width:52px;height:52px;border-radius:12px;background:#1a1a1a;display:flex;align-items:center;justify-content:center;flex-shrink:0;\'><span style=\'font-family:Bebas Neue,sans-serif;font-size:20px;color:#c9a84c;letter-spacing:0.06em;\'>AAC</span></div>'" />
+          <div style="width:52px;height:52px;border-radius:12px;background:#1a1a1a;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:#c9a84c;letter-spacing:0.06em;">AAC</span></div>
           <div>
             <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.04em;">Add AAC to Your Device</div>
             <div class="text-sm text-muted">Access AAC like a native app — no App Store needed.</div>
@@ -4009,7 +4010,6 @@ function bootApp() {
   setTimeout(showWelcomeModal, 600);
   setTimeout(initPushNotifications, 1000);
   setTimeout(checkProNotifications, 2000);
-  setTimeout(checkRERNotification, 2500);
 
   // Init password field for admin create
   if (currentUser.isAdmin) initPasswordField();
@@ -4230,11 +4230,12 @@ window.loadDashboard = async function() {
     const monthWeekIdxs = getCurrentMonthWeekIdxs();
     const monthStartTs = _weekRange(monthWeekIdxs[0])[0];
 
-    const [regSnap, subSnap, engSnap, monthSubSnap, allRegSnap] = await Promise.all([
+    const [regSnap, subSnap, engSnap, monthSubSnap, monthCommSnap, allRegSnap] = await Promise.all([
       getDoc(dc(db, 'aac_registry', registryId)),
       getDocs(q(col(db, 'submissions'), where('authorUid', '==', uid))),
       getDocs(q(col(db, 'engagements'), where('authorUid', '==', uid))),
       getDocs(q(col(db, 'submissions'), where('timestamp', '>=', monthStartTs))),
+      getDocs(q(col(db, 'aac_community_pts'), where('ts', '>=', monthStartTs))),
       getDocs(col(db, 'aac_registry'))
     ]);
 
@@ -4275,6 +4276,11 @@ window.loadDashboard = async function() {
       const e = monthlyByUid[s.authorUid] || (monthlyByUid[s.authorUid] = { pts: 0, weeks: new Set() });
       e.pts += (s.pts || 0);
       e.weeks.add(s.weekIdx);
+    });
+    monthCommSnap.docs.forEach(d => {
+      const c = d.data();
+      const e = monthlyByUid[c.uid] || (monthlyByUid[c.uid] = { pts: 0, weeks: new Set() });
+      e.pts += (c.pts || 0);
     });
     const lbMembers = allRegSnap.docs
       .map(d => sanitizeMember({id:d.id, ...d.data()}))
@@ -5986,6 +5992,7 @@ async function loadEngHistory() {
     snap.forEach(d => items.push({ id: d.id, ...d.data() }));
     items.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
     const el2 = document.getElementById("eng-history");
+    if (!el2) return;
     if (!items.length) { el2.innerHTML = '<p class="text-sm text-muted">No engagements yet.</p>'; return; }
     el2.innerHTML = items.slice(0, 20).map(e => `<div class="eng-history-item">
       <div style="font-weight:600;">${esc(e.type)} — <a href="${esc(e.targetUrl)}" target="_blank" rel="noopener">${esc(e.targetUrl)}</a></div>
@@ -6266,7 +6273,10 @@ async function loadLeaderboard() {
     // Monthly leaderboard: ranked by this calendar month's submission points (resets on the 1st)
     const monthWeekIdxs = getCurrentMonthWeekIdxs();
     const monthStartTs = _weekRange(monthWeekIdxs[0])[0];
-    const monthSubSnap = await getDocs(query(collection(db, "submissions"), where("timestamp", ">=", monthStartTs)));
+    const [monthSubSnap, monthCommSnap] = await Promise.all([
+      getDocs(query(collection(db, "submissions"), where("timestamp", ">=", monthStartTs))),
+      getDocs(query(collection(db, "aac_community_pts"), where("ts", ">=", monthStartTs)))
+    ]);
     const monthlyByUid = {};
     monthSubSnap.forEach(d => {
       const s = d.data();
@@ -6274,6 +6284,11 @@ async function loadLeaderboard() {
       const e = monthlyByUid[s.authorUid] || (monthlyByUid[s.authorUid] = { pts: 0, weeks: new Set() });
       e.pts += (s.pts || 0);
       e.weeks.add(s.weekIdx);
+    });
+    monthCommSnap.forEach(d => {
+      const c = d.data();
+      const e = monthlyByUid[c.uid] || (monthlyByUid[c.uid] = { pts: 0, weeks: new Set() });
+      e.pts += (c.pts || 0);
     });
     const currentWeekIdx = getWeekIndex();
     members = members.map(m => {
@@ -7116,9 +7131,10 @@ service cloud.firestore {
       }
     }
     match /aac_community_pts/{docId} {
-      allow read, delete: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
+      allow read: if request.auth != null;
       allow create: if request.auth != null;
-      allow delete: if resource.data.uid == request.auth.uid;
+      allow delete: if request.auth.token.email == '${esc(ADMIN_EMAIL)}'
+        || resource.data.uid == request.auth.uid;
     }
   }
 }</div>
