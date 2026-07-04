@@ -4062,11 +4062,12 @@ function loadSubmitPage() {
   loadEngHistory();
   loadMySubmissions();
 
-  // Trial mode: T1 and T2 — challenge-only, no URL/format/screenshot
+  // Weeks 1-2 (per-member, based on signup date): challenge-only, no URL/format/screenshot
   const trialIdx = getTrialWeekIndex();
-  const isTrialChallengeMode = trialIdx === 0 || trialIdx === 1;
+  const memberWeekIdx = getMemberWeekIndex();
+  const isEarlyWeeks = memberWeekIdx !== null && memberWeekIdx < 2;
 
-  // Show/hide trial notice banner
+  // Show/hide early-weeks notice banner
   let trialNotice = document.getElementById("trial-submit-notice");
   if (!trialNotice) {
     trialNotice = document.createElement("div");
@@ -4075,9 +4076,9 @@ function loadSubmitPage() {
     const card = document.querySelector("#page-submit .card");
     if (card) card.insertBefore(trialNotice, card.firstChild);
   }
-  if (isTrialChallengeMode) {
+  if (isEarlyWeeks) {
     trialNotice.style.display = "block";
-    trialNotice.innerHTML = `<strong style="color:var(--gold);">🗓 June Trial — Challenge Submissions</strong><br>Check the Weekly Challenge box and describe what you worked on. That's it — no URL or screenshot needed. Full submissions open June 15.`;
+    trialNotice.innerHTML = `<strong style="color:var(--gold);">🗓 Weeks 1-2 — Setup Phase</strong><br>Check the Weekly Challenge box and describe what you worked on. No URL or screenshot needed until Week 3, when ads launch.`;
   } else {
     trialNotice.style.display = "none";
   }
@@ -4114,7 +4115,7 @@ function loadSubmitPage() {
   // Hide/show URL, format type, and screenshot fields
   ["submit-url-group", "submit-format-group", "submit-screenshot-group"].forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.style.display = isTrialChallengeMode ? "none" : "";
+    if (el) el.style.display = isEarlyWeeks ? "none" : "";
   });
 }
 
@@ -5721,6 +5722,14 @@ function getTrialDayCount() {
   return Math.floor((Date.now() - currentUser.addedAt) / 86400000);
 }
 
+// Per-member week index (0 = member's Week 1), based on their own signup date.
+// Returns null for grandfathered members with no addedAt on record.
+function getMemberWeekIndex() {
+  const daysIn = getTrialDayCount();
+  if (daysIn === null) return null;
+  return Math.floor(daysIn / 7);
+}
+
 function showTrialConvertBanner(daysIn) {
   const el = document.getElementById("dash-trial-convert");
   const titleEl = document.getElementById("dash-trial-convert-title");
@@ -5785,10 +5794,11 @@ async function submitUpdate() {
   let url = document.getElementById("submit-url").value.trim();
   const note = document.getElementById("submit-note").value.trim();
   const trialIdx = getTrialWeekIndex();
-  const isTrialChallengeMode = trialIdx === 0 || trialIdx === 1;
+  const memberWeekIdx = getMemberWeekIndex();
+  const isEarlyWeeks = memberWeekIdx !== null && memberWeekIdx < 2;
 
-  // During T1/T2 trial, URL is optional but note is still required
-  if (isTrialChallengeMode) {
+  // Weeks 1-2 (per-member): URL/screenshot optional, note + challenge box required
+  if (isEarlyWeeks) {
     if (!note) { showToast("Please describe what you did."); return; }
     const challengeEl = document.getElementById("submit-challenge");
     if (!challengeEl || !challengeEl.checked) { showToast("Check the Weekly Challenge box to earn your +5 pts."); return; }
