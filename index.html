@@ -6398,7 +6398,8 @@ async function renderAdminRegistry() {
         const igHandle = m.ig ? m.ig.trim().replace(/^@+/, "") : "";
         const igUrl = igHandle ? `https://www.instagram.com/${igHandle}` : "";
         const proBadgeHtml = m.isPro ? `<span class="pro-badge" style="margin-left:0;">PRO</span>` : "";
-        const trialHtml = m.trialUntil && !m.isPro ? `<span style="display:inline-flex;align-items:center;background:#e8f5e9;color:#27ae60;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;margin-left:4px;">Trial until ${new Date(m.trialUntil).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</span>` : "";
+        const trialHtml = m.trialUntil && !m.isPro ? `<span style="display:inline-flex;align-items:center;background:#e8f5e9;color:#27ae60;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;margin-left:4px;">Pro trial until ${new Date(m.trialUntil).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</span>` : "";
+        const membershipTrialHtml = (status === "trial" && typeof m.addedAt === "number") ? `<span style="display:inline-flex;align-items:center;background:#fff3cd;color:#856404;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;margin-left:4px;">Membership trial ends ${new Date(m.addedAt + 30*86400000).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</span>` : "";
 
         // Missed-week streak (mirrors evaluateAccessStatus logic)
         const memberSubs = allSubs.filter(s => s.authorUid === docId);
@@ -6422,7 +6423,7 @@ async function renderAdminRegistry() {
             ${m.isExpert ? `<span style="font-size:10px;background:rgba(184,134,11,0.12);color:var(--gold);padding:1px 6px;border-radius:4px;font-weight:700;">🎯 Expert</span>` : ""}
             ${m.isVIP ? `<span style="font-size:10px;background:#e8f4fd;color:#2980b9;padding:1px 6px;border-radius:4px;font-weight:700;">⚡ VIP</span>` : ""}
             ${showAllStar ? `<span style="font-size:10px;background:#fffbf0;color:var(--gold-dark);padding:1px 6px;border-radius:4px;font-weight:700;">⭐ All-Star${m.allStarStreak >= 4 ? ` (${m.allStarStreak}wk streak)` : ""}</span>` : ""}
-            ${proBadgeHtml}${trialHtml}
+            ${proBadgeHtml}${trialHtml}${membershipTrialHtml}
           </div>
           <div class="text-sm text-muted" style="margin-bottom:2px;">
             ${esc(m.email)}
