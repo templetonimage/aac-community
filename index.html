@@ -3425,6 +3425,12 @@ function sanitizeMember(m) {
     addedAt:              typeof m.addedAt === "number" ? m.addedAt : null,
     stripeCustomerId:     m.stripeCustomerId     || null,
     stripeSubscriptionId: m.stripeSubscriptionId || null,
+    // Get Started Guide progress summary (mirrors active campaignBrief, admin-facing)
+    gsOpenedAt:   typeof m.gsOpenedAt === "number"   ? m.gsOpenedAt   : null,
+    gsStepsDone:  typeof m.gsStepsDone === "number"  ? m.gsStepsDone  : 0,
+    gsTotalSteps: typeof m.gsTotalSteps === "number" ? m.gsTotalSteps : 0,
+    gsPct:        typeof m.gsPct === "number"        ? m.gsPct        : 0,
+    gsLastActive: typeof m.gsLastActive === "number" ? m.gsLastActive : null,
   };
 }
 
@@ -6401,6 +6407,13 @@ async function renderAdminRegistry() {
         const proBadgeHtml = m.isPro ? `<span class="pro-badge" style="margin-left:0;">PRO</span>` : "";
         const trialHtml = m.trialUntil && !m.isPro ? `<span style="display:inline-flex;align-items:center;background:#e8f5e9;color:#27ae60;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;margin-left:4px;">Pro trial until ${new Date(m.trialUntil).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</span>` : "";
         const membershipTrialHtml = (status === "trial" && typeof m.addedAt === "number") ? `<span style="display:inline-flex;align-items:center;background:#fff3cd;color:#856404;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;margin-left:4px;">Membership trial ends ${new Date(m.addedAt + 30*86400000).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</span>` : "";
+        const gsDone = m.gsPct >= 100;
+        const gsTitle = m.gsOpenedAt
+          ? `Opened ${new Date(m.gsOpenedAt).toLocaleDateString("en-US",{month:"short",day:"numeric"})} · Last active ${m.gsLastActive ? new Date(m.gsLastActive).toLocaleDateString("en-US",{month:"short",day:"numeric"}) : "—"} · ${m.gsStepsDone}/${m.gsTotalSteps} steps`
+          : "";
+        const gsBadgeHtml = m.gsOpenedAt
+          ? `<span title="${esc(gsTitle)}" style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:4px;${gsDone ? "background:#fffbf0;color:var(--gold-dark);" : "background:var(--surface2);color:var(--text-muted);"}">🚀 GS ${m.gsPct}%</span>`
+          : "";
 
         // Missed-week streak (mirrors evaluateAccessStatus logic)
         const memberSubs = allSubs.filter(s => s.authorUid === docId);
@@ -6424,7 +6437,7 @@ async function renderAdminRegistry() {
             ${m.isExpert ? `<span style="font-size:10px;background:rgba(184,134,11,0.12);color:var(--gold);padding:1px 6px;border-radius:4px;font-weight:700;">🎯 Expert</span>` : ""}
             ${m.isVIP ? `<span style="font-size:10px;background:#e8f4fd;color:#2980b9;padding:1px 6px;border-radius:4px;font-weight:700;">⚡ VIP</span>` : ""}
             ${showAllStar ? `<span style="font-size:10px;background:#fffbf0;color:var(--gold-dark);padding:1px 6px;border-radius:4px;font-weight:700;">⭐ All-Star${m.allStarStreak >= 4 ? ` (${m.allStarStreak}wk streak)` : ""}</span>` : ""}
-            ${proBadgeHtml}${trialHtml}${membershipTrialHtml}
+            ${proBadgeHtml}${trialHtml}${membershipTrialHtml}${gsBadgeHtml}
           </div>
           <div class="text-sm text-muted" style="margin-bottom:2px;">
             ${esc(m.email)}
@@ -8842,6 +8855,36 @@ async function gsInit() {
   if (activeId && _gsBriefs.find(b => b.id === activeId)) { await gsOpenBrief(activeId, true); }
   else if (_gsBriefs.length) { await gsOpenBrief(_gsBriefs[0].id, true); }
   else { _gsBrief = null; _gsBriefId = null; gsRenderAll(); }
+  gsMarkOpened();
+}
+
+// ---- Admin-facing progress summary (written to aac_registry/{uid}, not the subcollection) ----
+function gsMarkOpened() {
+  if (!currentUser || !currentUser.uid) return;
+  const now = Date.now();
+  const patch = { gsLastActive: now };
+  if (!currentUser.gsOpenedAt) patch.gsOpenedAt = now;
+  currentUser.gsOpenedAt = currentUser.gsOpenedAt || now;
+  currentUser.gsLastActive = now;
+  try { updateDoc(doc(db, "aac_registry", currentUser.uid), patch).catch(() => {}); } catch (e) {}
+}
+
+function gsSyncRegistrySummary() {
+  if (!currentUser || !currentUser.uid || !_gsBrief) return;
+  const steps = gsStepsFor(_gsBrief);
+  const stepsDone = Object.values(_gsBrief.done || {}).filter(Boolean).length;
+  const totalSteps = steps.length;
+  const pct = totalSteps ? Math.round((stepsDone / totalSteps) * 100) : 0;
+  const now = Date.now();
+  currentUser.gsStepsDone = stepsDone;
+  currentUser.gsTotalSteps = totalSteps;
+  currentUser.gsPct = pct;
+  currentUser.gsLastActive = now;
+  try {
+    updateDoc(doc(db, "aac_registry", currentUser.uid), {
+      gsStepsDone: stepsDone, gsTotalSteps: totalSteps, gsPct: pct, gsLastActive: now
+    }).catch(() => {});
+  } catch (e) {}
 }
 
 // ---- Persistence ----
@@ -8878,6 +8921,7 @@ async function gsOpenBrief(id, skipWrite) {
   else { currentUser.activeBriefId = id; lsSet("aac_gs_active_" + currentUser.uid, id); }
   _gsRailOpen = false;
   gsRenderAll();
+  gsSyncRegistrySummary();
 }
 
 function gsSetActive(id) {
@@ -8981,7 +9025,7 @@ function gsSetNote(stepId, val) { if (!_gsBrief) return; _gsBrief.notes[stepId] 
 function gsToggleDone(stepId) {
   if (!_gsBrief) return;
   _gsBrief.done[stepId] = !_gsBrief.done[stepId];
-  gsSaveDebounced(); gsRenderRail(); gsUpdateProgress(); gsUpdateDoneBtn(stepId);
+  gsSaveDebounced(); gsSyncRegistrySummary(); gsRenderRail(); gsUpdateProgress(); gsUpdateDoneBtn(stepId);
 }
 function gsToggleNote() {
   const ta = document.getElementById("gs-note-text"); if (!ta) return;
@@ -9019,7 +9063,7 @@ function gsSetPlatform(p) {
   _gsBrief.platform = p;
   const first = p === "meta" ? GS_META_STEPS[0].id : GS_GOOGLE_STEPS[0].id;
   _gsStepId = first;
-  gsSaveDebounced(); gsRenderAll(); gsScrollTop();
+  gsSaveDebounced(); gsSyncRegistrySummary(); gsRenderAll(); gsScrollTop();
 }
 
 // ---- Render ----
