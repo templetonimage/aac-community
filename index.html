@@ -9020,7 +9020,29 @@ function gsRenameActive(val) {
 }
 
 // ---- Field / note / done ----
-function gsSetField(id, val) { if (!_gsBrief) return; _gsBrief.values[id] = val; gsSaveDebounced(); gsRefreshPromptSoon(); }
+function gsSetField(id, val) { if (!_gsBrief) return; _gsBrief.values[id] = val; gsSaveDebounced(); gsRefreshPromptSoon(); gsCheckAutoComplete(); }
+
+// Auto-mark a step done once every required field on it has a value.
+// One-directional: never auto-unchecks a step the member (or this) already marked done.
+function gsStepFieldsFilled(step) {
+  if (!step || !step.fields || !step.fields.length) return false;
+  return step.fields.every(f => {
+    if (/\(optional\)/i.test(f.label || "")) return true;
+    const v = (_gsBrief.values[f.id] || "").toString().trim();
+    return v.length > 0;
+  });
+}
+function gsCheckAutoComplete(stepId) {
+  if (!_gsBrief) return;
+  const id = stepId || _gsStepId;
+  const step = gsSteps().find(s => s.id === id);
+  if (!step || _gsBrief.done[id]) return;
+  if (gsStepFieldsFilled(step)) {
+    _gsBrief.done[id] = true;
+    gsSaveDebounced(); gsSyncRegistrySummary(); gsRenderRail(); gsUpdateProgress(); gsUpdateDoneBtn(id);
+    showToast("✅ Step auto-completed");
+  }
+}
 function gsSetNote(stepId, val) { if (!_gsBrief) return; _gsBrief.notes[stepId] = val; gsSaveDebounced(); }
 function gsToggleDone(stepId) {
   if (!_gsBrief) return;
@@ -9138,6 +9160,7 @@ function gsRenderPane() {
   const pane = document.getElementById("gs-pane"); if (!pane) return;
   const step = gsSteps().find(s => s.id === _gsStepId) || GS_PREP_STEPS[0];
   pane.innerHTML = gsStepHTML(step);
+  gsCheckAutoComplete(step.id);
   gsUpdateProgress();
 }
 
