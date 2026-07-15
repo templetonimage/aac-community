@@ -2,7 +2,7 @@
 // Network-first for the SPA shell so users always get the latest deploy,
 // with a cached fallback when offline.
 
-const CACHE_NAME = "aac-cache-v1";
+const CACHE_NAME = "aac-cache-v2";
 const SHELL = ["/", "/index.html", "/manifest.json", "/aac-icon.png"];
 
 self.addEventListener("install", (event) => {
