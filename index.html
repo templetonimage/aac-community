@@ -519,7 +519,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .announcement-tag {
   display: inline-block;
   background: var(--gold);
-  color: #fff;
+  color: var(--black);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -545,10 +545,11 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   height: 36px;
   border-radius: 50%;
   background: var(--gold);
-  color: #fff;
+  color: var(--black);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: 'Sora', sans-serif;
   font-weight: 700;
   font-size: 14px;
   flex-shrink: 0;
@@ -594,7 +595,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border-radius: 8px;
   border: 1.5px solid var(--border);
   background: transparent;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-muted);
@@ -604,8 +605,8 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 }
 .feed-compose-tab.active {
   border-color: var(--gold);
-  color: var(--gold);
-  background: rgba(88,117,72,0.06);
+  color: var(--gold-dark);
+  background: var(--accent-bg);
 }
 .pvr-compose-fields { display: none; }
 .pvr-compose-fields.visible { display: block; }
@@ -613,7 +614,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 
 .feed-post.pvr {
   border: 1.5px solid var(--gold);
-  background: linear-gradient(135deg, #141b10 0%, #141b10 100%);
+  background: linear-gradient(135deg, var(--black) 0%, #141b10 100%);
   color: #fff;
 }
 .pvr-eyebrow {
@@ -639,11 +640,11 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   align-items: center;
   gap: 6px;
   background: var(--gold);
-  color: #fff;
+  color: var(--black);
   border: none;
   border-radius: 8px;
   padding: 8px 16px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -662,7 +663,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border: none;
   color: rgba(255,255,255,0.5);
   font-size: 12px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   cursor: pointer;
   padding: 0;
   margin-bottom: 8px;
@@ -687,7 +688,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Sora', sans-serif;
   font-size: 11px;
   flex-shrink: 0;
   overflow: hidden;
@@ -715,7 +716,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 8px;
   padding: 8px 10px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   color: #fff;
   resize: none;
@@ -725,11 +726,11 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .pvr-reply-input:focus { outline: none; border-color: var(--gold); }
 .pvr-reply-send {
   background: var(--gold);
-  color: #fff;
+  color: var(--black);
   border: none;
   border-radius: 8px;
   padding: 8px 14px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -743,7 +744,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   color: var(--gold);
   border-radius: 8px;
   padding: 6px 14px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -778,10 +779,11 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   margin-bottom: 14px;
 }
 .rer-eyebrow {
+  font-family: 'Space Mono', monospace;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: var(--gold);
+  color: var(--gold-dark);
   text-transform: uppercase;
   margin-bottom: 6px;
   display: flex;
@@ -807,7 +809,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border-radius: 999px;
   letter-spacing: 0.04em;
 }
-.rer-status-pending { background: rgba(88,117,72,0.12); color: var(--gold); }
+.rer-status-pending { background: var(--accent-bg); color: var(--gold-dark); }
 .rer-status-responded { background: rgba(39,174,96,0.12); color: #27ae60; }
 
 /* Expert feed response card */
@@ -819,10 +821,11 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   margin-bottom: 14px;
 }
 .expert-response-eyebrow {
+  font-family: 'Space Mono', monospace;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: var(--gold);
+  color: var(--gold-dark);
   text-transform: uppercase;
   margin-bottom: 8px;
   display: flex;
@@ -839,9 +842,10 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   margin-bottom: 20px;
 }
 .expert-panel-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 22px;
-  letter-spacing: 0.05em;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.01em;
   color: var(--gold-dark);
   margin-bottom: 4px;
 }
@@ -988,10 +992,12 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 }
 .eeat-audit-body { padding: 12px 20px 24px; }
 .eeat-audit-pillar {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 16px;
-  letter-spacing: 0.08em;
-  color: var(--gold);
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold-dark);
   margin: 18px 0 8px;
   padding-bottom: 4px;
   border-bottom: 1px solid var(--border);
@@ -1010,7 +1016,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   padding: 4px 0;
   border-radius: 6px;
   border: 1.5px solid var(--border);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
@@ -1039,12 +1045,12 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 }
 .eeat-audit-note-toggle {
   font-size: 11px;
-  color: var(--gold);
+  color: var(--gold-dark);
   background: none;
   border: none;
   padding: 0;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 .eeat-audit-note-area {
   display: none;
@@ -1057,7 +1063,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 7px 9px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 12px;
   color: var(--text);
   resize: none;
@@ -1079,9 +1085,10 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border: 1.5px solid var(--gold);
   border-radius: 10px;
   color: #c9d9c0;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 17px;
-  letter-spacing: 0.08em;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.01em;
   cursor: pointer;
   transition: opacity 0.15s;
 }
@@ -1105,7 +1112,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   color: var(--text-muted);
   text-align: center;
   min-height: 14px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 /* ==============================
@@ -1121,7 +1128,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border: none;
   color: var(--text-muted);
   font-size: 12px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   cursor: pointer;
   padding: 0;
   margin-bottom: 8px;
@@ -1145,7 +1152,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Sora', sans-serif;
   font-size: 11px;
   flex-shrink: 0;
   overflow: hidden;
@@ -1174,7 +1181,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px 10px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   color: var(--text);
   resize: none;
@@ -1183,11 +1190,11 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .post-reply-input:focus { outline: none; border-color: var(--gold); }
 .post-reply-send {
   background: var(--gold);
-  color: #fff;
+  color: var(--black);
   border: none;
   border-radius: 8px;
   padding: 8px 14px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -1207,16 +1214,16 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border-radius: 6px;
   transition: background 0.15s;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 .post-reply-btn:hover { background: var(--accent-bg); color: var(--text); }
 .see-more-btn {
   background: none;
   border: none;
-  color: var(--gold);
+  color: var(--gold-dark);
   font-size: 12px;
   font-weight: 600;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   cursor: pointer;
   padding: 2px 0;
   margin-bottom: 6px;
@@ -1236,7 +1243,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border: 1px solid var(--gold);
   border-radius: 8px;
   padding: 10px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   color: var(--text);
   resize: none;
@@ -1249,7 +1256,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px 10px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   color: var(--text);
 }
@@ -1269,7 +1276,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border: 1px solid var(--gold);
   border-radius: 8px;
   padding: 10px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   color: #fff;
   resize: none;
@@ -1289,7 +1296,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   margin-bottom: 16px;
 }
 .admin-banner {
-  background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+  background: linear-gradient(135deg, var(--black), var(--off-black));
   color: #fff;
   border-radius: var(--radius);
   padding: 14px 18px;
@@ -1300,16 +1307,17 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 }
 .admin-banner-icon { font-size: 22px; flex-shrink: 0; }
 .admin-banner-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 20px;
-  letter-spacing: 0.04em;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.01em;
   line-height: 1.1;
 }
 .admin-banner-sub { font-size: 12px; opacity: 0.7; margin-top: 2px; }
 .admin-compose .admin-tag {
   display: inline-block;
   background: var(--gold);
-  color: #fff;
+  color: var(--black);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -2270,7 +2278,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       </div>
       <div id="announcements-list"></div>
       <div id="prev-anns-trigger" style="display:none;text-align:center;margin-bottom:8px;">
-        <button onclick="openArchivedAnnsModal()" style="background:none;border:none;color:var(--text-muted);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;padding:4px 8px;border-radius:6px;text-decoration:underline;text-underline-offset:3px;">📁 Previous Announcements</button>
+        <button onclick="openArchivedAnnsModal()" style="background:none;border:none;color:var(--text-muted);font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;padding:4px 8px;border-radius:6px;text-decoration:underline;text-underline-offset:3px;">📁 Previous Announcements</button>
       </div>
       <!-- Member compose -->
       <div class="card">
@@ -2314,7 +2322,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           </div>
           <div class="rer-warning">⏳ Expert reviews are personal and take time. Please allow a few days for a response before following up.</div>
           <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;padding:6px 10px;background:var(--surface2);border-radius:6px;border-left:2px solid var(--border);">📌 Limited to 1 Expert Review Request per month.</div>
-          <div id="rer-limit-msg" style="display:none;padding:10px 12px;background:rgba(88,117,72,0.08);border:1px solid rgba(88,117,72,0.3);border-radius:8px;font-size:12px;color:var(--gold);margin-bottom:10px;line-height:1.5;"></div>
+          <div id="rer-limit-msg" style="display:none;padding:10px 12px;background:var(--accent-bg);border:1px solid rgba(88,117,72,0.3);border-radius:8px;font-size:12px;color:var(--gold-dark);margin-bottom:10px;line-height:1.5;"></div>
           <button class="btn btn-gold btn-sm" id="rer-submit-btn" onclick="submitRER()">Request Expert Ad Review</button>
         </div>
       </div>
@@ -4576,7 +4584,7 @@ function renderFeed(posts) {
         ${urlHtml}
       </div>
       <div class="feed-actions">
-        <button onclick="giveProps('${p.id}')" style="${p.props && p.props.includes(currentUser.name) ? 'color:var(--gold);font-weight:700;' : ''}">👏 ${p.propsCount || 0}</button>
+        <button onclick="giveProps('${p.id}')" style="${p.props && p.props.includes(currentUser.name) ? 'color:var(--gold-dark);font-weight:700;' : ''}">👏 ${p.propsCount || 0}</button>
         <button onclick="togglePropsList('${p.id}')">👥</button>
         <button class="post-reply-btn" onclick="togglePostCompose('${p.id}')">💬 Reply</button>
       </div>
@@ -4622,7 +4630,7 @@ function renderPVRCard(p) {
       ? `<img src="${esc(rPhoto)}" alt="${esc(r.name)}" />`
       : getInitials(r.name);
     const adminBadge = r.isAdminComment
-      ? `<span style="font-size:10px;font-weight:700;background:var(--gold);color:#1a1a1a;border-radius:20px;padding:1px 7px;margin-left:6px;vertical-align:middle;letter-spacing:0.04em;">Admin</span>`
+      ? `<span style="font-size:10px;font-weight:700;background:var(--gold);color:var(--black);border-radius:20px;padding:1px 7px;margin-left:6px;vertical-align:middle;letter-spacing:0.04em;">Admin</span>`
       : "";
     return `<div class="pvr-reply" ${r.isAdminComment ? 'style="border-left:2px solid var(--gold);padding-left:8px;"' : ""}>
       <div class="pvr-reply-avatar">${rAvatarContent}</div>
@@ -4656,7 +4664,7 @@ function renderPVRCard(p) {
       <textarea class="pvr-edit-textarea" id="pvr-edit-prompt-${p.id}">${esc(p.pvr_prompt || "")}</textarea>
       <div class="pvr-edit-actions">
         <button class="btn btn-gold btn-sm" onclick="savePVREdit('${p.id}')">Save</button>
-        <button class="btn btn-sm" style="border:1px solid rgba(255,255,255,0.2);background:none;color:rgba(255,255,255,0.6);border-radius:8px;padding:7px 14px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;" onclick="closePVREdit('${p.id}')">Cancel</button>
+        <button class="btn btn-sm" style="border:1px solid rgba(255,255,255,0.2);background:none;color:rgba(255,255,255,0.6);border-radius:8px;padding:7px 14px;font-family:'Inter',sans-serif;font-size:13px;cursor:pointer;" onclick="closePVREdit('${p.id}')">Cancel</button>
       </div>
     </div>
     <div id="pvr-body-${p.id}">
@@ -5346,7 +5354,7 @@ function renderAnnouncements(anns) {
         ${adminActions}
       </div>
       ${hasMore
-        ? `<button id="${btnId}" onclick="toggleAnnBody('${bodyId}','${btnId}')" style="background:none;border:none;color:var(--gold);font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;padding:0;margin-top:2px;">See More ▸</button>`
+        ? `<button id="${btnId}" onclick="toggleAnnBody('${bodyId}','${btnId}')" style="background:none;border:none;color:var(--gold-dark);font-size:12px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;padding:0;margin-top:2px;">See More ▸</button>`
         : `<div class="feed-time" style="margin-top:4px;">${timeAgo(a.timestamp)}${adminInlineActions}</div>`}
     </div>`;
   }).join("");
