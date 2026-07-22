@@ -455,7 +455,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
-.auth-btn:hover { background: var(--gold-light); color: var(--black); }
+.auth-btn:hover { background: var(--gold-dark); color: #fff; }
 .auth-error {
   display: none;
   color: #e74c3c;
@@ -4027,9 +4027,7 @@ function bootApp() {
     // Submissions & Points Editor always visible to admin
     const _subsTool = document.getElementById("admin-submissions-tool");
     if (_subsTool) _subsTool.style.display = "block";
-    // Expert webhook config visible to admin
-    const _expertWebhook = document.getElementById("admin-expert-webhook");
-    if (_expertWebhook) _expertWebhook.style.display = "block";
+    // Expert Review Request feature disabled pending build — webhook config panel stays hidden
     // Community Points Log + Backfill + Coworking panels
     ["admin-community-pts-panel","admin-backfill-pts-panel","admin-cowork-panel"].forEach(id => {
       const el = document.getElementById(id);
@@ -4049,9 +4047,9 @@ function bootApp() {
     if (_expertWebhook) _expertWebhook.style.display = "none";
   }
 
-  // Expert panel — visible to Expert user on Reports page (loaded on navTo)
+  // Expert Review Request feature disabled pending build — panel stays hidden
   const _expertPanel = document.getElementById("expert-panel");
-  if (_expertPanel) _expertPanel.style.display = (currentUser.isExpert || currentUser.isAdmin) ? "block" : "none";
+  if (_expertPanel) _expertPanel.style.display = "none";
 
   // 6. Load all data
   loadFeed();
@@ -4109,16 +4107,16 @@ function navTo(page) {
 
   // Page-specific loads
   if (page === "dashboard") { loadDashboard(); loadWeeklyChallenge(); }
-  if (page === "feed") { loadFeed(); loadAnnouncements(); clearFeedBadge(); initRERTab(); }
-  if (page === "submit") { loadSubmitPage(); loadWeeklyChallenge(); loadRERStatus(); }
+  if (page === "feed") { loadFeed(); loadAnnouncements(); clearFeedBadge(); }
+  if (page === "submit") { loadSubmitPage(); loadWeeklyChallenge(); }
   if (page === "ranks") { loadLeaderboard(); clearRanksBadge(); }
-  if (page === "profile") { initProfilePhotoPreview(); loadRERStatus(); }
+  if (page === "profile") { initProfilePhotoPreview(); }
   if (page === "resources") loadResources();
   if (page === "members") loadDirectory();
   if (page === "reports") {
     loadTrackerReport();
-    if (currentUser && currentUser.isAdmin) { loadBugReports(); populateAdminSubFilters(); loadAdminExpertWebhook(); }
-    if (currentUser && (currentUser.isExpert || currentUser.isAdmin)) loadExpertPanel();
+    if (currentUser && currentUser.isAdmin) { loadBugReports(); populateAdminSubFilters(); }
+    // Expert Review Request feature (webhook config + expert panel) disabled pending build — see RER notes.
   }
   if (page === "pro") renderProPage();
   if (page === "getstarted") gsInit();
@@ -4529,7 +4527,7 @@ function renderFeed(posts) {
   if (!posts.length) { el.innerHTML = '<p class="text-sm text-muted text-center">No posts yet. Be the first!</p>'; return; }
   el.innerHTML = posts.map(p => {
     if (p.type === "pvr") return renderPVRCard(p);
-    if (p.type === "expert-response") return renderExpertResponseCard(p);
+    if (p.type === "expert-response") return ""; // Expert Review Request feature disabled pending build — see RER notes.
     const memberData = _memberMap[p.authorUid];
     const photoURL = (p.authorUid === currentUser.uid ? currentUser.photoURL : (memberData && memberData.photoURL)) || "";
     const avatarContent = photoURL
@@ -5123,9 +5121,9 @@ function switchComposeTab(tab) {
     pvrFields.classList.add("visible");
     tabPvr.classList.add("active");
   } else if (tab === "rer") {
+    // Expert Review Request feature disabled pending build — see RER notes.
     if (rerFields) rerFields.classList.add("visible");
     if (tabRer) tabRer.classList.add("active");
-    loadRERLimitStatus();
   }
 }
 
