@@ -34,7 +34,7 @@
   --shadow-lg: 0 8px 32px rgba(23,20,15,.10);
   --danger: #c0392b;
   --success: #27ae60;
-  --accent-bg: rgba(88,117,72,.16);
+  --accent-bg: rgba(88,117,72,.10);
   /* legacy aliases kept for any un-migrated references */
   --surface2-old: #f3f1ed;
 }
@@ -112,7 +112,7 @@ input, textarea, select { font-family: 'Inter', sans-serif; font-size: 15px; }
   flex-shrink: 0;
   transition: opacity 0.15s, box-shadow 0.15s;
 }
-.topnav-avatar:hover { opacity: 0.85; box-shadow: 0 0 0 3px var(--accent-bg, rgba(88,117,72,.18)); }
+.topnav-avatar:hover { opacity: 0.85; box-shadow: 0 0 0 3px var(--accent-bg, rgba(88,117,72,.10)); }
 .topnav-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
 
 /* Profile photo upload */
@@ -514,7 +514,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
    ============================== */
 .announcement-card {
   border-left: 4px solid var(--gold);
-  background: var(--accent-bg);
+  background: linear-gradient(to right, var(--accent-bg), var(--surface));
 }
 .announcement-tag {
   display: inline-block;
@@ -570,7 +570,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border-radius: 6px;
   transition: background 0.15s;
 }
-.feed-actions button:hover { background: var(--surface2); }
+.feed-actions button:hover { background: var(--accent-bg); }
 .props-list {
   display: none;
   font-size: 12px;
@@ -771,7 +771,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .rer-compose-fields { display: none; }
 .rer-compose-fields.visible { display: block; }
 .rer-card {
-  background: var(--accent-bg);
+  background: linear-gradient(to right, var(--accent-bg), var(--surface));
   border: 1.5px solid var(--gold);
   border-radius: var(--radius);
   padding: 14px 16px;
@@ -812,7 +812,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 
 /* Expert feed response card */
 .expert-response-card {
-  background: var(--accent-bg);
+  background: linear-gradient(to right, var(--accent-bg), var(--surface));
   border: 1.5px solid var(--gold);
   border-radius: var(--radius);
   padding: 14px 16px;
@@ -832,7 +832,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 
 /* Expert Panel (Reports page) */
 .expert-panel-card {
-  background: var(--accent-bg);
+  background: linear-gradient(to right, var(--accent-bg), var(--surface));
   border: 1.5px solid var(--gold);
   border-radius: var(--radius);
   padding: 16px;
@@ -921,7 +921,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   overflow: hidden;
 }
 .expert-archive-header {
-  background: var(--accent-bg);
+  background: linear-gradient(to right, var(--accent-bg), var(--surface));
   border-bottom: 1px solid var(--border);
   padding: 16px 20px;
   display: flex;
@@ -966,7 +966,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   overflow: hidden;
 }
 .eeat-audit-header {
-  background: var(--accent-bg);
+  background: linear-gradient(to right, var(--accent-bg), var(--surface));
   border-bottom: 1px solid var(--border);
   padding: 16px 20px;
   display: flex;
@@ -1209,7 +1209,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   cursor: pointer;
   font-family: 'DM Sans', sans-serif;
 }
-.post-reply-btn:hover { background: var(--surface2); color: var(--text); }
+.post-reply-btn:hover { background: var(--accent-bg); color: var(--text); }
 .see-more-btn {
   background: none;
   border: none;
@@ -1282,7 +1282,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
    ADMIN COMPOSE
    ============================== */
 .admin-compose {
-  background: var(--accent-bg);
+  background: linear-gradient(to right, var(--accent-bg), var(--surface));
   border: 1.5px dashed var(--gold);
   border-radius: var(--radius);
   padding: 20px;
@@ -1426,7 +1426,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--accent-bg);
+  background: linear-gradient(to right, var(--accent-bg), var(--surface));
   border: 1.5px solid var(--gold);
   border-radius: var(--radius);
   padding: 14px 16px;
@@ -1448,7 +1448,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   cursor: pointer;
   transition: all 0.15s;
 }
-.format-btn.selected { border-color: var(--gold); background: rgba(88,117,72,0.06); color: var(--gold); }
+.format-btn.selected { border-color: var(--gold); background: var(--accent-bg); color: var(--gold-dark); }
 
 .pts-preview {
   background: var(--surface2);
@@ -1460,7 +1460,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   align-items: center;
   gap: 8px;
 }
-.pts-preview .pts-num { font-weight: 700; color: var(--gold); font-size: 20px; }
+.pts-preview .pts-num { font-weight: 700; color: var(--gold-dark); font-size: 20px; font-family: 'Sora', sans-serif; }
 
 .screenshot-area {
   border: 2px dashed var(--border);
@@ -1491,7 +1491,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   cursor: pointer;
   transition: all 0.15s;
 }
-.eng-type-btn.selected { border-color: var(--gold); background: rgba(88,117,72,0.06); color: var(--gold); }
+.eng-type-btn.selected { border-color: var(--gold); background: var(--accent-bg); color: var(--gold-dark); }
 
 /* ==============================
    TRACKER
@@ -1985,7 +1985,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .dash-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
 .dash-stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s;}
 .dash-stat-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:var(--shadow-lg);}
-.dash-stat-card.highlight{background:var(--accent-bg);border-color:var(--gold-light);}
+.dash-stat-card.highlight{background:linear-gradient(to right, var(--accent-bg), var(--surface));border-color:var(--gold-light);}
 .dash-stat-icon{font-size:22px;margin-bottom:12px;display:block;}
 .dash-stat-value{font-family:'Sora',sans-serif;font-weight:800;font-size:40px;line-height:1;letter-spacing:-0.01em;color:var(--text);margin-bottom:4px;}
 .dash-stat-card.highlight .dash-stat-value{color:var(--gold-dark);}
@@ -1997,7 +1997,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .dash-quick-btn-icon{font-size:20px;flex-shrink:0;}
 .dash-quick-btn-label{line-height:1.3;}
 .dash-quick-btn-sub{font-size:11px;font-weight:400;color:var(--text-muted);margin-top:1px;display:block;}
-.dash-allstar-banner{background:var(--accent-bg);border:1.5px solid var(--gold-light);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;position:relative;overflow:hidden;transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s;}.dash-allstar-banner:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--gold);}
+.dash-allstar-banner{background:linear-gradient(to right, var(--accent-bg), var(--surface));border:1.5px solid var(--gold-light);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;position:relative;overflow:hidden;transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s;}.dash-allstar-banner:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--gold);}
 .dash-allstar-banner::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold-dark),var(--gold),var(--gold-light));}
 .dash-allstar-top{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
 .dash-allstar-star{font-size:30px;flex-shrink:0;}
@@ -2017,7 +2017,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .dash-card-title{font-family:'Sora',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;display:flex;align-items:center;gap:8px;}
 .dash-card-meta{font-size:11px;color:var(--text-muted);font-weight:500;font-family:'Space Mono',monospace;}
 .dash-lb-row{display:flex;align-items:center;gap:12px;padding:10px 10px;border-radius:10px;transition:background 0.15s;cursor:default;}
-.dash-lb-row:hover{background:var(--surface2);}
+.dash-lb-row:hover{background:var(--accent-bg);}
 .dash-lb-row.you{background:var(--accent-bg);border:1px solid rgba(88,117,72,0.25);margin:3px 0;}
 .dash-lb-rank{font-family:'Sora',sans-serif;font-weight:700;font-size:18px;color:var(--text-muted);width:30px;text-align:center;flex-shrink:0;}
 .dash-lb-rank.top3{color:var(--gold-dark);}
@@ -2119,7 +2119,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <button class="btn btn-gold btn-sm" id="dash-trial-convert-btn" onclick="startStripeCheckout()">Add Card</button>
       </div>
       <div class="dash-status-strip dash-animate" id="dash-status-strip" style="animation-delay:0.15s;"></div>
-      <div class="dash-animate" style="animation-delay:0.18s;background:var(--accent-bg);border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
+      <div class="dash-animate" style="animation-delay:0.18s;background:linear-gradient(to right, var(--accent-bg), var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
           <span style="font-size:26px;flex-shrink:0;">🚀</span>
           <div style="flex:1;">
@@ -2133,7 +2133,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         </div>
       </div>
       <!-- COWORKING SESSION CARD (dynamic — hidden until active session exists) -->
-      <div id="cowork-card" class="dash-animate" style="display:none;animation-delay:0.19s;background:var(--accent-bg);border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
+      <div id="cowork-card" class="dash-animate" style="display:none;animation-delay:0.19s;background:linear-gradient(to right, var(--accent-bg), var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
           <div style="flex:1;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
@@ -2370,18 +2370,18 @@ textarea.form-input { resize: vertical; min-height: 80px; }
             <button class="format-btn" onclick="selectFormat(this,'New Campaign')">🚀 New Campaign +2pts</button>
           </div>
         </div>
-        <div class="form-group" id="weekly-challenge-opt" style="background:linear-gradient(135deg,#1a1a1a,#2a2000);border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;">
+        <div class="form-group" id="weekly-challenge-opt" style="background:linear-gradient(135deg,var(--black),#141b10);border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;">
           <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;">
             <input type="checkbox" id="submit-challenge" style="margin-top:3px;accent-color:var(--gold);width:16px;height:16px;flex-shrink:0;" onchange="updatePtsPreview()" />
             <div>
-              <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.04em;color:var(--gold);margin-bottom:2px;">⚡ Weekly Challenge <span style="font-size:12px;font-weight:700;background:var(--gold);color:#fff;padding:1px 8px;border-radius:999px;vertical-align:middle;">+5 pts</span></div>
+              <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:15px;letter-spacing:-0.01em;color:var(--gold);margin-bottom:2px;">⚡ Weekly Challenge <span style="font-size:12px;font-weight:700;background:var(--gold);color:var(--black);padding:1px 8px;border-radius:999px;vertical-align:middle;">+5 pts</span></div>
               <div id="submit-challenge-label" style="font-size:12px;color:rgba(255,255,255,0.7);line-height:1.5;">Loading this week's challenge...</div>
               <div id="submit-next-challenge" style="margin-top:6px;font-size:11px;color:rgba(255,255,255,0.45);line-height:1.4;"></div>
             </div>
           </label>
         </div>
         <div class="form-group" id="submit-screenshot-group">
-          <label class="form-label">Campaign Screenshot <span style="font-size:11px;color:var(--gold);font-weight:600;">required</span></label>
+          <label class="form-label">Campaign Screenshot <span style="font-size:11px;color:var(--gold-dark);font-weight:600;">required</span></label>
           <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;line-height:1.5;">Required: screenshot of your active ad, Ads Manager dashboard, or A/B test results showing a live campaign.</div>
           <div class="screenshot-area" id="screenshot-area" onclick="document.getElementById('screenshot-input').click()">
             <div id="screenshot-placeholder">📷 Tap to add screenshot</div>
@@ -2394,15 +2394,15 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       </div>
 
       <!-- Community Feed Prompt (replaces engagement section) -->
-      <div class="card mt-8" style="background:var(--accent-bg);border:1.5px solid var(--border);">
+      <div class="card mt-8" style="background:linear-gradient(to right, var(--accent-bg), var(--surface));border:1.5px solid var(--border);">
         <div class="card-title" style="font-size:16px;">💬 Community Points</div>
         <p class="text-sm text-muted mb-8" style="margin-bottom:12px;">Post a win, share an update, helpful link or video, or give encouragement.</p>
         <div style="font-size:13px;line-height:1.8;color:var(--text);">
-          <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>Community Feed post <span style="font-size:11px;color:var(--text-muted);">(2x/week max)</span></span><span style="font-weight:700;color:var(--gold);">+2 pts</span></div>
-          <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>Like or reply on a post <span style="font-size:11px;color:var(--text-muted);">(5x/week max)</span></span><span style="font-weight:700;color:var(--gold);">+1 pt</span></div>
-          <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>Ad Peer Review Request</span><span style="font-weight:700;color:var(--gold);">+5 pts</span></div>
-          <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>Expert Review Request</span><span style="font-weight:700;color:var(--gold);">+10 pts</span></div>
-          <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Coworking Session RSVP / Attendance</span><span style="font-weight:700;color:var(--gold);">+2 / +5 pts</span></div>
+          <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>Community Feed post <span style="font-size:11px;color:var(--text-muted);">(2x/week max)</span></span><span style="font-weight:700;color:var(--gold-dark);">+2 pts</span></div>
+          <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>Like or reply on a post <span style="font-size:11px;color:var(--text-muted);">(5x/week max)</span></span><span style="font-weight:700;color:var(--gold-dark);">+1 pt</span></div>
+          <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>Ad Peer Review Request</span><span style="font-weight:700;color:var(--gold-dark);">+5 pts</span></div>
+          <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>Expert Review Request</span><span style="font-weight:700;color:var(--gold-dark);">+10 pts</span></div>
+          <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Coworking Session RSVP / Attendance</span><span style="font-weight:700;color:var(--gold-dark);">+2 / +5 pts</span></div>
         </div>
         <button class="btn btn-outline btn-sm" style="margin-top:14px;width:100%;" onclick="navTo('feed')">Go to Community Feed →</button>
       </div>
@@ -2453,7 +2453,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div id="tracker-header" class="mb-16"></div>
         <div id="tracker-body"></div>
       </div>
-      <div class="card mt-16" style="background:var(--accent-bg);">
+      <div class="card mt-16" style="background:linear-gradient(to right, var(--accent-bg), var(--surface));">
         <div class="card-title">⭐ AAC All-Star</div>
         <p class="text-sm text-muted">Submit proof of an active campaign 4 weeks in a row to earn All-Star status and a one-time +25pt bonus. All-Star perks: an Ad Audit Session with Nate and Ad Credit giveaway eligibility. Your gold star stays active while you keep the streak going, or for 4 weeks after you last held it.</p>
       </div>
@@ -2924,7 +2924,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 #page-getstarted{ padding:0; }
 .gs-wrap{ padding:16px 16px 90px; max-width:1100px; margin:0 auto; }
 .gs-start{ padding:16px 16px 90px; max-width:680px; margin:0 auto; }
-.gs-start-hero{ text-align:center; padding:30px 18px; border:1.5px solid var(--gold); border-radius:var(--radius,12px); background:var(--accent-bg); }
+.gs-start-hero{ text-align:center; padding:30px 18px; border:1.5px solid var(--gold); border-radius:var(--radius,12px); background:linear-gradient(to right, var(--accent-bg), var(--surface)); }
 .gs-start-emoji{ font-size:42px; }
 .gs-start-title{ font-family:'Bebas Neue',sans-serif; font-size:32px; letter-spacing:.03em; margin:6px 0 8px; color:var(--text,#1a1a1a); }
 .gs-start-sub{ font-size:14px; color:var(--text-muted,#666); line-height:1.6; margin-bottom:20px; }
@@ -4105,7 +4105,7 @@ function loadSubmitPage() {
   if (!trialNotice) {
     trialNotice = document.createElement("div");
     trialNotice.id = "trial-submit-notice";
-    trialNotice.style.cssText = "margin-bottom:14px;padding:12px 14px;border-radius:var(--radius);font-size:12px;line-height:1.7;border:1.5px solid var(--gold);background:var(--accent-bg);";
+    trialNotice.style.cssText = "margin-bottom:14px;padding:12px 14px;border-radius:var(--radius);font-size:12px;line-height:1.7;border:1.5px solid var(--gold);background:linear-gradient(to right, var(--accent-bg), var(--surface));";
     const card = document.querySelector("#page-submit .card");
     if (card) card.insertBefore(trialNotice, card.firstChild);
   }
@@ -4122,7 +4122,7 @@ function loadSubmitPage() {
   if (!engNotice && engCard) {
     engNotice = document.createElement("div");
     engNotice.id = "trial-eng-notice";
-    engNotice.style.cssText = "margin-bottom:14px;padding:12px 14px;border-radius:var(--radius);font-size:12px;line-height:1.7;border:1.5px solid var(--gold);background:var(--accent-bg);";
+    engNotice.style.cssText = "margin-bottom:14px;padding:12px 14px;border-radius:var(--radius);font-size:12px;line-height:1.7;border:1.5px solid var(--gold);background:linear-gradient(to right, var(--accent-bg), var(--surface));";
     const subtitle = engCard.querySelector("p");
     if (subtitle) subtitle.after(engNotice);
   }
@@ -5542,7 +5542,7 @@ function renderResources() {
     const isGetStarted = r.title === "Get Started: Launch Your First Campaign";
     const clickHandler = isGetStarted ? `gsOpen()` : isAdGuide ? `openAdFundamentalsModal()` : isBuildout ? `openBuildoutChecklist()` : `openResModal('${r.id}')`;
     const accentStyle = (isAdGuide || isCoreUpdate || isBuildout || isGetStarted)
-      ? `border:1.5px solid var(--gold);background:var(--accent-bg);`
+      ? `border:1.5px solid var(--gold);background:linear-gradient(to right, var(--accent-bg), var(--surface));`
       : "";
     return `<div class="resource-card" style="${accentStyle}" onclick="${clickHandler}">
       <div class="resource-emoji">${esc(r.emoji || "📄")}</div>
