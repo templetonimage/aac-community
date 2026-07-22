@@ -1426,7 +1426,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   display: flex;
   align-items: center;
   gap: 12px;
-  background: linear-gradient(135deg,rgba(184,134,11,0.10),var(--surface));
+  background: linear-gradient(135deg,rgba(88,117,72,0.10),var(--surface));
   border: 1.5px solid var(--gold);
   border-radius: var(--radius);
   padding: 14px 16px;
@@ -1969,39 +1969,39 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 @keyframes dashFadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
 .dash-animate{opacity:0;animation:dashFadeUp 0.42s ease forwards;}
 .dash-welcome{margin-bottom:20px;}
-.dash-welcome-sub{font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;}
-.dash-welcome-name{font-family:'Bebas Neue',sans-serif;font-size:52px;line-height:1;color:var(--text);letter-spacing:0.03em;}
-.dash-welcome-name span{color:var(--gold);}
+.dash-welcome-sub{font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;font-family:'Space Mono',monospace;}
+.dash-welcome-name{font-family:'Sora',sans-serif;font-weight:800;font-size:40px;line-height:1.05;color:var(--text);letter-spacing:-0.01em;}
+.dash-welcome-name span{color:var(--gold-dark);}
 .dash-welcome-meta{font-size:13px;color:var(--text-muted);margin-top:5px;}
 .dash-status-strip{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
 .dash-status-pill{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:999px;font-size:12px;font-weight:600;border:1.5px solid;white-space:nowrap;}
 .dash-status-pill.done{background:rgba(39,174,96,0.08);border-color:rgba(39,174,96,0.3);color:#27ae60;}
-.dash-status-pill.pending{background:rgba(201,168,76,0.08);border-color:rgba(201,168,76,0.3);color:var(--gold-dark);}
+.dash-status-pill.pending{background:var(--accent-bg);border-color:rgba(88,117,72,0.3);color:var(--gold-dark);}
 .dash-status-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;}
 .dash-status-pill.done .dash-status-dot{animation:dashPulseGreen 2s infinite;}
 .dash-status-pill.pending .dash-status-dot{animation:dashPulseGold 2s infinite;}
 @keyframes dashPulseGreen{0%,100%{box-shadow:0 0 0 0 rgba(39,174,96,0.5);}50%{box-shadow:0 0 0 5px rgba(39,174,96,0);}}
-@keyframes dashPulseGold{0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,0.5);}50%{box-shadow:0 0 0 5px rgba(201,168,76,0);}}
+@keyframes dashPulseGold{0%,100%{box-shadow:0 0 0 0 rgba(88,117,72,0.5);}50%{box-shadow:0 0 0 5px rgba(88,117,72,0);}}
 .dash-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
 .dash-stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s;}
-.dash-stat-card:hover{border-color:var(--gold-light);transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,0.1);}
-.dash-stat-card.highlight{background:linear-gradient(135deg,#fffbf0,#fff8e6);border-color:var(--gold-light);}
+.dash-stat-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.dash-stat-card.highlight{background:linear-gradient(135deg,var(--accent-bg),var(--surface));border-color:var(--gold-light);}
 .dash-stat-icon{font-size:22px;margin-bottom:12px;display:block;}
-.dash-stat-value{font-family:'Bebas Neue',sans-serif;font-size:52px;line-height:1;letter-spacing:0.02em;color:var(--text);margin-bottom:4px;}
-.dash-stat-card.highlight .dash-stat-value{color:var(--gold);}
-.dash-stat-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);}
+.dash-stat-value{font-family:'Sora',sans-serif;font-weight:800;font-size:40px;line-height:1;letter-spacing:-0.01em;color:var(--text);margin-bottom:4px;}
+.dash-stat-card.highlight .dash-stat-value{color:var(--gold-dark);}
+.dash-stat-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);font-family:'Space Mono',monospace;}
 .dash-stat-delta{position:absolute;top:16px;right:16px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:rgba(39,174,96,0.1);color:#27ae60;}
 .dash-quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-.dash-quick-btn{display:flex;align-items:center;gap:10px;padding:16px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--surface);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;box-shadow:var(--shadow);transition:all 0.15s;text-align:left;}
-.dash-quick-btn:hover{border-color:var(--gold);color:var(--gold);background:#fffbf0;}
+.dash-quick-btn{display:flex;align-items:center;gap:10px;padding:16px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--surface);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;box-shadow:var(--shadow);transition:all 0.15s;text-align:left;}
+.dash-quick-btn:hover{border-color:var(--gold);color:var(--gold-dark);background:var(--accent-bg);}
 .dash-quick-btn-icon{font-size:20px;flex-shrink:0;}
 .dash-quick-btn-label{line-height:1.3;}
 .dash-quick-btn-sub{font-size:11px;font-weight:400;color:var(--text-muted);margin-top:1px;display:block;}
-.dash-allstar-banner{background:linear-gradient(135deg,#fffbf0,#fdf5e0);border:1.5px solid var(--gold-light);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;position:relative;overflow:hidden;}
+.dash-allstar-banner{background:linear-gradient(135deg,var(--accent-bg),var(--surface));border:1.5px solid var(--gold-light);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;position:relative;overflow:hidden;transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s;}.dash-allstar-banner:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--gold);}
 .dash-allstar-banner::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold-dark),var(--gold),var(--gold-light));}
 .dash-allstar-top{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
 .dash-allstar-star{font-size:30px;flex-shrink:0;}
-.dash-allstar-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.04em;}
+.dash-allstar-title{font-family:'Sora',sans-serif;font-weight:700;font-size:17px;letter-spacing:-0.01em;}
 .dash-allstar-sub{font-size:12px;color:var(--text-muted);margin-top:1px;}
 .dash-prog-track{background:var(--border);border-radius:999px;height:10px;overflow:hidden;margin-bottom:8px;}
 .dash-prog-fill{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,var(--gold-dark),var(--gold),var(--gold-light));transition:width 1.4s cubic-bezier(0.22,1,0.36,1);position:relative;}
@@ -2010,37 +2010,37 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .dash-prog-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:14px;}
 .dash-week-dots{display:flex;gap:5px;flex-wrap:wrap;}
 .dash-week-dot{width:30px;height:30px;border-radius:7px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--text-muted);transition:all 0.25s;}
-.dash-week-dot.complete{background:rgba(201,168,76,0.15);border-color:var(--gold-light);color:var(--gold-dark);}
-.dash-week-dot.current{background:var(--gold);border-color:var(--gold-dark);color:#fff;box-shadow:0 2px 8px rgba(201,168,76,0.4);}
+.dash-week-dot.complete{background:rgba(88,117,72,0.15);border-color:var(--gold-light);color:var(--gold-dark);}
+.dash-week-dot.current{background:var(--gold);border-color:var(--gold-dark);color:var(--black);box-shadow:0 2px 8px rgba(88,117,72,0.4);}
 .dash-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:14px;box-shadow:var(--shadow);}
 .dash-card-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
-.dash-card-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.04em;display:flex;align-items:center;gap:8px;}
-.dash-card-meta{font-size:12px;color:var(--text-muted);font-weight:500;}
+.dash-card-title{font-family:'Sora',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;display:flex;align-items:center;gap:8px;}
+.dash-card-meta{font-size:11px;color:var(--text-muted);font-weight:500;font-family:'Space Mono',monospace;}
 .dash-lb-row{display:flex;align-items:center;gap:12px;padding:10px 10px;border-radius:10px;transition:background 0.15s;cursor:default;}
 .dash-lb-row:hover{background:var(--surface2);}
-.dash-lb-row.you{background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);margin:3px 0;}
-.dash-lb-rank{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--text-muted);width:30px;text-align:center;flex-shrink:0;}
-.dash-lb-rank.top3{color:var(--gold);}
+.dash-lb-row.you{background:var(--accent-bg);border:1px solid rgba(88,117,72,0.25);margin:3px 0;}
+.dash-lb-rank{font-family:'Sora',sans-serif;font-weight:700;font-size:18px;color:var(--text-muted);width:30px;text-align:center;flex-shrink:0;}
+.dash-lb-rank.top3{color:var(--gold-dark);}
 .dash-lb-info{flex:1;min-width:0;}
 .dash-lb-name{font-weight:700;font-size:14px;}
 .dash-lb-sub{font-size:11px;color:var(--text-muted);margin-top:1px;}
-.dash-lb-pts{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);flex-shrink:0;}
-.dash-you-badge{display:inline-block;background:var(--gold);color:#fff;font-size:10px;font-weight:700;letter-spacing:0.08em;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:middle;}
+.dash-lb-pts{font-family:'Sora',sans-serif;font-weight:700;font-size:18px;color:var(--gold-dark);flex-shrink:0;}
+.dash-you-badge{display:inline-block;background:var(--gold);color:var(--black);font-size:10px;font-weight:700;letter-spacing:0.08em;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:middle;}
 .dash-lb-divider{height:1px;background:var(--border);margin:4px 0;}
-.dash-view-all-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:14px;padding:11px;border:1.5px solid var(--border);border-radius:var(--radius);background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all 0.15s;}
-.dash-view-all-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.04);}
-.dash-lb-avatar{width:36px;height:36px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.04em;flex-shrink:0;}
+.dash-view-all-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:14px;padding:11px;border:1.5px solid var(--border);border-radius:var(--radius);background:transparent;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all 0.15s;}
+.dash-view-all-btn:hover{border-color:var(--gold);color:var(--gold-dark);background:var(--accent-bg);}
+.dash-lb-avatar{width:36px;height:36px;border-radius:50%;background:var(--gold);color:var(--black);display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.02em;flex-shrink:0;}
 
 /* ── WEEKLY CHALLENGE BANNER ── */
-.weekly-challenge-banner{background:linear-gradient(135deg,#1a1a1a,#2a2000);border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;position:relative;overflow:hidden;}
+.weekly-challenge-banner{background:linear-gradient(135deg,var(--black),#141b10);border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;position:relative;overflow:hidden;transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s;}.weekly-challenge-banner:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,0.3);border-color:var(--gold-light);}
 .weekly-challenge-banner::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold-dark),var(--gold),var(--gold-light));}
 .wc-inner{display:flex;align-items:flex-start;gap:12px;}
 .wc-icon{font-size:26px;flex-shrink:0;margin-top:2px;}
 .wc-body{flex:1;}
-.wc-eyebrow{font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold-dark);margin-bottom:3px;}
-.wc-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.04em;color:var(--gold);line-height:1.1;margin-bottom:4px;}
+.wc-eyebrow{font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);font-family:'Space Mono',monospace;margin-bottom:3px;}
+.wc-title{font-family:'Sora',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;color:var(--gold);line-height:1.15;margin-bottom:4px;}
 .wc-desc{font-size:13px;color:rgba(255,255,255,0.75);line-height:1.5;}
-.wc-badge{display:inline-flex;align-items:center;gap:5px;background:var(--gold);color:#fff;font-size:11px;font-weight:700;letter-spacing:0.06em;padding:3px 10px;border-radius:999px;margin-top:8px;}
+.wc-badge{display:inline-flex;align-items:center;gap:5px;background:var(--gold);color:var(--black);font-size:11px;font-weight:700;letter-spacing:0.06em;padding:3px 10px;border-radius:999px;margin-top:8px;}
 
 /* Engagement screenshot */
 .eng-screenshot-area{border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:border-color 0.15s;background:var(--surface2);margin-bottom:8px;}
@@ -2119,7 +2119,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <button class="btn btn-gold btn-sm" id="dash-trial-convert-btn" onclick="startStripeCheckout()">Add Card</button>
       </div>
       <div class="dash-status-strip dash-animate" id="dash-status-strip" style="animation-delay:0.15s;"></div>
-      <div class="dash-animate" style="animation-delay:0.18s;background:linear-gradient(135deg,rgba(184,134,11,0.10),var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
+      <div class="dash-animate" style="animation-delay:0.18s;background:linear-gradient(135deg,rgba(88,117,72,0.10),var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
           <span style="font-size:26px;flex-shrink:0;">🚀</span>
           <div style="flex:1;">
@@ -2129,18 +2129,18 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         </div>
         <div style="display:flex;gap:8px;">
           <button onclick="gsOpen()" class="btn btn-gold btn-sm" style="flex:1;">🚀 Launch the Guide →</button>
-          <button onclick="openAdFundamentalsModal()" class="btn btn-sm" style="flex:1;background:linear-gradient(135deg,#1a1a1a,#2a2200);border:1.5px solid var(--gold);color:#e8d5a0;">📖 Fundamentals</button>
+          <button onclick="openAdFundamentalsModal()" class="btn btn-sm" style="flex:1;background:linear-gradient(135deg,#1a1a1a,#141b10);border:1.5px solid var(--gold);color:#c9d9c0;">📖 Fundamentals</button>
         </div>
       </div>
       <!-- COWORKING SESSION CARD (dynamic — hidden until active session exists) -->
-      <div id="cowork-card" class="dash-animate" style="display:none;animation-delay:0.19s;background:var(--surface);border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
+      <div id="cowork-card" class="dash-animate" style="display:none;animation-delay:0.19s;background:linear-gradient(135deg,rgba(88,117,72,0.07),var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
           <div style="flex:1;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
               <span style="font-size:20px;flex-shrink:0;">📅</span>
               <div id="cowork-card-label" style="font-weight:700;font-size:14px;color:var(--text);">Coworking Session</div>
             </div>
-            <div id="cowork-card-sub" style="font-size:12px;color:var(--gold);font-weight:600;padding-left:28px;">RSVP to earn +2 pts. Attend to earn +5 pts.</div>
+            <div id="cowork-card-sub" style="font-size:12px;color:var(--text-muted);font-weight:500;padding-left:28px;">RSVP to earn +2 pts. Attend to earn +5 pts.</div>
           </div>
           <button id="cowork-rsvp-btn" onclick="rsvpCowork()" class="btn btn-gold btn-sm" style="white-space:nowrap;flex-shrink:0;">RSVP +2</button>
         </div>
@@ -2223,7 +2223,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         </button>
       </div>
       <div style="text-align:center;margin-top:18px;padding-bottom:6px;">
-        <a href="https://cash.app/pay/link/3dck8lst" target="_blank" rel="noopener" style="font-size:12px;color:var(--text-muted);text-decoration:underline;text-underline-offset:3px;font-family:'DM Sans',sans-serif;">Found value in AAC? Buy me a coffee ☕</a>
+        <a href="https://cash.app/pay/link/3dck8lst" target="_blank" rel="noopener" style="font-size:12px;color:var(--text-muted);text-decoration:underline;text-underline-offset:3px;font-family:'Inter',sans-serif;">Found value in AAC? Buy me a coffee ☕</a>
       </div>
     </div>
 
