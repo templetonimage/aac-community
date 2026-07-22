@@ -8,48 +8,52 @@
 <link rel="icon" href="favicon.ico" />
 <link rel="apple-touch-icon" href="aac-icon.png" />
 
-<meta name="theme-color" content="#c9a84c" />
+<meta name="theme-color" content="#587548" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="AAC" />
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 <style>
 /* ==============================
    CSS VARIABLES & RESET
    ============================== */
 :root {
-  --gold: #c9a84c;
-  --gold-light: #d4bc6a;
-  --gold-dark: #a8893a;
-  --bg: #EDE8DC;
-  --surface: #ffffff;
-  --surface2: #f3f1ed;
-  --border: #e8e4de;
-  --text: #1a1a1a;
-  --text-muted: #6b6b6b;
+  --gold: #587548;
+  --gold-light: #70A482;
+  --gold-dark: #2F4C39;
+  --black: #0d0d0d;
+  --off-black: #141414;
+  --bg: #f7f3ea;
+  --surface: #fdfbf6;
+  --surface2: #f0ece0;
+  --border: #e8e2d4;
+  --text: #17140f;
+  --text-muted: #6b6558;
   --radius: 12px;
-  --shadow: 0 2px 16px rgba(0,0,0,0.07);
-  --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+  --shadow: 0 4px 16px rgba(23,20,15,.05);
+  --shadow-lg: 0 8px 32px rgba(23,20,15,.10);
   --danger: #c0392b;
   --success: #27ae60;
+  --accent-bg: rgba(88,117,72,.08);
+  /* legacy aliases kept for any un-migrated references */
+  --surface2-old: #f3f1ed;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { height: 100%; height: 100dvh; }
 body {
   height: 100%; height: 100dvh; overflow: hidden;
-  font-family: 'DM Sans', sans-serif;
-  background-color: #EDE8DC;
-  background-image: radial-gradient(circle, rgba(100,90,70,.14) 1px, transparent 1px);
-  background-size: 20px 20px;
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
   color: var(--text);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
-h1, h2, h3, h4 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.04em; }
-a { color: var(--gold); text-decoration: none; }
+h1, h2, h3, h4 { font-family: 'Sora', sans-serif; font-weight: 700; letter-spacing: -0.01em; }
+a { color: var(--gold-dark); text-decoration: none; }
 a:hover { text-decoration: underline; }
-button { cursor: pointer; font-family: 'DM Sans', sans-serif; }
-input, textarea, select { font-family: 'DM Sans', sans-serif; font-size: 15px; }
+button { cursor: pointer; font-family: 'Inter', sans-serif; }
+input, textarea, select { font-family: 'Inter', sans-serif; font-size: 15px; }
+.mono, .label-mono { font-family: 'Space Mono', monospace; letter-spacing: 0.02em; }
 
 /* ==============================
    APP SHELL
@@ -64,8 +68,8 @@ input, textarea, select { font-family: 'DM Sans', sans-serif; font-size: 15px; }
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 200;
-  background: linear-gradient(135deg, #111010 0%, #111010 45%, #BB9D49 100%);
-  border-bottom: 1px solid rgba(187,157,73,0.25);
+  background: var(--black);
+  border-bottom: 1px solid var(--off-black);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -73,10 +77,11 @@ input, textarea, select { font-family: 'DM Sans', sans-serif; font-size: 15px; }
   height: 60px;
 }
 .topnav-brand {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 32px;
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
   color: var(--gold);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
   cursor: pointer;
 }
 .topnav-user {
@@ -94,19 +99,20 @@ input, textarea, select { font-family: 'DM Sans', sans-serif; font-size: 15px; }
   height: 34px;
   border-radius: 50%;
   background: var(--gold);
-  color: #fff;
+  color: var(--black);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
   font-size: 14px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   cursor: pointer;
   border: 2px solid var(--gold);
   flex-shrink: 0;
-  transition: opacity 0.15s;
+  transition: opacity 0.15s, box-shadow 0.15s;
 }
-.topnav-avatar:hover { opacity: 0.85; }
+.topnav-avatar:hover { opacity: 0.85; box-shadow: 0 0 0 3px var(--accent-bg, rgba(88,117,72,.18)); }
 .topnav-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
 
 /* Profile photo upload */
@@ -122,13 +128,14 @@ input, textarea, select { font-family: 'DM Sans', sans-serif; font-size: 15px; }
   height: 80px;
   border-radius: 50%;
   background: var(--gold);
-  color: #fff;
+  color: var(--black);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
   font-size: 28px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   overflow: hidden;
   border: 3px solid var(--gold);
   flex-shrink: 0;
@@ -144,9 +151,9 @@ input, textarea, select { font-family: 'DM Sans', sans-serif; font-size: 15px; }
   border-radius: 6px;
   padding: 5px 12px;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
-.profile-photo-upload-btn:hover { background: var(--gold); color: #fff; }
+.profile-photo-upload-btn:hover { background: var(--gold); color: var(--black); }
 .profile-photo-remove-btn {
   font-size: 13px;
   color: var(--text-muted);
@@ -155,7 +162,7 @@ input, textarea, select { font-family: 'DM Sans', sans-serif; font-size: 15px; }
   border-radius: 6px;
   padding: 5px 12px;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   display: none;
 }
 .profile-photo-remove-btn:hover { color: var(--danger); border-color: var(--danger); }
@@ -183,7 +190,7 @@ input, textarea, select { font-family: 'DM Sans', sans-serif; font-size: 15px; }
   height: 8px;
   background: #e74c3c;
   border-radius: 50%;
-  border: 2px solid #111010;
+  border: 2px solid #1a1a1a;
   display: none;
   pointer-events: none;
 }
@@ -194,14 +201,14 @@ input, textarea, select { font-family: 'DM Sans', sans-serif; font-size: 15px; }
 .bottomnav {
   position: fixed;
   bottom: 0; left: 0; right: 0;
-  z-index: 1000;
-  background: linear-gradient(135deg, #111010 0%, #111010 45%, #BB9D49 100%);
-  border-top: 1px solid rgba(187,157,73,0.25);
+  z-index: 200;
+  background: var(--black);
+  border-top: 1px solid var(--off-black);
   display: flex;
   align-items: stretch;
-  min-height: 64px;
-  height: auto;
-  padding-bottom: max(env(safe-area-inset-bottom), 10px);
+  min-height: 68px;
+  height: calc(68px + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
 }
 .nav-item {
   flex: 1;
@@ -209,22 +216,33 @@ input, textarea, select { font-family: 'DM Sans', sans-serif; font-size: 15px; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 4px;
   cursor: pointer;
   border: none;
   background: transparent;
-  color: rgba(255,255,255,0.7);
+  color: rgba(255,255,255,0.85);
   font-size: 9px;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 500;
-  letter-spacing: 0.03em;
+  font-family: 'Space Mono', monospace;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   transition: color 0.15s;
   padding: 8px 2px;
   position: relative;
 }
-.nav-item svg { width: 20px; height: 20px; }
-.nav-item.active { color: var(--gold); }
-.nav-item:hover { color: #fff; }
+.nav-item svg { width: 19px; height: 19px; stroke-width: 1.75; transition: color 0.15s, transform 0.15s; }
+.nav-item.active svg { color: var(--gold); transform: translateY(-1px); }
+.nav-item.active { color: var(--white, #f0ece0); }
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 50%;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: var(--gold);
+  transform: translateX(-50%);
+}
+.nav-item:hover { color: var(--gold); }
 
 /* ==============================
    SCROLL WRAPPER
@@ -232,7 +250,7 @@ input, textarea, select { font-family: 'DM Sans', sans-serif; font-size: 15px; }
 #app-scroll {
   position: fixed;
   top: 60px;
-  bottom: calc(64px + max(env(safe-area-inset-bottom), 10px));
+  bottom: calc(68px + env(safe-area-inset-bottom));
   left: 0; right: 0;
   overflow-y: auto;
   overflow-x: hidden;
@@ -246,10 +264,11 @@ input, textarea, select { font-family: 'DM Sans', sans-serif; font-size: 15px; }
 .page.active { display: block; }
 .page-header { margin-bottom: 24px; }
 .page-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 40px;
-  letter-spacing: 0.04em;
-  line-height: 1;
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: 30px;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
   color: var(--text);
   margin-bottom: 0;
 }
@@ -269,11 +288,19 @@ input, textarea, select { font-family: 'DM Sans', sans-serif; font-size: 15px; }
   padding: 20px;
   margin-bottom: 16px;
   box-shadow: var(--shadow);
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 .card-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 20px;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
   margin-bottom: 12px;
+}
+/* Clickable cards get the lifted hover treatment; add this class per-page where a card is interactive */
+.card-interactive { cursor: pointer; }
+.card-interactive:hover {
+  border-color: var(--gold);
+  box-shadow: var(--shadow-lg);
 }
 
 /* ==============================
@@ -288,9 +315,9 @@ input, textarea, select { font-family: 'DM Sans', sans-serif; font-size: 15px; }
   font-size: 15px;
   color: var(--text);
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-.form-input:focus { border-color: var(--gold); }
+.form-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(88,117,72,.12); }
 textarea.form-input { resize: vertical; min-height: 80px; }
 .form-label {
   display: block;
@@ -314,20 +341,21 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   font-weight: 600;
   font-size: 15px;
   border: none;
-  transition: background 0.15s, opacity 0.15s;
+  transition: background 0.15s, color 0.15s, opacity 0.15s;
 }
+/* Primary action: black default, sage on hover — accent is an earned state, not a default fill */
 .btn-gold {
-  background: var(--gold);
+  background: var(--black);
   color: #fff;
 }
-.btn-gold:hover { background: var(--gold-dark); }
+.btn-gold:hover { background: var(--gold); color: var(--black); }
 .btn-gold:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-outline {
   background: transparent;
-  color: var(--gold);
-  border: 1.5px solid var(--gold);
+  color: var(--text);
+  border: 1.5px solid var(--text);
 }
-.btn-outline:hover { background: rgba(184,134,11,0.06); }
+.btn-outline:hover { background: var(--gold); border-color: var(--gold); color: var(--black); }
 .btn-sm { padding: 8px 16px; font-size: 13px; }
 .btn-danger { background: var(--danger); color: #fff; }
 .btn-danger:hover { background: #a93226; }
@@ -343,12 +371,10 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   justify-content: center;
   min-height: 100dvh;
   padding: 40px 24px;
-  background-color: #EDE8DC;
-  background-image: radial-gradient(circle, rgba(100,90,70,.14) 1px, transparent 1px);
-  background-size: 20px 20px;
+  background: var(--bg);
 }
 .auth-card-wrap {
-  background: linear-gradient(135deg, #111010 0%, #111010 45%, #BB9D49 100%);
+  background: #1a1a1a;
   border-radius: 20px;
   padding: 48px 32px 40px;
   width: 100%;
@@ -358,16 +384,17 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border: 1px solid #2e2e2e;
 }
 .auth-logo {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
   font-size: 96px;
   color: var(--gold);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.02em;
   line-height: 1;
   margin-bottom: 8px;
   text-align: center;
 }
 .auth-subtitle {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 400;
   font-size: 16px;
   color: rgba(255,255,255,0.6);
@@ -382,10 +409,10 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border: none;
   border-radius: 24px;
   padding: 8px 24px;
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Sora', sans-serif;
   font-size: 16px;
   letter-spacing: 0.08em;
-  color: #fff;
+  color: var(--black);
   margin-bottom: 36px;
   text-align: center;
 }
@@ -395,7 +422,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 }
 .auth-form-label {
   display: block;
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Sora', sans-serif;
   font-size: 14px;
   letter-spacing: 0.08em;
   color: rgba(255,255,255,0.75);
@@ -404,31 +431,31 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .auth-form-input {
   width: 100%;
   padding: 16px 18px;
-  border: 1px solid #333;
+  border: 1px solid var(--border);
   border-radius: 10px;
   background: #ffffff;
   font-size: 16px;
-  color: #1a1a1a;
+  color: #17140f;
   outline: none;
   transition: border-color 0.15s;
 }
 .auth-form-input:focus { border-color: var(--gold); }
-.auth-form-input::placeholder { color: #6b6b6b; }
+.auth-form-input::placeholder { color: #8a8577; }
 .auth-form-group { margin-bottom: 20px; }
 .auth-btn {
   width: 100%;
   padding: 16px;
   border-radius: 10px;
   border: none;
-  background: var(--gold);
+  background: var(--black);
   color: #fff;
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Sora', sans-serif;
   font-size: 20px;
   letter-spacing: 0.08em;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
-.auth-btn:hover { background: var(--gold-dark); }
+.auth-btn:hover { background: var(--gold); color: var(--black); }
 .auth-error {
   display: none;
   color: #e74c3c;
