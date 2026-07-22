@@ -34,7 +34,7 @@
   --shadow-lg: 0 8px 32px rgba(23,20,15,.10);
   --danger: #c0392b;
   --success: #27ae60;
-  --accent-bg: rgba(88,117,72,.08);
+  --accent-bg: rgba(88,117,72,.16);
   /* legacy aliases kept for any un-migrated references */
   --surface2-old: #f3f1ed;
 }
@@ -514,7 +514,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
    ============================== */
 .announcement-card {
   border-left: 4px solid var(--gold);
-  background: linear-gradient(135deg, rgba(184,134,11,0.04), var(--surface));
+  background: var(--accent-bg);
 }
 .announcement-tag {
   display: inline-block;
@@ -605,7 +605,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .feed-compose-tab.active {
   border-color: var(--gold);
   color: var(--gold);
-  background: rgba(201,168,76,0.06);
+  background: rgba(88,117,72,0.06);
 }
 .pvr-compose-fields { display: none; }
 .pvr-compose-fields.visible { display: block; }
@@ -613,7 +613,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 
 .feed-post.pvr {
   border: 1.5px solid var(--gold);
-  background: linear-gradient(135deg, #1a1a00 0%, #1a1500 100%);
+  background: linear-gradient(135deg, #141b10 0%, #141b10 100%);
   color: #fff;
 }
 .pvr-eyebrow {
@@ -682,7 +682,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: rgba(201,168,76,0.3);
+  background: rgba(88,117,72,0.3);
   color: var(--gold);
   display: flex;
   align-items: center;
@@ -739,7 +739,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .pvr-reply-send:hover { opacity: 0.85; }
 .pvr-feedback-btn {
   background: none;
-  border: 1.5px solid rgba(201,168,76,0.5);
+  border: 1.5px solid rgba(88,117,72,0.5);
   color: var(--gold);
   border-radius: 8px;
   padding: 6px 14px;
@@ -752,11 +752,11 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   gap: 5px;
   transition: all 0.15s;
 }
-.pvr-feedback-btn:hover { background: rgba(201,168,76,0.1); border-color: var(--gold); }
+.pvr-feedback-btn:hover { background: rgba(88,117,72,0.1); border-color: var(--gold); }
 .pvr-pts-pill {
   display: inline-flex;
   align-items: center;
-  background: rgba(201,168,76,0.15);
+  background: rgba(88,117,72,0.15);
   color: var(--gold);
   font-size: 11px;
   font-weight: 700;
@@ -771,7 +771,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .rer-compose-fields { display: none; }
 .rer-compose-fields.visible { display: block; }
 .rer-card {
-  background: linear-gradient(135deg, rgba(184,134,11,0.08), var(--surface));
+  background: var(--accent-bg);
   border: 1.5px solid var(--gold);
   border-radius: var(--radius);
   padding: 14px 16px;
@@ -807,12 +807,12 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border-radius: 999px;
   letter-spacing: 0.04em;
 }
-.rer-status-pending { background: rgba(184,134,11,0.12); color: var(--gold); }
+.rer-status-pending { background: rgba(88,117,72,0.12); color: var(--gold); }
 .rer-status-responded { background: rgba(39,174,96,0.12); color: #27ae60; }
 
 /* Expert feed response card */
 .expert-response-card {
-  background: linear-gradient(135deg, rgba(184,134,11,0.07), var(--surface));
+  background: var(--accent-bg);
   border: 1.5px solid var(--gold);
   border-radius: var(--radius);
   padding: 14px 16px;
@@ -832,7 +832,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 
 /* Expert Panel (Reports page) */
 .expert-panel-card {
-  background: linear-gradient(135deg, rgba(184,134,11,0.07), var(--surface));
+  background: var(--accent-bg);
   border: 1.5px solid var(--gold);
   border-radius: var(--radius);
   padding: 16px;
@@ -921,7 +921,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   overflow: hidden;
 }
 .expert-archive-header {
-  background: linear-gradient(135deg, rgba(184,134,11,0.08), var(--surface));
+  background: var(--accent-bg);
   border-bottom: 1px solid var(--border);
   padding: 16px 20px;
   display: flex;
@@ -936,7 +936,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .expert-archive-response {
   margin-top: 8px;
   padding: 10px 12px;
-  background: rgba(184,134,11,0.05);
+  background: rgba(88,117,72,0.05);
   border-left: 3px solid var(--gold);
   border-radius: 0 6px 6px 0;
   font-size: 13px;
@@ -966,7 +966,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   overflow: hidden;
 }
 .eeat-audit-header {
-  background: linear-gradient(135deg, rgba(184,134,11,0.1), var(--surface));
+  background: var(--accent-bg);
   border-bottom: 1px solid var(--border);
   padding: 16px 20px;
   display: flex;
@@ -1075,10 +1075,10 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .eeat-audit-save-btn {
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, #1a1a1a, #2a2200);
+  background: linear-gradient(135deg, #1a1a1a, #141b10);
   border: 1.5px solid var(--gold);
   border-radius: 10px;
-  color: #e8d5a0;
+  color: #c9d9c0;
   font-family: 'Bebas Neue', sans-serif;
   font-size: 17px;
   letter-spacing: 0.08em;
@@ -1282,7 +1282,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
    ADMIN COMPOSE
    ============================== */
 .admin-compose {
-  background: #fffbf0;
+  background: var(--accent-bg);
   border: 1.5px dashed var(--gold);
   border-radius: var(--radius);
   padding: 20px;
@@ -1426,7 +1426,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   display: flex;
   align-items: center;
   gap: 12px;
-  background: linear-gradient(135deg,rgba(88,117,72,0.10),var(--surface));
+  background: var(--accent-bg);
   border: 1.5px solid var(--gold);
   border-radius: var(--radius);
   padding: 14px 16px;
@@ -1448,7 +1448,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   cursor: pointer;
   transition: all 0.15s;
 }
-.format-btn.selected { border-color: var(--gold); background: rgba(184,134,11,0.06); color: var(--gold); }
+.format-btn.selected { border-color: var(--gold); background: rgba(88,117,72,0.06); color: var(--gold); }
 
 .pts-preview {
   background: var(--surface2);
@@ -1491,7 +1491,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   cursor: pointer;
   transition: all 0.15s;
 }
-.eng-type-btn.selected { border-color: var(--gold); background: rgba(184,134,11,0.06); color: var(--gold); }
+.eng-type-btn.selected { border-color: var(--gold); background: rgba(88,117,72,0.06); color: var(--gold); }
 
 /* ==============================
    TRACKER
@@ -1529,7 +1529,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   transition: border-color 0.15s;
 }
 .tracker-week:hover { border-color: var(--gold-light); }
-.tracker-week.checked { border-color: var(--gold); background: rgba(184,134,11,0.04); }
+.tracker-week.checked { border-color: var(--gold); background: rgba(88,117,72,0.04); }
 .tracker-week-label { font-weight: 600; font-size: 14px; }
 .tracker-week-dates { font-size: 12px; color: var(--text-muted); }
 .tracker-check {
@@ -1630,15 +1630,15 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .pro-locked-desc{font-size:13px;color:var(--text-muted);line-height:1.5;margin-bottom:14px;}
 .btn-upgrade{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border:none;border-radius:var(--radius);font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.06em;cursor:pointer;text-decoration:none;transition:opacity .15s;}
 .btn-upgrade:hover{opacity:.85;}
-.pro-page-header{background:linear-gradient(135deg,#1a1500,#2d2000);border-radius:var(--radius);padding:20px;margin-bottom:20px;border:1px solid var(--gold);}
+.pro-page-header{background:linear-gradient(135deg,#1a1a1a,#141b10);border-radius:var(--radius);padding:20px;margin-bottom:20px;border:1px solid var(--gold);}
 .pro-page-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:0.06em;color:var(--gold);line-height:1;}
-.pro-page-sub{font-size:13px;color:rgba(201,168,76,.7);margin-top:4px;}
+.pro-page-sub{font-size:13px;color:rgba(88,117,72,.7);margin-top:4px;}
 .pro-feature-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:20px;margin-bottom:16px;box-shadow:var(--shadow);}
 .pro-feature-icon{font-size:28px;margin-bottom:10px;}
 .pro-feature-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.04em;margin-bottom:6px;}
 .pro-feature-desc{font-size:13px;color:var(--text-muted);line-height:1.6;}
 .pro-coming-soon{display:inline-block;background:var(--surface2);color:var(--text-muted);font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-top:8px;}
-.pro-admin-section{background:linear-gradient(135deg,#fffbf0,#fdf5e0);border:1.5px solid var(--gold);border-radius:var(--radius);padding:16px;margin-bottom:16px;}
+.pro-admin-section{background:linear-gradient(135deg,var(--accent-bg),var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:16px;margin-bottom:16px;}
 .pro-admin-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.05em;margin-bottom:4px;color:var(--gold-dark);}
 .pro-global-danger{background:#fff5f5;border:1.5px solid #e74c3c;border-radius:var(--radius);padding:14px;margin-top:12px;}
 .pro-global-danger-title{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#e74c3c;margin-bottom:4px;}
@@ -1985,7 +1985,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .dash-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
 .dash-stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s;}
 .dash-stat-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:var(--shadow-lg);}
-.dash-stat-card.highlight{background:linear-gradient(135deg,var(--accent-bg),var(--surface));border-color:var(--gold-light);}
+.dash-stat-card.highlight{background:var(--accent-bg);border-color:var(--gold-light);}
 .dash-stat-icon{font-size:22px;margin-bottom:12px;display:block;}
 .dash-stat-value{font-family:'Sora',sans-serif;font-weight:800;font-size:40px;line-height:1;letter-spacing:-0.01em;color:var(--text);margin-bottom:4px;}
 .dash-stat-card.highlight .dash-stat-value{color:var(--gold-dark);}
@@ -1997,7 +1997,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .dash-quick-btn-icon{font-size:20px;flex-shrink:0;}
 .dash-quick-btn-label{line-height:1.3;}
 .dash-quick-btn-sub{font-size:11px;font-weight:400;color:var(--text-muted);margin-top:1px;display:block;}
-.dash-allstar-banner{background:linear-gradient(135deg,var(--accent-bg),var(--surface));border:1.5px solid var(--gold-light);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;position:relative;overflow:hidden;transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s;}.dash-allstar-banner:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--gold);}
+.dash-allstar-banner{background:var(--accent-bg);border:1.5px solid var(--gold-light);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;position:relative;overflow:hidden;transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s;}.dash-allstar-banner:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--gold);}
 .dash-allstar-banner::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold-dark),var(--gold),var(--gold-light));}
 .dash-allstar-top{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
 .dash-allstar-star{font-size:30px;flex-shrink:0;}
@@ -2119,7 +2119,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <button class="btn btn-gold btn-sm" id="dash-trial-convert-btn" onclick="startStripeCheckout()">Add Card</button>
       </div>
       <div class="dash-status-strip dash-animate" id="dash-status-strip" style="animation-delay:0.15s;"></div>
-      <div class="dash-animate" style="animation-delay:0.18s;background:linear-gradient(135deg,rgba(88,117,72,0.10),var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
+      <div class="dash-animate" style="animation-delay:0.18s;background:var(--accent-bg);border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
           <span style="font-size:26px;flex-shrink:0;">🚀</span>
           <div style="flex:1;">
@@ -2133,7 +2133,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         </div>
       </div>
       <!-- COWORKING SESSION CARD (dynamic — hidden until active session exists) -->
-      <div id="cowork-card" class="dash-animate" style="display:none;animation-delay:0.19s;background:linear-gradient(135deg,rgba(88,117,72,0.07),var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
+      <div id="cowork-card" class="dash-animate" style="display:none;animation-delay:0.19s;background:var(--accent-bg);border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
           <div style="flex:1;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
@@ -2296,7 +2296,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           </div>
           <div class="rer-warning">⏳ Expert reviews are personal and take time. Please allow a few days for a response before following up.</div>
           <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;padding:6px 10px;background:var(--surface2);border-radius:6px;border-left:2px solid var(--border);">📌 Limited to 1 Expert Review Request per month.</div>
-          <div id="rer-limit-msg" style="display:none;padding:10px 12px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.3);border-radius:8px;font-size:12px;color:var(--gold);margin-bottom:10px;line-height:1.5;"></div>
+          <div id="rer-limit-msg" style="display:none;padding:10px 12px;background:rgba(88,117,72,0.08);border:1px solid rgba(88,117,72,0.3);border-radius:8px;font-size:12px;color:var(--gold);margin-bottom:10px;line-height:1.5;"></div>
           <button class="btn btn-gold btn-sm" id="rer-submit-btn" onclick="submitRER()">Request Expert Ad Review</button>
         </div>
       </div>
@@ -2310,8 +2310,8 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div class="page-subtitle">Ad strategy guides, tools, and reference material — tap any card to read.</div>
         <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
           <button onclick="gsOpen()" class="btn btn-sm" style="background:linear-gradient(135deg,var(--gold),var(--gold-dark));border:1.5px solid var(--gold);color:#1a1a1a;font-weight:700;">🚀 Get Started: Launch Your First Campaign</button>
-          <button onclick="openAdAudit()" class="btn btn-sm" style="background:linear-gradient(135deg,#1a1a1a,#2a2200);border:1.5px solid var(--gold);color:#e8d5a0;">✅ Open Ad Readiness Audit</button>
-          <button onclick="openBuildoutChecklist()" class="btn btn-sm" style="background:linear-gradient(135deg,#1a1a1a,#2a2200);border:1.5px solid var(--gold);color:#e8d5a0;">🗂 Offer-to-Ads Checklist</button>
+          <button onclick="openAdAudit()" class="btn btn-sm" style="background:linear-gradient(135deg,#1a1a1a,#141b10);border:1.5px solid var(--gold);color:#c9d9c0;">✅ Open Ad Readiness Audit</button>
+          <button onclick="openBuildoutChecklist()" class="btn btn-sm" style="background:linear-gradient(135deg,#1a1a1a,#141b10);border:1.5px solid var(--gold);color:#c9d9c0;">🗂 Offer-to-Ads Checklist</button>
         </div>
       </div>
       <!-- Admin resource compose -->
@@ -2394,7 +2394,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       </div>
 
       <!-- Community Feed Prompt (replaces engagement section) -->
-      <div class="card mt-8" style="background:linear-gradient(135deg,rgba(184,134,11,0.05),var(--surface));border:1.5px solid var(--border);">
+      <div class="card mt-8" style="background:var(--accent-bg);border:1.5px solid var(--border);">
         <div class="card-title" style="font-size:16px;">💬 Community Points</div>
         <p class="text-sm text-muted mb-8" style="margin-bottom:12px;">Post a win, share an update, helpful link or video, or give encouragement.</p>
         <div style="font-size:13px;line-height:1.8;color:var(--text);">
@@ -2453,7 +2453,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div id="tracker-header" class="mb-16"></div>
         <div id="tracker-body"></div>
       </div>
-      <div class="card mt-16" style="background:linear-gradient(135deg,rgba(184,134,11,0.06),var(--surface));">
+      <div class="card mt-16" style="background:var(--accent-bg);">
         <div class="card-title">⭐ AAC All-Star</div>
         <p class="text-sm text-muted">Submit proof of an active campaign 4 weeks in a row to earn All-Star status and a one-time +25pt bonus. All-Star perks: an Ad Audit Session with Nate and Ad Credit giveaway eligibility. Your gold star stays active while you keep the streak going, or for 4 weeks after you last held it.</p>
       </div>
@@ -2765,7 +2765,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       <!-- Add to Device card (always visible) -->
       <div class="card" id="add-to-device-card" style="margin-bottom:16px;">
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
-          <div style="width:52px;height:52px;border-radius:12px;background:#1a1a1a;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:#c9a84c;letter-spacing:0.06em;">AAC</span></div>
+          <div style="width:52px;height:52px;border-radius:12px;background:#1a1a1a;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:#587548;letter-spacing:0.06em;">AAC</span></div>
           <div>
             <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.04em;">Add AAC to Your Device</div>
             <div class="text-sm text-muted">Access AAC like a native app — no App Store needed.</div>
@@ -2924,7 +2924,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 #page-getstarted{ padding:0; }
 .gs-wrap{ padding:16px 16px 90px; max-width:1100px; margin:0 auto; }
 .gs-start{ padding:16px 16px 90px; max-width:680px; margin:0 auto; }
-.gs-start-hero{ text-align:center; padding:30px 18px; border:1.5px solid var(--gold); border-radius:var(--radius,12px); background:linear-gradient(135deg,rgba(201,168,76,0.10),var(--surface,#fff)); }
+.gs-start-hero{ text-align:center; padding:30px 18px; border:1.5px solid var(--gold); border-radius:var(--radius,12px); background:var(--accent-bg); }
 .gs-start-emoji{ font-size:42px; }
 .gs-start-title{ font-family:'Bebas Neue',sans-serif; font-size:32px; letter-spacing:.03em; margin:6px 0 8px; color:var(--text,#1a1a1a); }
 .gs-start-sub{ font-size:14px; color:var(--text-muted,#666); line-height:1.6; margin-bottom:20px; }
@@ -2958,7 +2958,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .gs-rail-group{ font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted,#999); font-weight:700; padding:8px 8px 4px; }
 .gs-rail-item{ display:flex; align-items:center; gap:8px; background:none; border:none; text-align:left; padding:8px; border-radius:7px; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:13px; color:var(--text,#333); width:100%; }
 .gs-rail-item:hover{ background:rgba(0,0,0,0.04); }
-.gs-rail-item.cur{ background:rgba(201,168,76,0.14); font-weight:700; }
+.gs-rail-item.cur{ background:rgba(88,117,72,0.14); font-weight:700; }
 .gs-rail-item.done .gs-rail-label{ color:var(--text-muted,#888); }
 .gs-rail-check{ width:20px; height:20px; flex-shrink:0; display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--border,#eee); font-size:11px; }
 .gs-rail-item.done .gs-rail-check{ background:#2e9e6b; color:#fff; }
@@ -2970,7 +2970,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .gs-step-title{ font-size:20px; font-weight:700; margin:0 0 12px; color:var(--text,#1a1a1a); line-height:1.25; }
 .gs-intro{ font-size:14px; line-height:1.65; color:var(--text,#333); margin-bottom:14px; }
 .gs-intro a{ color:var(--gold-dark,#9a7b1f); }
-.gs-launch-btn{ display:inline-block; background:linear-gradient(135deg,#1a1a1a,#2a2200); border:1.5px solid var(--gold); color:#e8d5a0; border-radius:8px; padding:10px 14px; font-size:13px; font-weight:600; cursor:pointer; margin-bottom:14px; font-family:'DM Sans',sans-serif; }
+.gs-launch-btn{ display:inline-block; background:linear-gradient(135deg,#1a1a1a,#141b10); border:1.5px solid var(--gold); color:#c9d9c0; border-radius:8px; padding:10px 14px; font-size:13px; font-weight:600; cursor:pointer; margin-bottom:14px; font-family:'DM Sans',sans-serif; }
 .gs-sources{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px; padding:10px 12px; background:rgba(0,0,0,0.025); border-radius:8px; }
 .gs-sources-label{ font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted,#999); font-weight:700; }
 .gs-source-link{ font-size:12px; color:var(--gold-dark,#9a7b1f); text-decoration:none; font-weight:600; }
@@ -2983,13 +2983,13 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 textarea.gs-input{ resize:vertical; }
 
 .gs-prompt-box{ border:1px solid var(--border,#e5e5e5); border-radius:10px; overflow:hidden; margin-bottom:16px; background:var(--bg,#fafafa); }
-.gs-prompt-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 12px; background:rgba(201,168,76,0.12); font-size:12px; font-weight:600; color:var(--text,#333); }
+.gs-prompt-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 12px; background:rgba(88,117,72,0.12); font-size:12px; font-weight:600; color:var(--text,#333); }
 .gs-copy-btn{ background:var(--gold); color:#1a1a1a; border:none; border-radius:6px; padding:4px 12px; font-size:12px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; white-space:nowrap; }
 .gs-prompt-text{ width:100%; border:none; padding:12px; font-size:12.5px; font-family:ui-monospace,Menlo,Consolas,monospace; line-height:1.55; color:var(--text,#333); background:transparent; resize:vertical; box-sizing:border-box; }
 .gs-prompt-text:focus{ outline:none; }
 .gs-prompt-hint{ font-size:11px; color:var(--text-muted,#999); padding:0 12px 10px; }
 
-.gs-tip{ font-size:12.5px; line-height:1.55; color:var(--text,#444); background:rgba(201,168,76,0.08); border-left:3px solid var(--gold); border-radius:0 8px 8px 0; padding:10px 12px; margin-bottom:16px; }
+.gs-tip{ font-size:12.5px; line-height:1.55; color:var(--text,#444); background:rgba(88,117,72,0.08); border-left:3px solid var(--gold); border-radius:0 8px 8px 0; padding:10px 12px; margin-bottom:16px; }
 
 .gs-notes{ margin-bottom:16px; }
 .gs-note-toggle{ background:none; border:none; color:var(--text-muted,#888); font-size:12px; cursor:pointer; text-decoration:underline; font-family:'DM Sans',sans-serif; padding:0; }
@@ -3006,7 +3006,7 @@ textarea.gs-input{ resize:vertical; }
 .gs-fork{ display:flex; flex-direction:column; gap:12px; margin-bottom:16px; }
 .gs-fork-card{ text-align:left; background:var(--surface,#fff); border:1.5px solid var(--border,#ddd); border-radius:12px; padding:16px; cursor:pointer; font-family:'DM Sans',sans-serif; }
 .gs-fork-card:hover{ border-color:var(--gold); }
-.gs-fork-card.sel{ border-color:var(--gold); background:rgba(201,168,76,0.07); }
+.gs-fork-card.sel{ border-color:var(--gold); background:rgba(88,117,72,0.07); }
 .gs-fork-emoji{ font-size:26px; }
 .gs-fork-name{ font-weight:700; font-size:15px; margin:6px 0 4px; color:var(--text,#1a1a1a); }
 .gs-fork-desc{ font-size:13px; color:var(--text-muted,#666); line-height:1.5; }
@@ -4105,7 +4105,7 @@ function loadSubmitPage() {
   if (!trialNotice) {
     trialNotice = document.createElement("div");
     trialNotice.id = "trial-submit-notice";
-    trialNotice.style.cssText = "margin-bottom:14px;padding:12px 14px;border-radius:var(--radius);font-size:12px;line-height:1.7;border:1.5px solid var(--gold);background:linear-gradient(135deg,rgba(184,134,11,0.08),var(--surface));";
+    trialNotice.style.cssText = "margin-bottom:14px;padding:12px 14px;border-radius:var(--radius);font-size:12px;line-height:1.7;border:1.5px solid var(--gold);background:var(--accent-bg);";
     const card = document.querySelector("#page-submit .card");
     if (card) card.insertBefore(trialNotice, card.firstChild);
   }
@@ -4122,7 +4122,7 @@ function loadSubmitPage() {
   if (!engNotice && engCard) {
     engNotice = document.createElement("div");
     engNotice.id = "trial-eng-notice";
-    engNotice.style.cssText = "margin-bottom:14px;padding:12px 14px;border-radius:var(--radius);font-size:12px;line-height:1.7;border:1.5px solid var(--gold);background:linear-gradient(135deg,rgba(184,134,11,0.08),var(--surface));";
+    engNotice.style.cssText = "margin-bottom:14px;padding:12px 14px;border-radius:var(--radius);font-size:12px;line-height:1.7;border:1.5px solid var(--gold);background:var(--accent-bg);";
     const subtitle = engCard.querySelector("p");
     if (subtitle) subtitle.after(engNotice);
   }
@@ -4623,7 +4623,7 @@ function renderPVRCard(p) {
   return `<div class="feed-post pvr" id="pvr-card-${p.id}">
     <div class="pvr-eyebrow">👁 Peer Review Request</div>
     <div class="feed-post-header" style="margin-bottom:8px;">
-      <div class="feed-avatar" style="border:2px solid rgba(201,168,76,0.4);">${avatarContent}</div>
+      <div class="feed-avatar" style="border:2px solid rgba(88,117,72,0.4);">${avatarContent}</div>
       <div class="feed-meta">
         <div class="feed-author" style="color:#fff;">${esc(p.author)}${(p.authorUid===currentUser.uid ? isAllStarBadgeActive(currentUser, getWeekIndex()) : memberData && isAllStarBadgeActive(memberData, getWeekIndex())) ? ' ⭐' : ''}</div>
         <div class="feed-time">${timeAgo(p.timestamp)}</div>
@@ -5542,7 +5542,7 @@ function renderResources() {
     const isGetStarted = r.title === "Get Started: Launch Your First Campaign";
     const clickHandler = isGetStarted ? `gsOpen()` : isAdGuide ? `openAdFundamentalsModal()` : isBuildout ? `openBuildoutChecklist()` : `openResModal('${r.id}')`;
     const accentStyle = (isAdGuide || isCoreUpdate || isBuildout || isGetStarted)
-      ? `border:1.5px solid var(--gold);background:linear-gradient(135deg,rgba(184,134,11,0.06),var(--surface));`
+      ? `border:1.5px solid var(--gold);background:var(--accent-bg);`
       : "";
     return `<div class="resource-card" style="${accentStyle}" onclick="${clickHandler}">
       <div class="resource-emoji">${esc(r.emoji || "📄")}</div>
@@ -6437,7 +6437,7 @@ async function renderAdminRegistry() {
           ? `Opened ${new Date(m.gsOpenedAt).toLocaleDateString("en-US",{month:"short",day:"numeric"})} · Last active ${m.gsLastActive ? new Date(m.gsLastActive).toLocaleDateString("en-US",{month:"short",day:"numeric"}) : "—"} · ${m.gsStepsDone}/${m.gsTotalSteps} steps`
           : "";
         const gsBadgeHtml = m.gsOpenedAt
-          ? `<span title="${esc(gsTitle)}" style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:4px;${gsDone ? "background:#fffbf0;color:var(--gold-dark);" : "background:var(--surface2);color:var(--text-muted);"}">🚀 GS ${m.gsPct}%</span>`
+          ? `<span title="${esc(gsTitle)}" style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:4px;${gsDone ? "background:var(--accent-bg);color:var(--gold-dark);" : "background:var(--surface2);color:var(--text-muted);"}">🚀 GS ${m.gsPct}%</span>`
           : "";
 
         // Missed-week streak (mirrors evaluateAccessStatus logic)
@@ -6459,9 +6459,9 @@ async function renderAdminRegistry() {
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px;">
             <span style="font-weight:600;">${esc(m.name)}</span>
             ${m.isFounder ? `<span style="font-size:10px;background:var(--gold);color:#000;padding:1px 6px;border-radius:4px;font-weight:700;">🏅 Founder</span>` : ""}
-            ${m.isExpert ? `<span style="font-size:10px;background:rgba(184,134,11,0.12);color:var(--gold);padding:1px 6px;border-radius:4px;font-weight:700;">🎯 Expert</span>` : ""}
+            ${m.isExpert ? `<span style="font-size:10px;background:rgba(88,117,72,0.12);color:var(--gold);padding:1px 6px;border-radius:4px;font-weight:700;">🎯 Expert</span>` : ""}
             ${m.isVIP ? `<span style="font-size:10px;background:#e8f4fd;color:#2980b9;padding:1px 6px;border-radius:4px;font-weight:700;">⚡ VIP</span>` : ""}
-            ${showAllStar ? `<span style="font-size:10px;background:#fffbf0;color:var(--gold-dark);padding:1px 6px;border-radius:4px;font-weight:700;">⭐ All-Star${m.allStarStreak >= 4 ? ` (${m.allStarStreak}wk streak)` : ""}</span>` : ""}
+            ${showAllStar ? `<span style="font-size:10px;background:var(--accent-bg);color:var(--gold-dark);padding:1px 6px;border-radius:4px;font-weight:700;">⭐ All-Star${m.allStarStreak >= 4 ? ` (${m.allStarStreak}wk streak)` : ""}</span>` : ""}
             ${proBadgeHtml}${trialHtml}${membershipTrialHtml}${gsBadgeHtml}
           </div>
           <div class="text-sm text-muted" style="margin-bottom:2px;">
@@ -6481,11 +6481,11 @@ async function renderAdminRegistry() {
               <option value="cancelled" ${status === "cancelled" ? "selected" : ""}>Cancelled</option>
             </select>
             <button class="${m.isFounder?'active-flag':''}" onclick="toggleRegistryFlag('${docId}','isFounder')">🏅 Founder</button>
-            <button class="${m.isExpert?'active-flag':''}" onclick="toggleRegistryFlag('${docId}','isExpert')" style="${m.isExpert ? 'background:rgba(184,134,11,0.12);border-color:var(--gold);color:var(--gold);font-weight:600;' : ''}">🎯 Expert</button>
+            <button class="${m.isExpert?'active-flag':''}" onclick="toggleRegistryFlag('${docId}','isExpert')" style="${m.isExpert ? 'background:rgba(88,117,72,0.12);border-color:var(--gold);color:var(--gold);font-weight:600;' : ''}">🎯 Expert</button>
             <button class="${m.isVIP?'active-flag':''}" onclick="toggleRegistryFlag('${docId}','isVIP')">⚡ VIP</button>
             <button class="${m.isAllStar?'active-flag':''}" onclick="toggleRegistryFlag('${docId}','isAllStar')" title="Manual permanent override — separate from the automatic 4-week streak badge">⭐ Manual All-Star</button>
             <button onclick="editRegistryEmail('${docId}','${esc(m.email)}')">✏️ Email</button>
-            <button onclick="toggleProAccess('${docId}',${!!m.isPro})" style="${m.isPro ? "background:#fffbf0;border-color:var(--gold);color:var(--gold-dark);font-weight:600;" : ""}">${m.isPro ? "★ Remove Pro" : "★ Grant Pro"}</button>
+            <button onclick="toggleProAccess('${docId}',${!!m.isPro})" style="${m.isPro ? "background:var(--accent-bg);border-color:var(--gold);color:var(--gold-dark);font-weight:600;" : ""}">${m.isPro ? "★ Remove Pro" : "★ Grant Pro"}</button>
             <button onclick="setTrialAccess('${docId}','${esc(m.name)}')">⏱ Trial Access</button>
             ${status === "trial" ? `<button onclick="resetTrialClock('${docId}')" title="Resets addedAt to today, restarts the 30-day membership trial window">🔄 Reset Trial Clock</button>` : ""}
             <button onclick="removeRegistryMember('${docId}','${esc(m.name)}')" style="color:var(--danger);">✕ Remove</button>
@@ -7352,7 +7352,7 @@ function showProNotification(type, title, message) {
   if (existing) existing.remove();
   const banner = document.createElement("div");
   banner.id = "pro-notif-banner";
-  banner.style.cssText = "position:fixed;bottom:80px;left:12px;right:12px;max-width:500px;margin:0 auto;background:linear-gradient(135deg,#1a1500,#2d2000);border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;z-index:500;box-shadow:0 4px 24px rgba(201,168,76,.25);display:flex;align-items:flex-start;gap:12px;";
+  banner.style.cssText = "position:fixed;bottom:80px;left:12px;right:12px;max-width:500px;margin:0 auto;background:linear-gradient(135deg,#1a1a1a,#141b10);border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;z-index:500;box-shadow:0 4px 24px rgba(88,117,72,.25);display:flex;align-items:flex-start;gap:12px;";
   banner.innerHTML = `
     <div style="font-size:22px;flex-shrink:0;">⭐</div>
     <div style="flex:1;">
@@ -7925,7 +7925,7 @@ window.loadBugReports = async function() {
             <div style="font-weight:700;font-size:14px;">${esc(r.name || "Unknown")}</div>
             <div style="font-size:12px;color:var(--text-muted);">${esc(r.email || "")} · ${date} at ${time}</div>
           </div>
-          <span style="flex-shrink:0;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:${r.resolved ? "#e8f5e9" : "#fff8e1"};color:${r.resolved ? "#27ae60" : "#c9a84c"};">${r.resolved ? "✓ Resolved" : "Open"}</span>
+          <span style="flex-shrink:0;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:${r.resolved ? "#e8f5e9" : "#fff8e1"};color:${r.resolved ? "#27ae60" : "#587548"};">${r.resolved ? "✓ Resolved" : "Open"}</span>
         </div>
         <div style="font-size:14px;line-height:1.6;white-space:pre-wrap;margin-bottom:10px;">${esc(r.message || "")}</div>
         ${r.screenshot ? `<img src="${r.screenshot}" alt="Screenshot" style="width:100%;border-radius:8px;border:1px solid var(--border);margin-bottom:12px;" />` : ""}
@@ -8218,7 +8218,7 @@ function renderAdFundSlide() {
     ? `<button class="btn btn-outline btn-sm" style="margin-top:16px;" onclick="copyAdTemplate()">📋 Copy Template</button>`
     : "";
   const policyLink = _adFundSlide === 0
-    ? `<div style="margin-top:16px;padding:12px 14px;background:rgba(184,134,11,0.08);border:1px solid var(--gold-light);border-radius:8px;font-size:12px;line-height:1.6;"><strong style="color:var(--gold);">🔔 Ad policy updates are tracked in Resources.</strong> Meta and Google update their policies regularly — stay current to keep your account healthy. <span style="color:var(--gold);font-weight:600;cursor:pointer;" onclick="closeAdFundamentalsModal();setTimeout(()=>navTo('resources'),150);">See the Policy Updates card in Resources →</span></div>`
+    ? `<div style="margin-top:16px;padding:12px 14px;background:rgba(88,117,72,0.08);border:1px solid var(--gold-light);border-radius:8px;font-size:12px;line-height:1.6;"><strong style="color:var(--gold);">🔔 Ad policy updates are tracked in Resources.</strong> Meta and Google update their policies regularly — stay current to keep your account healthy. <span style="color:var(--gold);font-weight:600;cursor:pointer;" onclick="closeAdFundamentalsModal();setTimeout(()=>navTo('resources'),150);">See the Policy Updates card in Resources →</span></div>`
     : "";
 
   wrap.innerHTML = `
