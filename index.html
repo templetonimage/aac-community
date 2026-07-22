@@ -1341,9 +1341,9 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border-radius: var(--radius);
   padding: 16px;
   cursor: pointer;
-  transition: box-shadow 0.15s, transform 0.15s;
+  transition: box-shadow 0.15s, transform 0.15s, border-color 0.15s;
 }
-.resource-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.resource-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); border-color: var(--gold); }
 .resource-emoji { font-size: 28px; margin-bottom: 8px; }
 .resource-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
 .resource-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
@@ -1371,7 +1371,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   cursor: pointer;
   transition: all 0.15s;
 }
-.filter-btn.active { background: var(--gold); color: #fff; border-color: var(--gold); }
+.filter-btn.active { background: var(--gold); color: var(--black); border-color: var(--gold); }
 
 /* ==============================
    MODAL (bottom-sheet)
@@ -1622,19 +1622,20 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border-radius: var(--radius);
   padding: 16px;
   cursor: pointer;
-  transition: box-shadow 0.15s, transform 0.15s;
+  transition: box-shadow 0.15s, transform 0.15s, border-color 0.15s;
   text-align: center;
 }
-.member-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.member-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); border-color: var(--gold); }
 .member-card-avatar {
   width: 48px;
   height: 48px;
   border-radius: 50%;
   background: var(--gold);
-  color: #fff;
+  color: var(--black);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: 'Sora', sans-serif;
   font-weight: 700;
   font-size: 18px;
   margin: 0 auto 8px;
@@ -1643,7 +1644,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .member-card-biz { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
 .member-card-link {
   font-size: 12px;
-  color: var(--gold);
+  color: var(--gold-dark);
   display: inline-block;
 }
 
@@ -1679,10 +1680,11 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   height: 64px;
   border-radius: 50%;
   background: var(--gold);
-  color: #fff;
+  color: var(--black);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: 'Sora', sans-serif;
   font-weight: 700;
   font-size: 24px;
   margin: 0 auto 12px;
@@ -1702,7 +1704,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border-radius: 8px;
   padding: 12px 8px;
 }
-.member-stat-num { font-weight: 700; font-size: 20px; color: var(--gold); }
+.member-stat-num { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 20px; color: var(--gold-dark); }
 .member-stat-label { font-size: 11px; color: var(--text-muted); }
 .member-dot-grid {
   display: grid;
@@ -1761,15 +1763,16 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   height: 72px;
   border-radius: 50%;
   background: var(--gold);
-  color: #fff;
+  color: var(--black);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: 'Sora', sans-serif;
   font-weight: 700;
   font-size: 28px;
   margin: 0 auto 12px;
 }
-.profile-name { font-weight: 700; font-size: 20px; margin-bottom: 2px; }
+.profile-name { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 20px; letter-spacing: -0.01em; margin-bottom: 2px; }
 .profile-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
 .profile-badges { margin-bottom: 12px; }
 .profile-stats {
@@ -1777,7 +1780,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   justify-content: center;
   gap: 24px;
 }
-.profile-stat-num { font-weight: 700; font-size: 20px; color: var(--gold); }
+.profile-stat-num { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 20px; color: var(--gold-dark); }
 .profile-stat-label { font-size: 11px; color: var(--text-muted); }
 
 .push-notif-card {
@@ -1820,7 +1823,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   transition: all 0.15s;
 }
 .admin-member-controls button:hover { border-color: var(--gold); }
-.admin-member-controls button.active-flag { background: var(--gold); color: #fff; border-color: var(--gold); }
+.admin-member-controls button.active-flag { background: var(--gold); color: var(--black); border-color: var(--gold); }
 .admin-status-select {
   font-size: 11px;
   padding: 4px 8px;
@@ -1828,7 +1831,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   border: 1px solid var(--border);
   background: var(--surface2);
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 .admin-status-select.status-trial { border-color: #2980b9; color: #2980b9; }
 .admin-status-select.status-active { border-color: var(--success); color: var(--success); }
@@ -2335,7 +2338,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div class="page-title">Resources</div>
         <div class="page-subtitle">Ad strategy guides, tools, and reference material — tap any card to read.</div>
         <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-          <button onclick="gsOpen()" class="btn btn-sm" style="background:linear-gradient(135deg,var(--gold),var(--gold-dark));border:1.5px solid var(--gold);color:#1a1a1a;font-weight:700;">🚀 Get Started: Launch Your First Campaign</button>
+          <button onclick="gsOpen()" class="btn btn-sm" style="background:linear-gradient(135deg,var(--gold),var(--gold-dark));border:1.5px solid var(--gold);color:var(--black);font-weight:700;">🚀 Get Started: Launch Your First Campaign</button>
           <button onclick="openAdAudit()" class="btn btn-sm" style="background:linear-gradient(135deg,#1a1a1a,#141b10);border:1.5px solid var(--gold);color:#c9d9c0;">✅ Open Ad Readiness Audit</button>
           <button onclick="openBuildoutChecklist()" class="btn btn-sm" style="background:linear-gradient(135deg,#1a1a1a,#141b10);border:1.5px solid var(--gold);color:#c9d9c0;">🗂 Offer-to-Ads Checklist</button>
         </div>
@@ -2791,9 +2794,9 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       <!-- Add to Device card (always visible) -->
       <div class="card" id="add-to-device-card" style="margin-bottom:16px;">
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
-          <div style="width:52px;height:52px;border-radius:12px;background:#1a1a1a;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:#587548;letter-spacing:0.06em;">AAC</span></div>
+          <div style="width:52px;height:52px;border-radius:12px;background:#1a1a1a;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-family:'Sora',sans-serif;font-weight:800;font-size:18px;color:var(--gold);letter-spacing:0.02em;">AAC</span></div>
           <div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.04em;">Add AAC to Your Device</div>
+            <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;">Add AAC to Your Device</div>
             <div class="text-sm text-muted">Access AAC like a native app — no App Store needed.</div>
           </div>
         </div>
@@ -2807,15 +2810,15 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           <div style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">On iPhone or iPad, follow these steps in Safari:</div>
           <div style="display:flex;flex-direction:column;gap:8px;">
             <div style="display:flex;align-items:flex-start;gap:10px;">
-              <div style="background:var(--gold);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;">1</div>
+              <div style="background:var(--gold);color:var(--black);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;">1</div>
               <div style="font-size:13px;line-height:1.5;">Tap the <strong>Share</strong> button at the bottom of your browser <span style="font-size:15px;">⬆</span></div>
             </div>
             <div style="display:flex;align-items:flex-start;gap:10px;">
-              <div style="background:var(--gold);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;">2</div>
+              <div style="background:var(--gold);color:var(--black);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;">2</div>
               <div style="font-size:13px;line-height:1.5;">Scroll down and tap <strong>Add to Home Screen</strong></div>
             </div>
             <div style="display:flex;align-items:flex-start;gap:10px;">
-              <div style="background:var(--gold);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;">3</div>
+              <div style="background:var(--gold);color:var(--black);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;">3</div>
               <div style="font-size:13px;line-height:1.5;">Tap <strong>Add</strong> — AAC will appear on your home screen</div>
             </div>
           </div>
@@ -2882,7 +2885,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       <div id="profile-rer-status" style="display:none;margin-bottom:8px;"></div>
       <!-- Report a Bug -->
       <div style="text-align:center;margin-top:8px;padding-bottom:8px;">
-        <button onclick="openBugReport()" style="background:none;border:none;border-bottom:1px solid var(--border);padding:0 0 2px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text-muted);cursor:pointer;">🐛 Report a Bug / Issue</button>
+        <button onclick="openBugReport()" style="background:none;border:none;border-bottom:1px solid var(--border);padding:0 0 2px;font-family:'Inter',sans-serif;font-size:12px;color:var(--text-muted);cursor:pointer;">🐛 Report a Bug / Issue</button>
       </div>
     </div>
 
@@ -5572,7 +5575,7 @@ function renderResources() {
       : "";
     return `<div class="resource-card" style="${accentStyle}" onclick="${clickHandler}">
       <div class="resource-emoji">${esc(r.emoji || "📄")}</div>
-      <div class="resource-title">${esc(r.title)}${isAdGuide ? ' <span style="font-size:10px;background:var(--gold);color:#fff;padding:1px 6px;border-radius:4px;vertical-align:middle;font-weight:700;">GUIDE</span>' : ""}</div>
+      <div class="resource-title">${esc(r.title)}${isAdGuide ? ' <span style="font-size:10px;background:var(--gold);color:var(--black);padding:1px 6px;border-radius:4px;vertical-align:middle;font-weight:700;">GUIDE</span>' : ""}</div>
       <div class="resource-desc">${esc(r.description || "")}</div>
       <div class="resource-tags">${tagsHtml}</div>
     </div>`;
@@ -6486,8 +6489,8 @@ async function renderAdminRegistry() {
         return `<div style="padding:12px 0;border-bottom:1px solid var(--border);${!notCancelled ? "opacity:0.55;" : ""}">
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px;">
             <span style="font-weight:600;">${esc(m.name)}</span>
-            ${m.isFounder ? `<span style="font-size:10px;background:var(--gold);color:#000;padding:1px 6px;border-radius:4px;font-weight:700;">🏅 Founder</span>` : ""}
-            ${m.isExpert ? `<span style="font-size:10px;background:rgba(88,117,72,0.12);color:var(--gold);padding:1px 6px;border-radius:4px;font-weight:700;">🎯 Expert</span>` : ""}
+            ${m.isFounder ? `<span style="font-size:10px;background:var(--gold);color:var(--black);padding:1px 6px;border-radius:4px;font-weight:700;">🏅 Founder</span>` : ""}
+            ${m.isExpert ? `<span style="font-size:10px;background:rgba(88,117,72,0.12);color:var(--gold-dark);padding:1px 6px;border-radius:4px;font-weight:700;">🎯 Expert</span>` : ""}
             ${m.isVIP ? `<span style="font-size:10px;background:#e8f4fd;color:#2980b9;padding:1px 6px;border-radius:4px;font-weight:700;">⚡ VIP</span>` : ""}
             ${showAllStar ? `<span style="font-size:10px;background:var(--accent-bg);color:var(--gold-dark);padding:1px 6px;border-radius:4px;font-weight:700;">⭐ All-Star${m.allStarStreak >= 4 ? ` (${m.allStarStreak}wk streak)` : ""}</span>` : ""}
             ${proBadgeHtml}${trialHtml}${membershipTrialHtml}${gsBadgeHtml}
@@ -6499,7 +6502,7 @@ async function renderAdminRegistry() {
               : `<span style="color:var(--text-muted);">⏳ Never logged in</span>`}
           </div>
           <div class="text-sm" style="margin-bottom:6px;">${streakHtml}${lastSubHtml}</div>
-          ${m.website ? `<div style="font-size:11px;margin-bottom:4px;"><a href="${esc(m.website)}" target="_blank" rel="noopener" style="color:var(--gold);">🌐 ${esc(m.website)}</a></div>` : ""}
+          ${m.website ? `<div style="font-size:11px;margin-bottom:4px;"><a href="${esc(m.website)}" target="_blank" rel="noopener" style="color:var(--gold-dark);">🌐 ${esc(m.website)}</a></div>` : ""}
           ${igUrl ? `<div style="font-size:11px;margin-bottom:6px;"><a href="${igUrl}" target="_blank" rel="noopener" style="color:var(--text-muted);">📸 ${esc(m.ig)}</a></div>` : ""}
           <div class="admin-member-controls">
             <select class="admin-status-select status-${status}" onchange="setRegistryStatus('${docId}', this.value)">
@@ -6509,7 +6512,7 @@ async function renderAdminRegistry() {
               <option value="cancelled" ${status === "cancelled" ? "selected" : ""}>Cancelled</option>
             </select>
             <button class="${m.isFounder?'active-flag':''}" onclick="toggleRegistryFlag('${docId}','isFounder')">🏅 Founder</button>
-            <button class="${m.isExpert?'active-flag':''}" onclick="toggleRegistryFlag('${docId}','isExpert')" style="${m.isExpert ? 'background:rgba(88,117,72,0.12);border-color:var(--gold);color:var(--gold);font-weight:600;' : ''}">🎯 Expert</button>
+            <button class="${m.isExpert?'active-flag':''}" onclick="toggleRegistryFlag('${docId}','isExpert')" style="${m.isExpert ? 'background:rgba(88,117,72,0.12);border-color:var(--gold);color:var(--gold-dark);font-weight:600;' : ''}">🎯 Expert</button>
             <button class="${m.isVIP?'active-flag':''}" onclick="toggleRegistryFlag('${docId}','isVIP')">⚡ VIP</button>
             <button class="${m.isAllStar?'active-flag':''}" onclick="toggleRegistryFlag('${docId}','isAllStar')" title="Manual permanent override — separate from the automatic 4-week streak badge">⭐ Manual All-Star</button>
             <button onclick="editRegistryEmail('${docId}','${esc(m.email)}')">✏️ Email</button>
@@ -6547,7 +6550,7 @@ async function renderMemberGrid() {
     const igHandle = m.ig ? m.ig.trim().replace(/^@+/, "") : "";
     const igUrl = igHandle ? `https://www.instagram.com/${igHandle}` : "";
     const websiteBtn = m.website
-      ? `<a href="${esc(normalizeUrl(m.website))}" target="_blank" rel="noopener" class="member-card-link" onclick="event.stopPropagation()" style="display:block;text-align:center;font-size:11px;color:var(--gold);margin-top:4px;word-break:break-all;">🌐 Visit Site</a>`
+      ? `<a href="${esc(normalizeUrl(m.website))}" target="_blank" rel="noopener" class="member-card-link" onclick="event.stopPropagation()" style="display:block;text-align:center;font-size:11px;color:var(--gold-dark);margin-top:4px;word-break:break-all;">🌐 Visit Site</a>`
       : "";
     const igBtn = igUrl
       ? `<a href="${igUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:block;text-align:center;font-size:11px;color:var(--text-muted);margin-top:2px;">📸 ${esc(m.ig)}</a>`
