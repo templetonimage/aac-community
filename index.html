@@ -447,15 +447,15 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   padding: 16px;
   border-radius: 10px;
   border: none;
-  background: var(--black);
-  color: #fff;
+  background: var(--gold);
+  color: var(--black);
   font-family: 'Sora', sans-serif;
   font-size: 20px;
   letter-spacing: 0.08em;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
-.auth-btn:hover { background: var(--gold); color: var(--black); }
+.auth-btn:hover { background: var(--gold-light); color: var(--black); }
 .auth-error {
   display: none;
   color: #e74c3c;
@@ -1889,18 +1889,21 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   animation: slideUp 0.3s ease;
 }
 .welcome-header {
-  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  background: linear-gradient(135deg, var(--black), #141b10);
   padding: 28px 24px;
   text-align: center;
   color: #fff;
+  border-bottom: 3px solid var(--gold);
 }
 .welcome-header .welcome-logo {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 48px;
-  letter-spacing: 0.08em;
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: 40px;
+  letter-spacing: -0.01em;
+  color: var(--gold);
 }
 .welcome-body { padding: 24px; }
-.welcome-body h3 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; margin-bottom: 16px; }
+.welcome-body h3 { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 20px; letter-spacing: -0.01em; margin-bottom: 16px; }
 .welcome-step {
   display: flex;
   gap: 12px;
@@ -3194,7 +3197,7 @@ textarea.gs-input{ resize:vertical; }
 <div class="modal-overlay" id="archived-anns-overlay" onclick="closeArchivedAnnsModalDirect(event)">
   <div class="modal-sheet">
     <div class="modal-header">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.05em;">Previous Announcements</div>
+      <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;">Previous Announcements</div>
       <button class="modal-close" onclick="closeArchivedAnnsModal()">✕</button>
     </div>
     <div id="archived-anns-content" style="padding-bottom:8px;"></div>
@@ -3206,7 +3209,7 @@ textarea.gs-input{ resize:vertical; }
   <div class="expert-archive-modal">
     <div class="expert-archive-header">
       <div>
-        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);">📁 Expert Review Archive</div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold-dark);">📁 Expert Review Archive</div>
         <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">All responded requests.</div>
       </div>
       <button onclick="closeExpertArchive()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-muted);">✕</button>
@@ -3223,14 +3226,14 @@ textarea.gs-input{ resize:vertical; }
   <div class="eeat-audit-modal">
     <div class="eeat-audit-header">
       <div>
-        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);">Offer-to-Ads Buildout Checklist</div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold-dark);">Offer-to-Ads Buildout Checklist</div>
         <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">Build your full offer, funnel, and ad system. Notes save automatically.</div>
       </div>
       <button onclick="closeBuildoutChecklist()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-muted);">✕</button>
     </div>
     <div style="padding:12px 20px 4px;display:flex;align-items:center;justify-content:space-between;">
       <div id="buildout-summary" style="font-size:12px;color:var(--text-muted);">Loading...</div>
-      <button onclick="resetBuildoutChecklist()" style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;font-family:'DM Sans',sans-serif;">Reset All</button>
+      <button onclick="resetBuildoutChecklist()" style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;font-family:'Inter',sans-serif;">Reset All</button>
     </div>
     <div class="eeat-audit-progress-bar">
       <div class="eeat-audit-progress-fill" id="buildout-progress-fill" style="width:0%"></div>
@@ -3251,14 +3254,14 @@ textarea.gs-input{ resize:vertical; }
   <div class="eeat-audit-modal">
     <div class="eeat-audit-header">
       <div>
-        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);">Ad Readiness Audit</div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold-dark);">Ad Readiness Audit</div>
         <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">Track your fixes. Notes save automatically.</div>
       </div>
       <button onclick="closeAdAudit()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-muted);">✕</button>
     </div>
     <div style="padding:12px 20px 4px;display:flex;align-items:center;justify-content:space-between;">
       <div id="eeat-audit-summary" style="font-size:12px;color:var(--text-muted);">Loading...</div>
-      <button onclick="resetAdAudit()" style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;font-family:'DM Sans',sans-serif;">Reset All</button>
+      <button onclick="resetAdAudit()" style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;font-family:'Inter',sans-serif;">Reset All</button>
     </div>
     <div class="eeat-audit-progress-bar">
       <div class="eeat-audit-progress-fill" id="eeat-audit-progress-fill" style="width:0%"></div>
@@ -3279,7 +3282,7 @@ textarea.gs-input{ resize:vertical; }
 <div class="modal-overlay" id="bug-report-modal" onclick="(function(e){if(e.target===document.getElementById('bug-report-modal'))closeBugReport();})(event)" style="display:none;align-items:flex-end;">
   <div class="modal-sheet" style="max-height:90dvh;display:flex;flex-direction:column;">
     <div class="modal-header">
-      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);">🐛 Report a Bug / Issue</div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold-dark);">🐛 Report a Bug / Issue</div>
       <button class="modal-close" onclick="closeBugReport()">✕</button>
     </div>
     <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 20px 24px;">
@@ -3296,7 +3299,7 @@ textarea.gs-input{ resize:vertical; }
         <input type="file" id="bug-screenshot" accept="image/*" style="display:none;" onchange="previewBugScreenshot(this)" />
         <div id="bug-screenshot-preview" style="display:none;margin-bottom:8px;">
           <img id="bug-screenshot-img" style="max-width:100%;border-radius:8px;border:1px solid var(--border);" />
-          <button onclick="clearBugScreenshot()" style="margin-top:6px;background:none;border:none;font-size:12px;color:var(--text-muted);cursor:pointer;text-decoration:underline;font-family:'DM Sans',sans-serif;">Remove</button>
+          <button onclick="clearBugScreenshot()" style="margin-top:6px;background:none;border:none;font-size:12px;color:var(--text-muted);cursor:pointer;text-decoration:underline;font-family:'Inter',sans-serif;">Remove</button>
         </div>
         <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('bug-screenshot').click()">Attach Screenshot</button>
       </div>
@@ -3309,10 +3312,10 @@ textarea.gs-input{ resize:vertical; }
 <div class="rer-notif-overlay" id="rer-notif-overlay">
   <div class="rer-notif-modal">
     <div style="font-size:42px;margin-bottom:10px;">🎯</div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:0.04em;margin-bottom:8px;">Expert Review Answered</div>
+    <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:22px;letter-spacing:-0.01em;margin-bottom:8px;">Expert Review Answered</div>
     <div id="rer-notif-body" style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:20px;"></div>
     <button class="btn btn-gold btn-block" onclick="dismissRERNotif()">View in Feed</button>
-    <button onclick="dismissRERNotifOnly()" style="margin-top:10px;background:none;border:none;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text-muted);cursor:pointer;text-decoration:underline;">Dismiss</button>
+    <button onclick="dismissRERNotifOnly()" style="margin-top:10px;background:none;border:none;font-family:'Inter',sans-serif;font-size:12px;color:var(--text-muted);cursor:pointer;text-decoration:underline;">Dismiss</button>
   </div>
 </div>
 
@@ -3320,7 +3323,7 @@ textarea.gs-input{ resize:vertical; }
 <div class="modal-overlay" id="eeat-modal-overlay" onclick="closeAdFundamentalsModalDirect(event)">
   <div class="modal-sheet" style="max-height:90dvh;height:90dvh;display:flex;flex-direction:column;overflow:hidden;padding:0;">
     <div class="modal-header" style="flex-shrink:0;padding:16px 20px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);">Ad Fundamentals Playbook</div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold-dark);">Ad Fundamentals Playbook</div>
       <button class="modal-close" onclick="closeAdFundamentalsModal()">✕</button>
     </div>
     <!-- Slide container -->
@@ -5400,7 +5403,7 @@ function openArchivedAnnsModal() {
       const bodyText = a.body || "";
       const adminActions = currentUser.isAdmin
         ? `<div style="display:flex;gap:12px;margin-top:10px;">
-            <button onclick="unarchiveAnn('${a.id}')" style="background:none;border:none;color:var(--gold);font-size:12px;cursor:pointer;padding:0;">↩ Restore</button>
+            <button onclick="unarchiveAnn('${a.id}')" style="background:none;border:none;color:var(--gold-dark);font-size:12px;cursor:pointer;padding:0;">↩ Restore</button>
             <button onclick="deleteAnn('${a.id}')" style="background:none;border:none;color:var(--danger);font-size:12px;cursor:pointer;padding:0;">🗑 Delete</button>
            </div>` : "";
       return `<div style="border-bottom:1px solid var(--border);padding:14px 0;${i === 0 ? "padding-top:4px;" : ""}">
@@ -8250,12 +8253,12 @@ function renderAdFundSlide() {
     ? `<button class="btn btn-outline btn-sm" style="margin-top:16px;" onclick="copyAdTemplate()">📋 Copy Template</button>`
     : "";
   const policyLink = _adFundSlide === 0
-    ? `<div style="margin-top:16px;padding:12px 14px;background:rgba(88,117,72,0.08);border:1px solid var(--gold-light);border-radius:8px;font-size:12px;line-height:1.6;"><strong style="color:var(--gold);">🔔 Ad policy updates are tracked in Resources.</strong> Meta and Google update their policies regularly — stay current to keep your account healthy. <span style="color:var(--gold);font-weight:600;cursor:pointer;" onclick="closeAdFundamentalsModal();setTimeout(()=>navTo('resources'),150);">See the Policy Updates card in Resources →</span></div>`
+    ? `<div style="margin-top:16px;padding:12px 14px;background:rgba(88,117,72,0.08);border:1px solid var(--gold-light);border-radius:8px;font-size:12px;line-height:1.6;"><strong style="color:var(--gold-dark);">🔔 Ad policy updates are tracked in Resources.</strong> Meta and Google update their policies regularly — stay current to keep your account healthy. <span style="color:var(--gold-dark);font-weight:600;cursor:pointer;" onclick="closeAdFundamentalsModal();setTimeout(()=>navTo('resources'),150);">See the Policy Updates card in Resources →</span></div>`
     : "";
 
   wrap.innerHTML = `
     <div style="font-size:40px;margin-bottom:10px;">${slide.emoji}</div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.04em;margin-bottom:14px;color:var(--text);">${esc(slide.title)}</div>
+    <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:20px;letter-spacing:-0.01em;margin-bottom:14px;color:var(--text);">${esc(slide.title)}</div>
     <div style="font-size:13px;line-height:1.8;white-space:pre-wrap;color:var(--text);">${linkify(slide.body)}</div>
     ${copyBtn}
     ${policyLink}
