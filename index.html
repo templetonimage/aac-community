@@ -3193,6 +3193,28 @@ textarea.gs-input{ resize:vertical; }
   </div>
 </div>
 
+<!-- RENEWAL MODAL (Aug 1 relaunch, legacy/grandfathered trial members) -->
+<div class="modal-overlay" id="renewal-modal-overlay" onclick="closeRenewalModalDirect(event)">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;">🚀 AAC is relaunching August 1</div>
+      <button class="modal-close" onclick="closeRenewalModal()">✕</button>
+    </div>
+    <div style="padding:4px 20px 24px;">
+      <p style="font-size:14px;line-height:1.6;color:var(--text-muted);margin-bottom:16px;">
+        We're moving to a new membership structure starting August 1: a 7-day free trial, then $27/month, card required to start. Your current access was set up under earlier terms, so you'll need to switch over to keep going.
+      </p>
+      <div id="renewal-countdown" style="display:flex;gap:8px;margin-bottom:16px;"></div>
+      <form id="renewal-form" onsubmit="submitRenewalForm(event)">
+        <input type="hidden" name="source" value="platform-renewal" />
+        <input type="email" name="email" id="renewal-modal-email" placeholder="you@yourbusiness.com" required style="width:100%;box-sizing:border-box;margin-bottom:12px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;" />
+        <button type="submit" class="btn btn-gold btn-block">Join Renewal List</button>
+      </form>
+      <p style="font-size:11px;color:var(--text-muted);margin-top:10px;">We'll follow up with next steps before your access changes.</p>
+    </div>
+  </div>
+</div>
+
 <!-- ARCHIVED ANNOUNCEMENTS MODAL -->
 <div class="modal-overlay" id="archived-anns-overlay" onclick="closeArchivedAnnsModalDirect(event)">
   <div class="modal-sheet">
@@ -4317,6 +4339,9 @@ window.loadDashboard = async function() {
 
     // Trial-to-paid conversion prompt (Stripe Path 2)
     evaluateTrialConversion();
+
+    // Legacy/grandfathered member renewal prompt (Aug 1 relaunch, pre-Stripe-fix)
+    evaluateRenewalPrompt();
 
     // This-week submission check
     const currentWeekIdx = getWeekIndex();
@@ -5817,6 +5842,83 @@ function evaluateTrialConversion() {
   const daysIn = getTrialDayCount();
   if (daysIn === null) return; // grandfathered member, no addedAt on record
   if (daysIn >= 23) showTrialConvertBanner(daysIn);
+}
+
+// ==============================
+// Legacy renewal modal (Aug 1 relaunch)
+// Targets all subscriptionStatus "trial" members, regardless of addedAt.
+// Runs alongside (not instead of) the day-23 evaluateTrialConversion() banner.
+// Interim: posts to the AAC Website waitlist Formspree endpoint until the
+// platform's own Stripe renewal flow is built for the new 7-day/card terms.
+// ==============================
+// Renewal deadline: July 31, 2026 11:59:59 PM ET (EDT, UTC-4 in July) = Aug 1 2026 03:59:59 UTC
+const RENEWAL_DEADLINE_UTC = Date.UTC(2026, 7, 1, 3, 59, 59);
+let _renewalCountdownTimer = null;
+
+function renderRenewalCountdown() {
+  const el = document.getElementById("renewal-countdown");
+  if (!el) return;
+  const diff = RENEWAL_DEADLINE_UTC - Date.now();
+  if (diff <= 0) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">Renewal window has closed</div>';
+    if (_renewalCountdownTimer) { clearInterval(_renewalCountdownTimer); _renewalCountdownTimer = null; }
+    return;
+  }
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  const seg = (val, label) => `<div style="flex:1;text-align:center;background:var(--cream,#f7f5f0);border:1px solid var(--border);border-radius:8px;padding:8px 4px;">
+    <div style="font-family:'Space Mono',monospace;font-weight:700;font-size:18px;line-height:1;">${String(val).padStart(2, "0")}</div>
+    <div style="font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:2px;">${label}</div>
+  </div>`;
+  el.innerHTML = seg(d, "Days") + seg(h, "Hrs") + seg(m, "Min") + seg(s, "Sec");
+}
+function startRenewalCountdown() {
+  renderRenewalCountdown();
+  if (_renewalCountdownTimer) clearInterval(_renewalCountdownTimer);
+  _renewalCountdownTimer = setInterval(renderRenewalCountdown, 1000);
+}
+function stopRenewalCountdown() {
+  if (_renewalCountdownTimer) { clearInterval(_renewalCountdownTimer); _renewalCountdownTimer = null; }
+}
+
+function evaluateRenewalPrompt() {
+  if (!currentUser || currentUser.isAdmin) return;
+  if (currentUser.subscriptionStatus !== "trial") return;
+  openRenewalModal();
+}
+
+function openRenewalModal() {
+  const emailEl = document.getElementById("renewal-modal-email");
+  if (emailEl) emailEl.value = (currentUser && currentUser.email) || "";
+  const overlay = document.getElementById("renewal-modal-overlay");
+  if (overlay) overlay.classList.add("open");
+  startRenewalCountdown();
+}
+function closeRenewalModal() {
+  const overlay = document.getElementById("renewal-modal-overlay");
+  if (overlay) overlay.classList.remove("open");
+  stopRenewalCountdown();
+}
+function closeRenewalModalDirect(e) {
+  if (e.target === document.getElementById("renewal-modal-overlay")) closeRenewalModal();
+}
+async function submitRenewalForm(e) {
+  e.preventDefault();
+  const form = e.target;
+  const btn = form.querySelector("button[type='submit']");
+  if (btn) { btn.disabled = true; btn.textContent = "Submitting..."; }
+  const data = new FormData(form);
+  try {
+    await fetch("https://formspree.io/f/maqlernr", {
+      method: "POST", body: data, headers: { "Accept": "application/json" }
+    });
+    form.innerHTML = '<p style="color:var(--accent-dim,#6B8E5A);font-weight:600;font-size:14px;">You\'re on the renewal list — we\'ll follow up before August 1.</p>';
+  } catch (err) {
+    if (btn) { btn.disabled = false; btn.textContent = "Join Renewal List"; }
+    form.insertAdjacentHTML("beforeend", '<p style="color:#b3261e;font-size:12px;margin-top:8px;">Something went wrong. Try again or email info@jointheaac.com.</p>');
+  }
 }
 
 window.startStripeCheckout = async function() {
@@ -7565,6 +7667,10 @@ window.syncTrackerFromSubmissions = syncTrackerFromSubmissions;
 window.handleMemberCardClick = handleMemberCardClick;
 window.closeMemberModal = closeMemberModal;
 window.closeMemberModalDirect = closeMemberModalDirect;
+window.openRenewalModal = openRenewalModal;
+window.closeRenewalModal = closeRenewalModal;
+window.closeRenewalModalDirect = closeRenewalModalDirect;
+window.submitRenewalForm = submitRenewalForm;
 window.setRegistryStatus = setRegistryStatus;
 window.toggleRegistryFlag = toggleRegistryFlag;
 window.resetTrialClock = resetTrialClock;
