@@ -2151,6 +2151,14 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         </div>
         <button class="btn btn-gold btn-sm" id="dash-trial-convert-btn" onclick="startStripeCheckout()">Add Card</button>
       </div>
+      <div id="dash-cancel-pending" class="dash-trial-convert" style="display:none;">
+        <span style="font-size:18px;">⏳</span>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:13px;">Membership canceling</div>
+          <div style="font-size:12px;color:var(--text-muted);" id="dash-cancel-pending-sub">Access ends on your paid-through date.</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="openBillingPortal()">Manage</button>
+      </div>
       <div class="dash-status-strip dash-animate" id="dash-status-strip" style="animation-delay:0.15s;"></div>
       <div class="dash-animate" style="animation-delay:0.18s;background:linear-gradient(to right, var(--accent-bg), var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
@@ -2867,6 +2875,13 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           <input type="url" id="prof-website" class="form-input" placeholder="https://yoursite.com (optional)" />
         </div>
         <button class="btn btn-gold btn-block" onclick="saveProfile()">Save Changes</button>
+      </div>
+      <!-- Manage Membership (billing portal) -->
+      <div class="card" id="profile-billing-card" style="display:none;">
+        <div class="card-title">Membership &amp; Billing</div>
+        <div id="profile-cancel-pending-note" style="display:none;font-size:12px;color:var(--text-muted);margin-bottom:10px;line-height:1.5;"></div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;line-height:1.5;">Update your payment method, view invoices, or cancel your membership.</div>
+        <button class="btn btn-outline btn-block" id="profile-billing-btn" onclick="openBillingPortal()">Manage Membership</button>
       </div>
       <!-- Change password -->
       <div class="card">
@@ -3920,6 +3935,8 @@ async function resolveUser(user) {
     addedAt: d.addedAt || null,
     stripeCustomerId: d.stripeCustomerId || null,
     stripeSubscriptionId: d.stripeSubscriptionId || null,
+    cancelAtPeriodEnd: d.cancelAtPeriodEnd || false,
+    currentPeriodEnd: d.currentPeriodEnd || null,
   };
 }
 
@@ -4339,6 +4356,7 @@ window.loadDashboard = async function() {
 
     // Trial-to-paid conversion prompt (Stripe Path 2)
     evaluateTrialConversion();
+    evaluateCancelPending();
 
     // Legacy/grandfathered member renewal prompt (Aug 1 relaunch, pre-Stripe-fix)
     evaluateRenewalPrompt();
@@ -5844,6 +5862,24 @@ function evaluateTrialConversion() {
   if (daysIn >= 23) showTrialConvertBanner(daysIn);
 }
 
+// Dashboard "canceling" banner — mirrors trial-convert banner but for
+// members mid-billing-period after canceling via the Customer Portal.
+function evaluateCancelPending() {
+  const el = document.getElementById("dash-cancel-pending");
+  if (!el) return;
+  if (!currentUser || currentUser.isAdmin || !currentUser.cancelAtPeriodEnd) {
+    el.style.display = "none";
+    return;
+  }
+  const subEl = document.getElementById("dash-cancel-pending-sub");
+  if (subEl) {
+    subEl.textContent = currentUser.currentPeriodEnd
+      ? `Access ends ${new Date(currentUser.currentPeriodEnd).toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"})}.`
+      : "Access ends at your current billing period.";
+  }
+  el.style.display = "flex";
+}
+
 // ==============================
 // Legacy renewal modal (Aug 1 relaunch)
 // Targets all subscriptionStatus "trial" members, regardless of addedAt.
@@ -5938,6 +5974,26 @@ window.startStripeCheckout = async function() {
     showToast("Couldn't open checkout. Try again or contact info@jointheaac.com.");
     logPlatformError("startStripeCheckout", e.message);
     if (btn) { btn.disabled = false; btn.textContent = "Add Card"; }
+  }
+};
+
+window.openBillingPortal = async function() {
+  if (!currentUser || !currentUser.uid) return;
+  const btns = [document.getElementById("profile-billing-btn")].filter(Boolean);
+  btns.forEach(b => { b.disabled = true; b.textContent = "Loading..."; });
+  try {
+    const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js");
+    const fns = getFunctions(app, STRIPE_FN_REGION);
+    const createPortalSession = httpsCallable(fns, "createPortalSession");
+    const result = await createPortalSession({});
+    const url = result && result.data && result.data.url;
+    if (!url) throw new Error("No portal URL returned");
+    window.location.href = url;
+  } catch (e) {
+    console.error("openBillingPortal error:", e);
+    showToast("Couldn't open billing portal. Try again or contact info@jointheaac.com.");
+    logPlatformError("openBillingPortal", e.message);
+    btns.forEach(b => { b.disabled = false; b.textContent = "Manage Membership"; });
   }
 };
 
@@ -7000,6 +7056,29 @@ function loadProfile() {
   document.getElementById("prof-type").value = currentUser.type || "";
   document.getElementById("prof-ig").value = currentUser.ig || "";
   document.getElementById("prof-website").value = currentUser.website || "";
+  renderBillingCard();
+}
+
+// Shows the "Manage Membership" card only for members with a Stripe customer
+// on file (i.e. not still on a no-card trial). Surfaces the pending-
+// cancellation note inline if the subscription is set to cancel at period end.
+function renderBillingCard() {
+  const card = document.getElementById("profile-billing-card");
+  if (!card) return;
+  if (currentUser.isAdmin || !currentUser.stripeCustomerId) {
+    card.style.display = "none";
+    return;
+  }
+  card.style.display = "block";
+  const noteEl = document.getElementById("profile-cancel-pending-note");
+  if (noteEl) {
+    if (currentUser.cancelAtPeriodEnd && currentUser.currentPeriodEnd) {
+      noteEl.style.display = "block";
+      noteEl.innerHTML = `⏳ Canceling — access ends ${new Date(currentUser.currentPeriodEnd).toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"})}.`;
+    } else {
+      noteEl.style.display = "none";
+    }
+  }
 }
 
 function renderProfileHero() {
