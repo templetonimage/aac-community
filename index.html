@@ -2159,6 +2159,13 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         </div>
         <button class="btn btn-outline btn-sm" onclick="openBillingPortal()">Manage</button>
       </div>
+      <div id="dash-trial-ending" class="dash-trial-convert" style="display:none;">
+        <span style="font-size:18px;">📅</span>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:13px;" id="dash-trial-ending-title">Your free trial ends soon</div>
+          <div style="font-size:12px;color:var(--text-muted);">Your card will be charged $27 when your trial ends. Cancel anytime before then from your billing settings.</div>
+        </div>
+      </div>
       <div class="dash-status-strip dash-animate" id="dash-status-strip" style="animation-delay:0.15s;"></div>
       <div class="dash-animate" style="animation-delay:0.18s;background:linear-gradient(to right, var(--accent-bg), var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
@@ -3208,7 +3215,7 @@ textarea.gs-input{ resize:vertical; }
   </div>
 </div>
 
-<!-- RENEWAL MODAL (Aug 1 relaunch, legacy/grandfathered trial members) -->
+<!-- RENEWAL MODAL (Aug 1 relaunch, legacy trial members) -->
 <div class="modal-overlay" id="renewal-modal-overlay" onclick="closeRenewalModalDirect(event)">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -3217,15 +3224,11 @@ textarea.gs-input{ resize:vertical; }
     </div>
     <div style="padding:4px 20px 24px;">
       <p style="font-size:14px;line-height:1.6;color:var(--text-muted);margin-bottom:16px;">
-        We're moving to a new membership structure starting August 1: a 7-day free trial, then $27/month, card required to start. Your current access was set up under earlier terms, so you'll need to switch over to keep going.
+        We're moving to a new membership structure starting August 1: $27/month, billed right away with no trial period. Your current access was set up under earlier terms, so you'll need to renew below to keep going.
       </p>
       <div id="renewal-countdown" style="display:flex;gap:8px;margin-bottom:16px;"></div>
-      <form id="renewal-form" onsubmit="submitRenewalForm(event)">
-        <input type="hidden" name="source" value="platform-renewal" />
-        <input type="email" name="email" id="renewal-modal-email" placeholder="you@yourbusiness.com" required style="width:100%;box-sizing:border-box;margin-bottom:12px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;" />
-        <button type="submit" class="btn btn-gold btn-block">Join Renewal List</button>
-      </form>
-      <p style="font-size:11px;color:var(--text-muted);margin-top:10px;">We'll follow up with next steps before your access changes.</p>
+      <a href="https://buy.stripe.com/aFa9ATclZ7V53Pwbpfbo40f" target="_blank" rel="noopener" class="btn btn-gold btn-block" style="text-align:center;text-decoration:none;display:block;">Renew Now — $27/mo</a>
+      <p style="font-size:11px;color:var(--text-muted);margin-top:10px;">Opens Stripe checkout in a new tab. No trial, billing starts immediately.</p>
     </div>
   </div>
 </div>
@@ -4360,6 +4363,9 @@ window.loadDashboard = async function() {
 
     // Legacy/grandfathered member renewal prompt (Aug 1 relaunch, pre-Stripe-fix)
     evaluateRenewalPrompt();
+
+    // Day 4-6 heads-up for 7-day-trial Payment Link members (Aug 1 relaunch)
+    evaluateTrialEndingSoon();
 
     // This-week submission check
     const currentWeekIdx = getWeekIndex();
@@ -5857,9 +5863,41 @@ function evaluateTrialConversion() {
   hideTrialConvertBanner();
   if (!currentUser || currentUser.isAdmin) return;
   if (currentUser.subscriptionStatus !== "trial") return;
+  if (currentUser.stripeSubscriptionId) return; // already has a real Stripe subscription (7-day trial link) — Stripe converts this one automatically, don't offer a second checkout
   const daysIn = getTrialDayCount();
   if (daysIn === null) return; // grandfathered member, no addedAt on record
   if (daysIn >= 23) showTrialConvertBanner(daysIn);
+}
+
+// Day 4/5/6 heads-up for 7-day-trial Payment Link members only (identified by
+// already having a stripeSubscriptionId — legacy no-card trial members never
+// have one until they actually convert). Informational only, no CTA, since
+// Stripe already has their card and will auto-charge at day 7 unless they
+// cancel themselves.
+function showTrialEndingBanner(daysLeft) {
+  const el = document.getElementById("dash-trial-ending");
+  const titleEl = document.getElementById("dash-trial-ending-title");
+  if (!el) return;
+  if (titleEl) {
+    titleEl.textContent = daysLeft <= 1
+      ? "Your free trial ends tomorrow"
+      : `Your free trial ends in ${daysLeft} days`;
+  }
+  el.style.display = "flex";
+}
+function hideTrialEndingBanner() {
+  const el = document.getElementById("dash-trial-ending");
+  if (el) el.style.display = "none";
+}
+function evaluateTrialEndingSoon() {
+  hideTrialEndingBanner();
+  if (!currentUser || currentUser.isAdmin) return;
+  if (currentUser.subscriptionStatus !== "trial") return;
+  if (!currentUser.stripeSubscriptionId) return; // legacy no-card trial, not the 7-day Stripe trial
+  const daysIn = getTrialDayCount();
+  if (daysIn === null) return;
+  const daysLeft = 7 - daysIn;
+  if (daysLeft >= 1 && daysLeft <= 3) showTrialEndingBanner(daysLeft);
 }
 
 // Dashboard "canceling" banner — mirrors trial-convert banner but for
@@ -5922,12 +5960,11 @@ function stopRenewalCountdown() {
 function evaluateRenewalPrompt() {
   if (!currentUser || currentUser.isAdmin) return;
   if (currentUser.subscriptionStatus !== "trial") return;
+  if (currentUser.stripeSubscriptionId) return; // already on the new 7-day-trial Stripe subscription, not a legacy member needing to renew
   openRenewalModal();
 }
 
 function openRenewalModal() {
-  const emailEl = document.getElementById("renewal-modal-email");
-  if (emailEl) emailEl.value = (currentUser && currentUser.email) || "";
   const overlay = document.getElementById("renewal-modal-overlay");
   if (overlay) overlay.classList.add("open");
   startRenewalCountdown();
@@ -5939,22 +5976,6 @@ function closeRenewalModal() {
 }
 function closeRenewalModalDirect(e) {
   if (e.target === document.getElementById("renewal-modal-overlay")) closeRenewalModal();
-}
-async function submitRenewalForm(e) {
-  e.preventDefault();
-  const form = e.target;
-  const btn = form.querySelector("button[type='submit']");
-  if (btn) { btn.disabled = true; btn.textContent = "Submitting..."; }
-  const data = new FormData(form);
-  try {
-    await fetch("https://formspree.io/f/maqlernr", {
-      method: "POST", body: data, headers: { "Accept": "application/json" }
-    });
-    form.innerHTML = '<p style="color:var(--accent-dim,#6B8E5A);font-weight:600;font-size:14px;">You\'re on the renewal list — we\'ll follow up before August 1.</p>';
-  } catch (err) {
-    if (btn) { btn.disabled = false; btn.textContent = "Join Renewal List"; }
-    form.insertAdjacentHTML("beforeend", '<p style="color:#b3261e;font-size:12px;margin-top:8px;">Something went wrong. Try again or email info@jointheaac.com.</p>');
-  }
 }
 
 window.startStripeCheckout = async function() {
@@ -7749,7 +7770,6 @@ window.closeMemberModalDirect = closeMemberModalDirect;
 window.openRenewalModal = openRenewalModal;
 window.closeRenewalModal = closeRenewalModal;
 window.closeRenewalModalDirect = closeRenewalModalDirect;
-window.submitRenewalForm = submitRenewalForm;
 window.setRegistryStatus = setRegistryStatus;
 window.toggleRegistryFlag = toggleRegistryFlag;
 window.resetTrialClock = resetTrialClock;
