@@ -2273,6 +2273,9 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       <div style="text-align:center;margin-top:18px;padding-bottom:6px;">
         <a href="https://cash.app/pay/link/3dck8lst" target="_blank" rel="noopener" style="font-size:12px;color:var(--text-muted);text-decoration:underline;text-underline-offset:3px;font-family:'Inter',sans-serif;">Found value in AAC? Buy me a coffee ☕</a>
       </div>
+      <div id="dash-manage-billing" style="display:none;text-align:center;margin-top:8px;padding-bottom:6px;">
+        <a href="javascript:void(0)" onclick="openBillingPortal()" style="font-size:12px;color:var(--text-muted);text-decoration:underline;text-underline-offset:3px;font-family:'Inter',sans-serif;">Manage Billing</a>
+      </div>
     </div>
 
     <!-- PAGE: FEED -->
@@ -4367,6 +4370,9 @@ window.loadDashboard = async function() {
     // Day 4-6 heads-up for 7-day-trial Payment Link members (Aug 1 relaunch)
     evaluateTrialEndingSoon();
 
+    // Small "Manage Billing" link at bottom of dashboard, same gating as Profile's billing card
+    renderDashboardBillingLink();
+
     // This-week submission check
     const currentWeekIdx = getWeekIndex();
     const weekSubmitted = currentWeekIdx >= 0 && subs.some(s => s.weekIdx === currentWeekIdx && !s.isTrial);
@@ -5898,6 +5904,15 @@ function evaluateTrialEndingSoon() {
   if (daysIn === null) return;
   const daysLeft = 7 - daysIn;
   if (daysLeft >= 1 && daysLeft <= 3) showTrialEndingBanner(daysLeft);
+}
+
+// Small "Manage Billing" text link at the bottom of the dashboard — same
+// gating rule as the Profile page's billing card (renderBillingCard()):
+// only shown to members with a Stripe customer on file.
+function renderDashboardBillingLink() {
+  const el = document.getElementById("dash-manage-billing");
+  if (!el) return;
+  el.style.display = (currentUser && !currentUser.isAdmin && currentUser.stripeCustomerId) ? "block" : "none";
 }
 
 // Dashboard "canceling" banner — mirrors trial-convert banner but for
