@@ -2182,7 +2182,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   <div class="auth-card-wrap">
     <div class="auth-logo">AAC</div>
     <div class="auth-subtitle">Ad Accountability<br>Challenge</div>
-    <div class="auth-round-badge">July 2026</div>
+    <div class="auth-round-badge" id="auth-round-badge">July 2026</div>
     <div class="auth-form-area">
       <div class="auth-form-group">
         <label class="auth-form-label">EMAIL ADDRESS</label>
@@ -2289,7 +2289,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div class="wc-inner">
           <div class="wc-icon">⚡</div>
           <div class="wc-body">
-            <div class="wc-eyebrow">This Week's Challenge</div>
+            <div class="wc-eyebrow" id="dash-challenge-eyebrow">This Week's Challenge</div>
             <div class="wc-title" id="dash-challenge-title">Loading...</div>
             <div class="wc-desc" id="dash-challenge-desc"></div>
             <div class="wc-badge">+5 pts bonus</div>
@@ -3602,12 +3602,16 @@ async function logCommunityPts(uid, name, action, pts, extra = {}) {
 const MAX_ENG_PER_WEEK = 5;
 const MAX_LIKE_REPLY_PER_WEEK = 5;  // Like/reply limit per week
 
-// Weekly Challenge Modifiers — one per week, keyed by weekIdx (0–11)
+// Weekly Challenge Modifiers — one per week. Rolling monthly membership has
+// no end date, so this list cycles (see loadWeeklyChallenge's modulo lookup)
+// once a member reaches the end — currently 24 entries = 6 months of unique
+// content before it repeats. To extend the cycle further, just add more
+// entries in groups of 4 (one month); no code changes needed elsewhere.
 const WEEKLY_CHALLENGES = [
   { title: "Ad Readiness Audit",                          desc: "Open the Get Started guide and the Ad Readiness Audit in Resources. Work through both. Note every gap — pixel status, account setup, offer clarity. This list becomes your starting point for the next few weeks.", pillar: "All" },
   { title: "Build Your Ad Creative Set",                   desc: "Write three headline variations for your offer and pair each with a short body copy option. Pick your strongest combination and produce the final creative — image or video — ready to publish.", pillar: "Creative" },
   { title: "Launch Your First Active Campaign",            desc: "Your campaign goes live this week. Publish it, set a real budget, and get it spending. Proof = screenshot of your active campaign in Ads Manager showing status, budget, and impressions or spend.", pillar: "All" },
-  { title: "Review Your First Month",                      desc: "Keep your campaign running. Pull your July numbers and make one data-driven decision: pause an underperformer, scale a winner, or adjust targeting. Document what changed and why.", pillar: "Analytics" },
+  { title: "Review Your First Month",                      desc: "Keep your campaign running. Pull last month's numbers and make one data-driven decision: pause an underperformer, scale a winner, or adjust targeting. Document what changed and why.", pillar: "Analytics" },
   { title: "A/B Test Your Headline",                       desc: "Run two identical ads with different headlines and let them run for at least 3 days. No other variables — just the headline. Document your hypothesis before you launch and your findings after.", pillar: "Creative" },
   { title: "A/B Test Your Audience",                       desc: "Run the same ad to two different audiences simultaneously. This could be two interest groups, a cold audience vs. a lookalike, or two age brackets. Note which wins and why — the pattern matters more than one result.", pillar: "Targeting" },
   { title: "Document Your Cost Per Result",                desc: "Pull your cost per click, cost per lead, or cost per purchase from this month\'s campaigns. Write it down. If you don\'t know your number, you can\'t improve it. Set a benchmark and define what \'good\' looks like for your offer.", pillar: "Budget" },
@@ -3615,7 +3619,19 @@ const WEEKLY_CHALLENGES = [
   { title: "Set Up Your Retargeting Audience",             desc: "Build a retargeting audience from people who have already engaged with your brand — website visitors, video viewers, Instagram profile visitors, or email list. You\'re not running ads to them yet — just building the audience so it\'s ready.", pillar: "Targeting" },
   { title: "Launch a Retargeting Campaign",                desc: "Take the retargeting audience you built last week and run an ad to it. Retargeting converts at a dramatically higher rate than cold traffic because these people already know you. Your ad should reflect that — skip the introduction and get to the offer.", pillar: "All" },
   { title: "Lower Your CPM — Optimize Placement or Audience", desc: "CPM (cost per 1,000 impressions) is one of the most controllable ad costs. Review yours and test one optimization: narrow your audience, exclude irrelevant segments, or test automatic vs. manual placements. Document what moved the needle.", pillar: "Budget" },
-  { title: "Final Push — Document One Measurable Win",     desc: "Complete any meaningful ad activity this week and document one measurable result from the last 90 days — a CTR improvement, a CPL decrease, a retargeting conversion, anything with a number attached. Finish the round with evidence of progress.", pillar: "All" },
+  { title: "Document One Measurable Win",                  desc: "Complete any meaningful ad activity this week and document one measurable result from the last 90 days — a CTR improvement, a CPL decrease, a retargeting conversion, anything with a number attached. Progress compounds when you track it.", pillar: "All" },
+  { title: "Test Your Ad Placement",                       desc: "Test automatic placements against manual placement selection (Feed, Stories, Reels, Search Network, Display). Placement performance varies by offer and audience — let three days of data tell you which converts, don't guess.", pillar: "Budget" },
+  { title: "Refresh Your Creative",                        desc: "Ad fatigue is real. Pull your frequency metric — if it's climbing past 3-4 without a matching lift in results, your audience has seen your ad too many times. Swap in a new creative variant this week and note the difference.", pillar: "Creative" },
+  { title: "Build a Lookalike Audience",                   desc: "Use your best-converting audience (purchasers, leads, or engaged visitors) as a seed to build a lookalike or similar audience. You don't need to launch to it yet — just build it so it's ready when you need fresh reach.", pillar: "Targeting" },
+  { title: "Test Your Offer, Not Just Your Ad",            desc: "Sometimes the ad isn't the problem, the offer is. Test a variation of your offer itself — price, bonus, guarantee, or urgency — while keeping the creative constant. Document which offer earns a better response.", pillar: "All" },
+  { title: "Audit Your Landing Experience",                desc: "Click through your own ad like a stranger would. Is the page fast? Does it match what the ad promised? Is the next step obvious? Fix one friction point this week — even a small one moves conversion.", pillar: "Analytics" },
+  { title: "Exclude What's Not Converting",                desc: "Review your audience and placement breakdown for anything spending without producing results. Exclude it. Protecting your budget from dead weight is as valuable as finding a new winner.", pillar: "Budget" },
+  { title: "Test a New Ad Format",                         desc: "If you've been running static image ads, test video or carousel. If you've been running video, test a UGC-style or testimonial format. Different formats earn attention differently — find out what your audience responds to.", pillar: "Creative" },
+  { title: "Layer In a Second Platform Signal",            desc: "If you're only running Meta, look at what a small Google Search test could add for high-intent terms. If you're only running Google, consider a small Meta retargeting layer. You don't need to switch — just test the gap.", pillar: "Targeting" },
+  { title: "Document Your Full-Funnel Numbers",            desc: "Pull cost per click, cost per lead, and cost per sale or booking side by side. Where's the biggest drop-off? That's where your next improvement should go — not necessarily in the ad itself.", pillar: "Analytics" },
+  { title: "Scale Your Winner",                            desc: "Identify your best-performing ad or audience this month and increase its budget by 20-30%, not more. Watch for 3-4 days to confirm performance holds before scaling further.", pillar: "Budget" },
+  { title: "Add a Testimonial or Proof Element",           desc: "Social proof outperforms claims. Add a real testimonial, review, result, or case study element to your ad creative or landing page this week and track whether it moves the needle.", pillar: "Creative" },
+  { title: "Audit Your Ad Account Health",                 desc: "Review your account for policy warnings, disapproved ads, or delivery issues that could be quietly limiting reach. A healthy account performs better across the board — clear any flags before scaling anything.", pillar: "All" },
 ];
 
 // AAC Pro launch flags — flip both to true at Pro launch// AAC Pro launch flags — flip both to true at Pro launch
@@ -4088,6 +4104,11 @@ initFirebase();
 // ==============================
 // AUTH STATE OBSERVER
 // ==============================
+// Login screen month badge — was hardcoded "July 2026", now tracks the
+// current AAC month automatically (same anchor as the internal week system).
+const _authBadgeEl = document.getElementById("auth-round-badge");
+if (_authBadgeEl) _authBadgeEl.textContent = _currentMonthLabel();
+
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     document.getElementById("app").classList.remove("visible");
@@ -4376,18 +4397,20 @@ function loadWeeklyChallenge() {
     ? TRIAL_CHALLENGES[trialIdx]
     : isPreTrial
       ? TRIAL_CHALLENGES[0]
-      : (WEEKLY_CHALLENGES[weekIdx] || WEEKLY_CHALLENGES[0]);
+      : WEEKLY_CHALLENGES[weekIdx % WEEKLY_CHALLENGES.length];
   const nextChallenge = isTrial
     ? (TRIAL_CHALLENGES[trialIdx + 1] || null)
     : isPreTrial
       ? TRIAL_CHALLENGES[1]
-      : (WEEKLY_CHALLENGES[weekIdx + 1] || null);
+      : WEEKLY_CHALLENGES[(weekIdx + 1) % WEEKLY_CHALLENGES.length];
   const nextText = nextChallenge ? `Next week: ${nextChallenge.title}` : "";
 
   // Trial badge prefix for title
   const trialPrefix = (isTrial || isPreTrial) ? `🗓 T${isTrial ? trialIdx + 1 : 1}: ` : "";
 
   // Populate all challenge UI elements
+  const eyebrowEl = document.getElementById("dash-challenge-eyebrow");
+  if (eyebrowEl) eyebrowEl.textContent = "This Week's Challenge";
   ["dash-challenge-title", "submit-challenge-label"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.textContent = id === "submit-challenge-label"
@@ -4400,6 +4423,44 @@ function loadWeeklyChallenge() {
   });
 
   // Populate next-week subtext
+  ["dash-next-challenge", "submit-next-challenge"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = nextText;
+  });
+}
+
+// Get-Started track override: for members who haven't yet submitted proof of
+// an active campaign, show the onboarding challenges (reuses WEEKLY_CHALLENGES
+// indices 0-2 — Ad Readiness Audit, Build Creative Set, Launch) keyed to their
+// own tenure, instead of whatever the global rolling week happens to land on.
+// Without this, a member joining mid-cycle could land straight on an A/B-test
+// challenge before they have a campaign live to test. Once they submit their
+// first real proof, this is a no-op and the normal global track (already
+// rendered by loadWeeklyChallenge) stands.
+function applyWeeklyChallengeForLaunchStatus(subs) {
+  if (!currentUser || currentUser.isAdmin) return;
+  const hasLaunched = (subs || []).some(s => !s.isTrial);
+  if (hasLaunched) return;
+
+  const joinIdx = typeof currentUser.joinWeekIdx === "number" ? currentUser.joinWeekIdx : getWeekIndex();
+  const relativeWeek = Math.max(0, Math.min(2, getWeekIndex() - joinIdx)); // 0, 1, then holds at 2 ("Launch") until proof is submitted
+  const challenge = WEEKLY_CHALLENGES[relativeWeek];
+  const nextChallenge = WEEKLY_CHALLENGES[relativeWeek + 1];
+  const nextText = relativeWeek < 2
+    ? `Next: ${nextChallenge.title}`
+    : "Submit proof of your active campaign to unlock the full Weekly Challenge rotation.";
+
+  const eyebrowEl = document.getElementById("dash-challenge-eyebrow");
+  if (eyebrowEl) eyebrowEl.textContent = "🚀 Get Started";
+
+  ["dash-challenge-title", "submit-challenge-label"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = id === "submit-challenge-label"
+      ? `${challenge.title} — ${challenge.desc}`
+      : challenge.title;
+  });
+  const descEl = document.getElementById("dash-challenge-desc");
+  if (descEl) descEl.textContent = challenge.desc;
   ["dash-next-challenge", "submit-next-challenge"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.textContent = nextText;
@@ -4494,11 +4555,15 @@ window.loadDashboard = async function() {
     // Access restriction check (1 missed week = warning, 2 consecutive = lockout)
     evaluateAccessStatus(subs);
 
+    // Get-started vs regular weekly challenge track, based on whether this
+    // member has ever submitted proof of an active campaign
+    applyWeeklyChallengeForLaunchStatus(subs);
+
     // Trial-to-paid conversion prompt (Stripe Path 2)
     evaluateTrialConversion();
     evaluateCancelPending();
 
-    // Legacy/grandfathered member renewal prompt (Aug 1 relaunch, pre-Stripe-fix)
+    // AAC August renewal prompt — members with no active August registration
     evaluateRenewalPrompt();
 
     // Day 4-6 heads-up for 7-day-trial Payment Link members (Aug 1 relaunch)
