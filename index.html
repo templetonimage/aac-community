@@ -2748,6 +2748,14 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div id="reset-points-status" style="display:none;margin-top:10px;font-size:13px;color:var(--text-muted);padding:8px;background:var(--surface2);border-radius:6px;"></div>
       </div>
 
+      <!-- ADMIN: Archive Month -->
+      <div id="admin-archive-month" style="display:none;margin-top:28px;">
+        <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;margin-bottom:4px;">📦 Archive Month</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Saves a permanent snapshot of this month's leaderboard and every member's monthly stats (submission points, community points, weeks submitted, All-Star status) to <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px;">aac_month_archives</code>. Non-destructive — nothing live is reset or changed, the monthly leaderboard keeps working exactly as it does now. Run near the end of each month for a historical record.</div>
+        <button class="btn btn-gold btn-sm" onclick="archiveMonth()">Archive Current Month</button>
+        <div id="archive-month-status" style="display:none;margin-top:10px;font-size:13px;color:var(--text-muted);padding:8px;background:var(--surface2);border-radius:6px;"></div>
+      </div>
+
       <!-- ADMIN: AAC Pro Management (hidden until _PRO_GLOBAL_ACTIVE = true) -->
       <div id="admin-pro-panel" style="display:none;margin-top:28px;">
         <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;margin-bottom:4px;">★ AAC Pro Management</div>
@@ -3265,7 +3273,7 @@ textarea.gs-input{ resize:vertical; }
     </div>
     <!-- Standard welcome (default) -->
     <div class="welcome-body" id="welcome-body-standard">
-      <h3>Welcome to AAC! 👋</h3>
+      <h3>Welcome to AAC — August! 🎉</h3>
       <div class="welcome-step"><span class="welcome-step-icon">📖</span><span>Read the Ad Fundamentals Playbook — AAC's 7-part guide to paid advertising</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">✅</span><span>Complete Your Ad Audit to prepare for weekly proof submissions</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">💬</span><span>Use the Community Feed — post wins, ask questions, and share what's working</span></div>
@@ -3314,14 +3322,13 @@ textarea.gs-input{ resize:vertical; }
 <div class="modal-overlay" id="renewal-modal-overlay" onclick="closeRenewalModalDirect(event)">
   <div class="modal-sheet">
     <div class="modal-header">
-      <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;">🚀 AAC is relaunching August 1</div>
+      <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;">🚀 Renew your AAC membership</div>
       <button class="modal-close" onclick="closeRenewalModal()">✕</button>
     </div>
     <div style="padding:4px 20px 24px;">
       <p style="font-size:14px;line-height:1.6;color:var(--text-muted);margin-bottom:16px;">
-        We're moving to a new membership structure starting August 1: $27/month, billed right away with no trial period. Your current access was set up under earlier terms, so you'll need to renew below to keep going.
+        AAC is now on a $27/month membership, billed right away with no trial period. Your current access was set up under earlier terms, so you'll need to renew below to keep going.
       </p>
-      <div id="renewal-countdown" style="display:flex;gap:8px;margin-bottom:16px;"></div>
 
       <div class="renewal-solo-tile">
         <div>
@@ -4179,7 +4186,7 @@ function bootApp() {
   if (_proNavBtn) _proNavBtn.style.display = userHasPro() ? "flex" : "none";
 
   // 5. Show/hide admin elements
-  const adminBoxes = ["admin-announce-box", "admin-resource-box", "admin-create-box", "admin-registry", "firebase-setup-card", "admin-export-csv-btn", "admin-bug-reports", "admin-reset-points", "admin-submissions-tool"];
+  const adminBoxes = ["admin-announce-box", "admin-resource-box", "admin-create-box", "admin-registry", "firebase-setup-card", "admin-export-csv-btn", "admin-bug-reports", "admin-reset-points", "admin-archive-month", "admin-submissions-tool"];
   adminBoxes.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = "none";
@@ -6061,60 +6068,32 @@ function evaluateCancelPending() {
 }
 
 // ==============================
-// Legacy renewal modal (Aug 1 relaunch)
-// Targets all subscriptionStatus "trial" members, regardless of addedAt.
-// Runs alongside (not instead of) the day-23 evaluateTrialConversion() banner.
-// Interim: posts to the AAC Website waitlist Formspree endpoint until the
-// platform's own Stripe renewal flow is built for the new 7-day/card terms.
+// Renewal modal (AAC August)
+// Targets subscriptionStatus "trial" members with no stripeSubscriptionId —
+// i.e. no active August registration. New 7-day-trial members (who do have
+// a stripeSubscriptionId) are excluded; Stripe handles their conversion.
+// Shared with showWelcomeModal() via needsAugustRenewal() so the two modals
+// never both fire for the same member.
 // ==============================
-// Renewal deadline: July 31, 2026 11:59:59 PM ET (EDT, UTC-4 in July) = Aug 1 2026 03:59:59 UTC
-const RENEWAL_DEADLINE_UTC = Date.UTC(2026, 7, 1, 3, 59, 59);
-let _renewalCountdownTimer = null;
-
-function renderRenewalCountdown() {
-  const el = document.getElementById("renewal-countdown");
-  if (!el) return;
-  const diff = RENEWAL_DEADLINE_UTC - Date.now();
-  if (diff <= 0) {
-    el.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">Renewal window has closed</div>';
-    if (_renewalCountdownTimer) { clearInterval(_renewalCountdownTimer); _renewalCountdownTimer = null; }
-    return;
-  }
-  const d = Math.floor(diff / 86400000);
-  const h = Math.floor((diff % 86400000) / 3600000);
-  const m = Math.floor((diff % 3600000) / 60000);
-  const s = Math.floor((diff % 60000) / 1000);
-  const seg = (val, label) => `<div style="flex:1;text-align:center;background:var(--cream,#f7f5f0);border:1px solid var(--border);border-radius:8px;padding:8px 4px;">
-    <div style="font-family:'Space Mono',monospace;font-weight:700;font-size:18px;line-height:1;">${String(val).padStart(2, "0")}</div>
-    <div style="font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:2px;">${label}</div>
-  </div>`;
-  el.innerHTML = seg(d, "Days") + seg(h, "Hrs") + seg(m, "Min") + seg(s, "Sec");
-}
-function startRenewalCountdown() {
-  renderRenewalCountdown();
-  if (_renewalCountdownTimer) clearInterval(_renewalCountdownTimer);
-  _renewalCountdownTimer = setInterval(renderRenewalCountdown, 1000);
-}
-function stopRenewalCountdown() {
-  if (_renewalCountdownTimer) { clearInterval(_renewalCountdownTimer); _renewalCountdownTimer = null; }
+function needsAugustRenewal(u) {
+  if (!u || u.isAdmin) return false;
+  if (u.subscriptionStatus !== "trial") return false;
+  if (u.stripeSubscriptionId) return false; // already on the new 7-day-trial Stripe subscription
+  return true;
 }
 
 function evaluateRenewalPrompt() {
-  if (!currentUser || currentUser.isAdmin) return;
-  if (currentUser.subscriptionStatus !== "trial") return;
-  if (currentUser.stripeSubscriptionId) return; // already on the new 7-day-trial Stripe subscription, not a legacy member needing to renew
+  if (!needsAugustRenewal(currentUser)) return;
   openRenewalModal();
 }
 
 function openRenewalModal() {
   const overlay = document.getElementById("renewal-modal-overlay");
   if (overlay) overlay.classList.add("open");
-  startRenewalCountdown();
 }
 function closeRenewalModal() {
   const overlay = document.getElementById("renewal-modal-overlay");
   if (overlay) overlay.classList.remove("open");
-  stopRenewalCountdown();
 }
 function closeRenewalModalDirect(e) {
   if (e.target === document.getElementById("renewal-modal-overlay")) closeRenewalModal();
@@ -7586,13 +7565,15 @@ service cloud.firestore {
 // WELCOME MODAL
 // ==============================
 function showWelcomeModal() {
-  const key = `wac_welcomed_${currentUser.uid}`;
+  if (!currentUser || currentUser.isAdmin) return;
+  if (needsAugustRenewal(currentUser)) return; // no August registration — renewal modal handles this instead
+  const key = `aac_welcomed_${currentUser.uid}`;
   if (localStorage.getItem(key)) return;
   document.getElementById("welcome-overlay").classList.add("open");
 }
 
 function closeWelcomeModal() {
-  const key = `wac_welcomed_${currentUser.uid}`;
+  const key = `aac_welcomed_${currentUser.uid}`;
   localStorage.setItem(key, "1");
   document.getElementById("welcome-overlay").classList.remove("open");
 }
@@ -8169,6 +8150,109 @@ window.resetAllPoints = async function() {
     showToast("Reset failed: " + e.message);
   }
 };
+
+// ==============================
+// ADMIN — ARCHIVE MONTH
+// Non-destructive snapshot of this month's leaderboard + per-member stats.
+// Mirrors WAC's archiveRound() pattern, but doesn't zero anything — AAC's
+// monthly leaderboard is already live-queried off submissions/community pts
+// (resets naturally on the 1st), so there's nothing live to reset here.
+// ==============================
+function _currentMonthKey() {
+  const monthOffset = Math.floor(getWeekIndex() / 4);
+  const { year, month } = _weekMonthInfo(monthOffset);
+  return `${year}-${String(month + 1).padStart(2, "0")}`;
+}
+function _currentMonthLabel() {
+  const monthOffset = Math.floor(getWeekIndex() / 4);
+  const { year, month } = _weekMonthInfo(monthOffset);
+  return new Date(Date.UTC(year, month, 1)).toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+}
+
+window.archiveMonth = async function() {
+  if (!currentUser || !currentUser.isAdmin) return;
+  const monthKey = _currentMonthKey();
+  const monthLabel = _currentMonthLabel();
+  const first = confirm(`Archive ${monthLabel}?\n\nThis saves a permanent snapshot of the leaderboard and every member's monthly stats. Nothing live is changed or reset — safe to run more than once.`);
+  if (!first) return;
+  const second = confirm("Confirm — save this snapshot?");
+  if (!second) return;
+
+  const statusEl = document.getElementById("archive-month-status");
+  statusEl.style.display = "block";
+  statusEl.textContent = "Archiving month...";
+
+  try {
+    let members = [];
+    const regSnap = await getDocs(collection(db, "aac_registry"));
+    regSnap.forEach(d => members.push(sanitizeMember({ id: d.id, ...d.data() })));
+    members = members.filter(m => m.subscriptionStatus !== "cancelled");
+
+    const monthWeekIdxs = getCurrentMonthWeekIdxs();
+    const monthStartTs = _weekRange(monthWeekIdxs[0])[0];
+    const [monthSubSnap, monthCommSnap] = await Promise.all([
+      getDocs(query(collection(db, "submissions"), where("timestamp", ">=", monthStartTs))),
+      getDocs(query(collection(db, "aac_community_pts"), where("ts", ">=", monthStartTs)))
+    ]);
+
+    const monthlyByUid = {};
+    monthSubSnap.forEach(d => {
+      const s = d.data();
+      if (s.isTrial) return;
+      const e = monthlyByUid[s.authorUid] || (monthlyByUid[s.authorUid] = { subPts: 0, commPts: 0, weeks: new Set() });
+      e.subPts += (s.pts || 0);
+      e.weeks.add(s.weekIdx);
+    });
+    monthCommSnap.forEach(d => {
+      const c = d.data();
+      const e = monthlyByUid[c.uid] || (monthlyByUid[c.uid] = { subPts: 0, commPts: 0, weeks: new Set() });
+      e.commPts += (c.pts || 0);
+    });
+
+    const currentWeekIdx = getWeekIndex();
+    const archived = members.map(m => {
+      const e = monthlyByUid[m.id] || { subPts: 0, commPts: 0, weeks: new Set() };
+      return {
+        uid: m.id,
+        name: m.name || "",
+        email: m.email || "",
+        submissionPts: e.subPts,
+        communityPts: e.commPts,
+        totalPts: e.subPts + e.commPts,
+        weeksSubmitted: e.weeks.size,
+        isAllStar: isAllStarBadgeActive(m, currentWeekIdx),
+      };
+    }).sort((a, b) => b.totalPts - a.totalPts);
+
+    const archivedAt = Date.now();
+    let count = 0;
+    for (const entry of archived) {
+      await setDoc(doc(db, "aac_month_archives", `${monthKey}_${entry.uid}`), {
+        ...entry, monthKey, archivedAt,
+      });
+      count++;
+    }
+
+    await setDoc(doc(db, "aac_month_archives", `${monthKey}_summary`), {
+      monthKey,
+      monthLabel,
+      archivedAt,
+      activeMemberCount: members.length,
+      totalSubmissions: monthSubSnap.docs.filter(d => !d.data().isTrial).length,
+      totalSubmissionPts: archived.reduce((a, e) => a + e.submissionPts, 0),
+      totalCommunityPts: archived.reduce((a, e) => a + e.communityPts, 0),
+      allStarCount: archived.filter(e => e.isAllStar).length,
+      leaderboard: archived.slice(0, 25).map(e => ({ uid: e.uid, name: e.name, totalPts: e.totalPts })),
+    });
+
+    statusEl.textContent = `Done — archived ${count} member(s) for ${monthLabel}.`;
+    showToast(`Month archived — ${count} member(s) recorded.`);
+  } catch (e) {
+    statusEl.textContent = `Error: ${e.message}`;
+    showToast("Archive failed: " + e.message);
+  }
+};
+
 window.seedDefaultResources = seedDefaultResources;
 
 // Clears stale url/linkLabel from resource cards that should have none
