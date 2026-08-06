@@ -1443,98 +1443,6 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .dash-trial-convert button { flex-shrink: 0; }
 
 /* ==============================
-   RENEWAL MODAL — SOLO TILE / DIVIDER / BUNDLE PANEL
-   ============================== */
-.renewal-solo-tile {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  background: var(--surface2);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  margin-bottom: 16px;
-}
-.renewal-solo-tile-name { font-weight: 700; font-size: 14px; }
-.renewal-solo-tile-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-.renewal-divider {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 4px 0 16px;
-  color: var(--text-muted);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-}
-.renewal-divider::before, .renewal-divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-.renewal-bundle-panel {
-  position: relative;
-  background: linear-gradient(to bottom, var(--accent-bg), var(--surface));
-  border: 2px solid var(--gold);
-  border-radius: calc(var(--radius) + 2px);
-  box-shadow: var(--shadow-lg);
-  padding: 22px 18px 18px;
-}
-.renewal-bundle-badge {
-  position: absolute;
-  top: -12px;
-  left: 16px;
-  background: var(--gold-dark);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  padding: 5px 12px;
-  border-radius: 20px;
-  box-shadow: 0 2px 6px rgba(23,20,15,.18);
-}
-.renewal-bundle-title {
-  font-family: 'Sora', sans-serif;
-  font-weight: 800;
-  font-size: 17px;
-  letter-spacing: -0.01em;
-  margin-bottom: 6px;
-}
-.renewal-bundle-copy {
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--text-muted);
-  margin-bottom: 14px;
-}
-.renewal-bundle-options { display: flex; flex-direction: column; gap: 10px; }
-.renewal-bundle-option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  background: var(--surface);
-  border: 1.5px solid var(--gold-light);
-  border-radius: var(--radius);
-  padding: 12px 14px;
-  text-decoration: none;
-  transition: border-color .15s ease, transform .15s ease;
-}
-.renewal-bundle-option:hover { border-color: var(--gold-dark); transform: translateY(-1px); }
-.renewal-bundle-option-name { font-weight: 700; font-size: 13px; color: var(--text); }
-.renewal-bundle-option-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
-.renewal-bundle-option-price {
-  font-family: 'Space Mono', monospace;
-  font-weight: 700;
-  font-size: 16px;
-  color: var(--gold-dark);
-  flex-shrink: 0;
-}
-.renewal-bundle-fine { font-size: 11px; color: var(--text-muted); margin-top: 12px; }
-
-/* ==============================
    SUBMIT PAGE
    ============================== */
 .format-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
@@ -3274,6 +3182,7 @@ textarea.gs-input{ resize:vertical; }
     <!-- Standard welcome (default) -->
     <div class="welcome-body" id="welcome-body-standard">
       <h3>Welcome to AAC — August! 🎉</h3>
+      <div class="welcome-step"><span class="welcome-step-icon">🚀</span><span>Start with the Get Started Guide — the full Weekly Challenge library unlocks once you launch a campaign and submit proof it's active</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">📖</span><span>Read the Ad Fundamentals Playbook — AAC's 7-part guide to paid advertising</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">✅</span><span>Complete Your Ad Audit to prepare for weekly proof submissions</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">💬</span><span>Use the Community Feed — post wins, ask questions, and share what's working</span></div>
@@ -3315,58 +3224,6 @@ textarea.gs-input{ resize:vertical; }
       <button class="modal-close" onclick="closeMemberModal()">✕</button>
     </div>
     <div id="member-modal-content"></div>
-  </div>
-</div>
-
-<!-- RENEWAL MODAL (Aug 1 relaunch, legacy trial members) -->
-<div class="modal-overlay" id="renewal-modal-overlay" onclick="closeRenewalModalDirect(event)">
-  <div class="modal-sheet">
-    <div class="modal-header">
-      <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;">🚀 Renew your AAC membership</div>
-      <button class="modal-close" onclick="closeRenewalModal()">✕</button>
-    </div>
-    <div style="padding:4px 20px 24px;">
-      <p style="font-size:14px;line-height:1.6;color:var(--text-muted);margin-bottom:16px;">
-        AAC is now on a $27/month membership, billed right away with no trial period. Your current access was set up under earlier terms, so you'll need to renew below to keep going.
-      </p>
-
-      <div class="renewal-solo-tile">
-        <div>
-          <div class="renewal-solo-tile-name">Continue AAC solo</div>
-          <div class="renewal-solo-tile-sub">$27/mo, cancel anytime</div>
-        </div>
-        <a href="https://buy.stripe.com/aFa9ATclZ7V53Pwbpfbo40f" target="_blank" rel="noopener" class="btn btn-gold btn-sm" style="text-decoration:none;">Renew — $27/mo</a>
-      </div>
-
-      <div class="renewal-divider">or</div>
-
-      <div class="renewal-bundle-panel">
-        <div class="renewal-bundle-badge">Best Value · Save $19</div>
-        <div class="renewal-bundle-title">Both challenges, one price</div>
-        <p class="renewal-bundle-copy">
-          Bundle AAC with a round of the <a href="https://joinwac.com" target="_blank" rel="noopener" style="color:var(--gold-dark);text-decoration:underline;">Website Accountability Challenge</a> and cover 3 months of AAC access plus a full WAC round for less than paying separately. Pick your WAC tier:
-        </p>
-        <div class="renewal-bundle-options">
-          <a href="https://buy.stripe.com/4gM9AT3Pt5MXdq6ctjbo40g" target="_blank" rel="noopener" class="renewal-bundle-option">
-            <div>
-              <div class="renewal-bundle-option-name">WAC Base + AAC (3 mo)</div>
-              <div class="renewal-bundle-option-sub">One-time payment · <em>Saves $19</em> vs. separately</div>
-            </div>
-            <div class="renewal-bundle-option-price">$117</div>
-          </a>
-          <a href="https://buy.stripe.com/14AfZhbhV1wH4TA9h7bo40h" target="_blank" rel="noopener" class="renewal-bundle-option">
-            <div>
-              <div class="renewal-bundle-option-name">WAC Pro + AAC (3 mo)</div>
-              <div class="renewal-bundle-option-sub">One-time payment · <em>Saves $19</em> vs. separately</div>
-            </div>
-            <div class="renewal-bundle-option-price">$137</div>
-          </a>
-        </div>
-        <p class="renewal-bundle-fine">AAC access runs 90 days from purchase, then rolls into the standard $27/mo membership automatically. Cancel anytime.</p>
-      </div>
-
-      <p style="font-size:11px;color:var(--text-muted);margin-top:14px;">Opens Stripe checkout in a new tab.</p>
-    </div>
   </div>
 </div>
 
@@ -4562,9 +4419,6 @@ window.loadDashboard = async function() {
     // Trial-to-paid conversion prompt (Stripe Path 2)
     evaluateTrialConversion();
     evaluateCancelPending();
-
-    // AAC August renewal prompt — members with no active August registration
-    evaluateRenewalPrompt();
 
     // Day 4-6 heads-up for 7-day-trial Payment Link members (Aug 1 relaunch)
     evaluateTrialEndingSoon();
@@ -6132,38 +5986,6 @@ function evaluateCancelPending() {
   el.style.display = "flex";
 }
 
-// ==============================
-// Renewal modal (AAC August)
-// Targets subscriptionStatus "trial" members with no stripeSubscriptionId —
-// i.e. no active August registration. New 7-day-trial members (who do have
-// a stripeSubscriptionId) are excluded; Stripe handles their conversion.
-// Shared with showWelcomeModal() via needsAugustRenewal() so the two modals
-// never both fire for the same member.
-// ==============================
-function needsAugustRenewal(u) {
-  if (!u || u.isAdmin) return false;
-  if (u.subscriptionStatus !== "trial") return false;
-  if (u.stripeSubscriptionId) return false; // already on the new 7-day-trial Stripe subscription
-  return true;
-}
-
-function evaluateRenewalPrompt() {
-  if (!needsAugustRenewal(currentUser)) return;
-  openRenewalModal();
-}
-
-function openRenewalModal() {
-  const overlay = document.getElementById("renewal-modal-overlay");
-  if (overlay) overlay.classList.add("open");
-}
-function closeRenewalModal() {
-  const overlay = document.getElementById("renewal-modal-overlay");
-  if (overlay) overlay.classList.remove("open");
-}
-function closeRenewalModalDirect(e) {
-  if (e.target === document.getElementById("renewal-modal-overlay")) closeRenewalModal();
-}
-
 window.startStripeCheckout = async function() {
   if (!currentUser || !currentUser.uid) return;
   const btn = document.getElementById("dash-trial-convert-btn");
@@ -7631,7 +7453,6 @@ service cloud.firestore {
 // ==============================
 function showWelcomeModal() {
   if (!currentUser || currentUser.isAdmin) return;
-  if (needsAugustRenewal(currentUser)) return; // no August registration — renewal modal handles this instead
   const key = `aac_welcomed_${currentUser.uid}`;
   if (localStorage.getItem(key)) return;
   document.getElementById("welcome-overlay").classList.add("open");
@@ -7955,9 +7776,6 @@ window.syncTrackerFromSubmissions = syncTrackerFromSubmissions;
 window.handleMemberCardClick = handleMemberCardClick;
 window.closeMemberModal = closeMemberModal;
 window.closeMemberModalDirect = closeMemberModalDirect;
-window.openRenewalModal = openRenewalModal;
-window.closeRenewalModal = closeRenewalModal;
-window.closeRenewalModalDirect = closeRenewalModalDirect;
 window.setRegistryStatus = setRegistryStatus;
 window.toggleRegistryFlag = toggleRegistryFlag;
 window.resetTrialClock = resetTrialClock;
