@@ -2409,7 +2409,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           <input type="url" id="submit-url" class="form-input" placeholder="https:// (optional — screenshot required if no URL)" />
         </div>
         <div class="form-group">
-          <label class="form-label">What did you do or what did you learn?</label>
+          <label class="form-label">What did you do or what did you learn? <span class="text-muted" style="font-weight:400;font-size:12px;">(optional)</span></label>
           <textarea id="submit-note" class="form-input" placeholder=""></textarea>
         </div>
         <div class="form-group" id="submit-format-group">
@@ -6090,13 +6090,11 @@ async function submitUpdate() {
   const weekIdx = getWeekIndex();
   const isEarlyWeeks = weekIdx < 2;
 
-  // Weeks 1-2 (global calendar week): URL/screenshot optional, note + challenge box required
+  // Weeks 1-2 (global calendar week): URL/screenshot optional, note is optional, challenge box required
   if (isEarlyWeeks) {
-    if (!note) { showToast("Please describe what you did."); return; }
     const challengeEl = document.getElementById("submit-challenge");
     if (!challengeEl || !challengeEl.checked) { showToast("Check the Weekly Challenge box to earn your +5 pts."); return; }
   } else {
-    if (!note) { showToast("A short description is required."); return; }
     if (!_screenshotData) { showToast("A campaign screenshot is required."); return; }
   }
 
