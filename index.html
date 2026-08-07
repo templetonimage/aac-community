@@ -9027,7 +9027,15 @@ const GS_SRC = {
   gConv:       { label: "Set up conversion tracking (Google)", url: "https://support.google.com/google-ads/answer/10995481" },
   gConvGoals:  { label: "Campaign conversion goals (Google)", url: "https://support.google.com/google-ads/answer/9143218" },
   gPolicy:     { label: "Google Ads policies (official)", url: "https://support.google.com/adspolicy/answer/6008942" },
-  g2026:       { label: "Google Ads structure guide (2026)", url: "https://leadsbridge.com/blog/google-ads-campaign-structure/" }
+  g2026:       { label: "Google Ads structure guide (2026)", url: "https://leadsbridge.com/blog/google-ads-campaign-structure/" },
+  liCM:        { label: "LinkedIn Campaign Manager (official)", url: "https://www.linkedin.com/campaignmanager" },
+  liBM:        { label: "Business Manager guide (LinkedIn)", url: "https://www.linkedin.com/help/lms/answer/a425666" },
+  liInsight:   { label: "Insight Tag setup (LinkedIn)", url: "https://www.linkedin.com/help/lms/answer/a418886" },
+  liCAPI:      { label: "Conversions API (LinkedIn)", url: "https://www.linkedin.com/help/lms/answer/a1657600" },
+  liObj:       { label: "Campaign objectives (LinkedIn)", url: "https://www.linkedin.com/help/lms/answer/a425721" },
+  liAudience:  { label: "Matched Audiences & targeting (LinkedIn)", url: "https://www.linkedin.com/help/lms/answer/a425678" },
+  liFormats:   { label: "Ad formats & specs (LinkedIn)", url: "https://www.linkedin.com/help/lms/answer/a425730" },
+  liPolicy:    { label: "LinkedIn Advertising Policies (official)", url: "https://www.linkedin.com/legal/ads-policy" }
 };
 
 const GS_PREP_STEPS = [
@@ -9075,7 +9083,7 @@ const GS_PREP_STEPS = [
     tip:"Heads up: if your ad account or tracking isn't at least In progress, fix that before you build the campaign. Launching without tracking means flying blind." }
 ];
 
-const GS_FORK_STEP = { id:"fork", group:"Choose Platform", icon:"🔀", title:"Pick Meta or Google", custom:"fork" };
+const GS_FORK_STEP = { id:"fork", group:"Choose Platform", icon:"🔀", title:"Pick Meta, Google or LinkedIn", custom:"fork" };
 
 const GS_META_STEPS = [
   { id:"m1", group:"Build · Meta", icon:"🏢", title:"Set up Business Manager, Page & ad account",
@@ -9209,10 +9217,80 @@ const GS_GOOGLE_STEPS = [
   { id:"g7", group:"Build · Google", icon:"🏁", title:"Submit your proof in AAC", custom:"submit" }
 ];
 
+const GS_LINKEDIN_STEPS = [
+  { id:"l1", group:"Build · LinkedIn", icon:"🏢", title:"Set up Business Manager & Campaign Manager account",
+    intro:"LinkedIn's Business Manager is the umbrella dashboard linking your Company Page, ad account, and permissions, so you're not sharing personal logins. Create or confirm a Business Manager profile, link your Company Page, and add or create a Campaign Manager ad account.",
+    sources:[GS_SRC.liBM, GS_SRC.liCM],
+    fields:[
+      { id:"l1_bm", label:"Business Manager profile name", ph:"e.g. Templeton Image LLC" },
+      { id:"l1_page", label:"LinkedIn Company Page running the ads", ph:"e.g. Templeton Image" },
+      { id:"l1_pay", label:"Payment method added?", type:"select", options:["Yes","Not yet"] }
+    ],
+    prompt:()=>`Walk me through confirming my LinkedIn ad foundation is ready: a Business Manager profile for "${_gsv("po_business","[business]")}", a linked Company Page (${_gsv("l1_page","[page]")}), a Campaign Manager ad account, and a payment method. Give me a quick verification checklist and common setup mistakes beginners make here.`,
+    tip:"Use Business Manager, not a personal Campaign Manager account tied only to you. It keeps asset access clean if you ever add a partner or agency." },
+
+  { id:"l2", group:"Build · LinkedIn", icon:"📡", title:"Set up the Insight Tag + Conversions API",
+    intro:"LinkedIn tracks conversions with two layers: the Insight Tag (a JS snippet on your site, tied to your Data Partner ID) and the Conversions API (server-to-server, using hashed email or the li_fat_id). Running both protects your attribution against ad blockers and cookie loss, LinkedIn automatically dedupes matching events.",
+    sources:[GS_SRC.liInsight, GS_SRC.liCAPI],
+    fields:[
+      { id:"l2_partnerid", label:"Data Partner ID / Insight Tag ID", ph:"Found under Analyze → Signals Manager → Insight Tag" },
+      { id:"l2_event", label:"Conversion action to track", ph:"e.g. Lead form submit, Demo booked, Purchase" }
+    ],
+    prompt:()=>`My campaign goal is ${_gsv("po_goal","[goal]")} and my conversion action is "${_gsv("l2_event","[event]")}". Walk me through installing the LinkedIn Insight Tag on my site and, if I want stronger attribution, setting up the Conversions API. How do I verify the tag is firing and understand LinkedIn's deduplication between the two?`,
+    tip:"No CRM or dev help for CAPI yet? The Insight Tag alone is enough to launch. Add CAPI once you have more volume." },
+
+  { id:"l3", group:"Build · LinkedIn", icon:"🎯", title:"Choose your objective & set budget",
+    intro:"Pick the objective that matches your goal: Lead Generation for native in-feed forms, Website Conversions for on-site actions, or Brand Awareness for upper-funnel reach. Heads up: LinkedIn requires a $10/day minimum budget per campaign, higher than AAC's usual $1/day floor.",
+    sources:[GS_SRC.liObj, GS_SRC.liCM],
+    fields:[
+      { id:"l3_objective", label:"Campaign objective", type:"select", options:["Lead Generation","Website Conversions","Brand Awareness / Engagement"] },
+      { id:"l3_budget", label:"Daily budget (USD)", ph:"e.g. 10  (LinkedIn's platform minimum is $10/day)" },
+      { id:"l3_bid", label:"Bidding strategy", type:"select", options:["Maximum Volume (automated)","Cost Cap / Target Cost","Manual CPC"] }
+    ],
+    prompt:()=>`I'm creating a LinkedIn campaign for ${_gsv("po_goal","[goal]")} with offer "${_gsv("po_offer","[offer]")}". I'm considering the ${_gsv("l3_objective","[objective]")} objective at $${_gsv("l3_budget","[budget]")}/day using ${_gsv("l3_bid","[bid]")}. Is that the right combination for my goal, and how should I expect costs to compare to Meta or Google?`,
+    tip:"LinkedIn's $10/day floor is per campaign, not per account. That's the real number to hit weekly for your AAC proof, not $1." },
+
+  { id:"l4", group:"Build · LinkedIn", icon:"🧭", title:"Build your audience",
+    intro:"LinkedIn's edge is deterministic professional data. Layer firmographics (industry, company size) with demographics (job title, function, seniority), then overlay Matched Audiences (uploaded contact lists or site retargeting via the Insight Tag) if you have them.",
+    sources:[GS_SRC.liAudience],
+    fields:[
+      { id:"l4_seniority", label:"Target seniority", type:"select", options:["Individual Contributor","Manager","Director","VP","C-Suite"] },
+      { id:"l4_firmo", label:"Company size / industry", ph:"e.g. SMB <200 employees, marketing agencies" },
+      { id:"l4_matched", label:"Matched Audience source (optional)", ph:"e.g. website retargeting, uploaded contact list" }
+    ],
+    prompt:()=>`Suggest a starting LinkedIn audience. Offer: ${_gsv("po_offer","[offer]")}. Target seniority: ${_gsv("l4_seniority","[seniority]")}. Firmographics: ${_gsv("l4_firmo","[firmo]")}. Give me the specific targeting fields to fill in, and flag if this seniority level is likely to push CPC/CPL significantly higher.`,
+    tip:"C-suite targeting costs roughly 4-5x more per click than individual contributors. Go narrower on seniority only if the deal size justifies it." },
+
+  { id:"l5", group:"Build · LinkedIn", icon:"✍️", title:"Write your ad creative",
+    intro:"Pick a format: Single Image (broad reach), Document Ads (PDF/deck previews, strong for B2B leads), or Thought Leader Ads (sponsoring a personal post, needs creator approval first). Native Lead Gen Forms convert far better than sending clicks to an external page.",
+    sources:[GS_SRC.liFormats],
+    fields:[
+      { id:"l5_format", label:"Format", type:"select", options:["Single image","Document ad","Thought Leader ad","Video"] },
+      { id:"l5_leadform", label:"Destination", type:"select", options:["Native Lead Gen Form (recommended)","External landing page"] },
+      { id:"l5_primary", label:"Primary text (≤150 characters)", type:"textarea", ph:"The main body copy of your ad" },
+      { id:"l5_headline", label:"Headline (≤70 characters)", ph:"Short, direct" },
+      { id:"l5_link", label:"Destination URL (if external)", ph:"Where the click goes" }
+    ],
+    prompt:()=>`Act as a B2B direct-response copywriter. Write 3 LinkedIn ad variations for this offer: ${_gsv("po_offer","[offer]")}. Audience: ${_gsv("po_audience","[audience]")}. Format: ${_gsv("l5_format","[format]")}. Destination: ${_gsv("l5_leadform","[destination]")}. For each: primary text under 150 characters, a headline under 70 characters, and whether a native Lead Gen Form or external page fits better. Keep it professional, no personal-attribute targeting language.`,
+    tip:"If using a native Lead Gen Form, add 1-2 screening questions and require a business email. Otherwise you'll get a lot of personal Gmail addresses." },
+
+  { id:"l6", group:"Build · LinkedIn", icon:"🛡️", title:"Policy check & publish",
+    intro:"Check your copy and destination against LinkedIn's Advertising Policies before publishing, no earnings guarantees, no inappropriate personal-attribute claims, and the landing page must match the offer in the ad. Most ads clear review in about 24 hours.",
+    sources:[GS_SRC.liPolicy],
+    fields:[
+      { id:"l6_policy", label:"Policy self-review done?", type:"select", options:["Reviewed","Not yet"] }
+    ],
+    prompt:()=>`Review my LinkedIn ad against common policy pitfalls (unsubstantiated claims, personal-attribute targeting, mismatched destination). Primary text: "${_gsv("l5_primary","[text]")}". Headline: "${_gsv("l5_headline","[headline]")}". Flag anything risky and suggest compliant rewrites.`,
+    tip:"Editing your ad while it's in review resets the review clock. Let it finish before touching it again." },
+
+  { id:"l7", group:"Build · LinkedIn", icon:"🏁", title:"Submit your proof in AAC", custom:"submit" }
+];
+
 function gsStepsFor(b) {
   const arr = [...GS_PREP_STEPS, GS_FORK_STEP];
   if (b && b.platform === "meta") arr.push(...GS_META_STEPS);
   else if (b && b.platform === "google") arr.push(...GS_GOOGLE_STEPS);
+  else if (b && b.platform === "linkedin") arr.push(...GS_LINKEDIN_STEPS);
   return arr;
 }
 function gsSteps() { return gsStepsFor(_gsBrief); }
@@ -9455,7 +9533,7 @@ function gsToggleRail() { _gsRailOpen = !_gsRailOpen; const r = document.getElem
 function gsSetPlatform(p) {
   if (!_gsBrief) return;
   _gsBrief.platform = p;
-  const first = p === "meta" ? GS_META_STEPS[0].id : GS_GOOGLE_STEPS[0].id;
+  const first = p === "meta" ? GS_META_STEPS[0].id : p === "google" ? GS_GOOGLE_STEPS[0].id : GS_LINKEDIN_STEPS[0].id;
   _gsStepId = first;
   gsSaveDebounced(); gsSyncRegistrySummary(); gsRenderAll(); gsScrollTop();
 }
@@ -9482,7 +9560,7 @@ function gsRenderStart() {
       const steps = gsStepsFor(b); const total = steps.length;
       const done = Object.values(b.done || {}).filter(Boolean).length;
       const pct = total ? Math.round(done / total * 100) : 0;
-      const plat = b.platform === "meta" ? "Meta" : b.platform === "google" ? "Google" : "no platform yet";
+      const plat = b.platform === "meta" ? "Meta" : b.platform === "google" ? "Google" : b.platform === "linkedin" ? "LinkedIn" : "no platform yet";
       return `<button class="gs-start-brief" onclick="gsOpenBrief('${b.id}')"><div><div class="gs-start-brief-name">${esc(b.name || "Untitled")}</div><div class="gs-start-brief-meta">${esc(plat)} · ${pct}% complete</div></div><span>→</span></button>`;
     }).join("");
   }
@@ -9523,7 +9601,7 @@ function gsRenderRail() {
     html += `<button class="gs-rail-item${cur ? " cur" : ""}${done ? " done" : ""}" onclick="gsGoToStep('${s.id}')">
       <span class="gs-rail-check">${done ? "✓" : (s.icon || "•")}</span><span class="gs-rail-label">${esc(s.title)}</span></button>`;
   });
-  if (!(_gsBrief && _gsBrief.platform)) html += `<div class="gs-rail-hint">Pick Meta or Google to unlock the build steps.</div>`;
+  if (!(_gsBrief && _gsBrief.platform)) html += `<div class="gs-rail-hint">Pick Meta, Google or LinkedIn to unlock the build steps.</div>`;
   rail.innerHTML = html;
   rail.classList.toggle("open", _gsRailOpen);
 }
@@ -9590,7 +9668,7 @@ function gsStepHTML(step) {
 
 function gsForkHTML(step) {
   const p = _gsBrief.platform;
-  return `<div class="gs-step-group">Choose Platform</div><h2 class="gs-step-title">🔀 Pick Meta or Google</h2>
+  return `<div class="gs-step-group">Choose Platform</div><h2 class="gs-step-title">🔀 Pick Meta, Google or LinkedIn</h2>
   <div class="gs-intro">Prep is done. Now choose where you'll launch your first campaign. You can switch later by coming back to this step.</div>
   <div class="gs-fork">
     <button class="gs-fork-card${p === "meta" ? " sel" : ""}" onclick="gsSetPlatform('meta')">
@@ -9599,15 +9677,20 @@ function gsForkHTML(step) {
     <button class="gs-fork-card${p === "google" ? " sel" : ""}" onclick="gsSetPlatform('google')">
       <div class="gs-fork-emoji">🔍</div><div class="gs-fork-name">Google — Search</div>
       <div class="gs-fork-desc">Best for capturing demand from people already searching for exactly what you offer. High intent, fast to tie to revenue.</div></button>
+    <button class="gs-fork-card${p === "linkedin" ? " sel" : ""}" onclick="gsSetPlatform('linkedin')">
+      <div class="gs-fork-emoji">💼</div><div class="gs-fork-name">LinkedIn — B2B</div>
+      <div class="gs-fork-desc">Best for reaching decision-makers by job title, industry, and seniority. Higher cost per click, strongest for B2B offers. $10/day platform minimum.</div></button>
   </div>
-  <div class="gs-tip">💡 Not sure? Open the "Facebook vs. Google" guide on the Resources page. Quick rule: if people already search for your offer, start with Google; if you need to create awareness, start with Meta.</div>
+  <div class="gs-tip">💡 Not sure? Open the platform comparison guides on the Resources page. Quick rule: search intent → Google, visual demand-gen → Meta, B2B decision-makers → LinkedIn.</div>
   ${gsStepFooterHTML(step, false)}`;
 }
 
 function gsSubmitHTML(step) {
-  const platName = _gsBrief.platform === "google" ? "Google Ads" : "Ads Manager";
+  const plat = _gsBrief.platform;
+  const platName = plat === "google" ? "Google Ads" : plat === "linkedin" ? "Campaign Manager" : "Ads Manager";
+  const minSpend = plat === "linkedin" ? "$10/day minimum (LinkedIn's platform floor)" : "$1/day minimum";
   return `<div class="gs-step-group">${esc(step.group)}</div><h2 class="gs-step-title">🏁 ${esc(step.title)}</h2>
-  <div class="gs-intro">Your campaign is live — now lock in your AAC proof. Screenshot your active campaign in ${esc(platName)} showing it's spending, then submit it. Keep at least one campaign running at the $1/day minimum every single week.</div>
+  <div class="gs-intro">Your campaign is live — now lock in your AAC proof. Screenshot your active campaign in ${esc(platName)} showing it's spending, then submit it. Keep at least one campaign running at the ${esc(minSpend)} every single week.</div>
   <button class="gs-launch-btn" onclick="navTo('submit')">📸 Go to Submit Proof →</button>
   <div class="gs-tip">💡 First 48 hours: don't panic-edit. Let delivery exit the learning phase before you judge results. Note your early numbers and bring questions to the Feed or a Coworking session.</div>
   ${gsNotesHTML(step)}
@@ -9624,7 +9707,7 @@ function gsRenderBriefsList() {
     const steps = gsStepsFor(b); const total = steps.length;
     const done = Object.values(b.done || {}).filter(Boolean).length;
     const pct = total ? Math.round(done / total * 100) : 0;
-    const plat = b.platform === "meta" ? "Meta" : b.platform === "google" ? "Google" : "no platform";
+    const plat = b.platform === "meta" ? "Meta" : b.platform === "google" ? "Google" : b.platform === "linkedin" ? "LinkedIn" : "no platform";
     const active = b.id === _gsBriefId;
     const when = b.updatedAt ? timeAgo(b.updatedAt) : "";
     return `<div class="gs-brief-row${active ? " active" : ""}">
@@ -9657,7 +9740,7 @@ function gsDownloadBrief(id) {
 }
 function gsBuildMarkdown(b) {
   const steps = gsStepsFor(b); const v = b.values || {}, notes = b.notes || {}, done = b.done || {};
-  const plat = b.platform === "meta" ? "Meta" : b.platform === "google" ? "Google" : "Not chosen yet";
+  const plat = b.platform === "meta" ? "Meta" : b.platform === "google" ? "Google" : b.platform === "linkedin" ? "LinkedIn" : "Not chosen yet";
   let md = `# Campaign Brief — ${b.name || "Untitled"}\n\n- Platform: ${plat}\n- Generated: ${new Date().toLocaleString()}\n\n`;
   steps.forEach(s => {
     if (s.custom === "fork") return;
