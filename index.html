@@ -2803,6 +2803,32 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div class="page-title">Profile</div>
       </div>
       <div id="profile-hero" class="profile-hero"></div>
+      <!-- Lifetime Stats (all-time totals, never reset — monthly resets happen on the Dashboard) -->
+      <div class="card" id="profile-lifetime-card">
+        <div class="card-title">Lifetime Stats</div>
+        <div class="dash-stats-grid" id="profile-lifetime-stats">
+          <div class="dash-stat-card highlight">
+            <span class="dash-stat-icon">⚡</span>
+            <div class="dash-stat-value" id="life-val-total">0</div>
+            <div class="dash-stat-label">Total Points</div>
+          </div>
+          <div class="dash-stat-card">
+            <span class="dash-stat-icon">🌐</span>
+            <div class="dash-stat-value" id="life-val-posts">0</div>
+            <div class="dash-stat-label">Submission Points</div>
+          </div>
+          <div class="dash-stat-card">
+            <span class="dash-stat-icon">📅</span>
+            <div class="dash-stat-value" id="life-val-count">0</div>
+            <div class="dash-stat-label">Submissions Made</div>
+          </div>
+          <div class="dash-stat-card">
+            <span class="dash-stat-icon">🏅</span>
+            <div class="dash-stat-value" id="life-val-community">0</div>
+            <div class="dash-stat-label">Community Pts</div>
+          </div>
+        </div>
+      </div>
       <!-- Push notifications card -->
       <div class="push-notif-card" id="push-notif-card">
         <div style="font-size:24px;">🔔</div>
@@ -4467,9 +4493,17 @@ window.loadDashboard = async function() {
       .sort((a, b) => (b.points || 0) - (a.points || 0))
       .slice(0, 10);
 
-    const communityPts = Math.max(0, totalPts - postPts);
+    // Dashboard stat cards show THIS MONTH's points only (resets each month).
+    // Lifetime totals (totalPts/postPts/engPts computed above) live on the Profile page instead.
+    const myMonthPostPts = monthSubSnap.docs
+      .filter(d => d.data().authorUid === uid && !d.data().isTrial)
+      .reduce((a, d) => a + (d.data().pts || 0), 0);
+    const myMonthCommPts = monthCommSnap.docs
+      .filter(d => d.data().uid === uid)
+      .reduce((a, d) => a + (d.data().pts || 0), 0);
+    const myMonthTotal = myMonthPostPts + myMonthCommPts;
 
-    _renderDashboard({total:totalPts, postPts, engPts, communityPts, trackerPostCount, weekSubmitted, trackerThisWeek, trackerDots, leaderboard:lbMembers, myUid:uid});
+    _renderDashboard({total:myMonthTotal, postPts:myMonthPostPts, engPts, communityPts:myMonthCommPts, trackerPostCount, weekSubmitted, trackerThisWeek, trackerDots, leaderboard:lbMembers, myUid:uid});
 
   } catch(e) {
     console.error('Dashboard load error:', e);
@@ -7086,6 +7120,37 @@ function loadProfile() {
   document.getElementById("prof-ig").value = currentUser.ig || "";
   document.getElementById("prof-website").value = currentUser.website || "";
   renderBillingCard();
+  loadLifetimeStats();
+}
+
+// Lifetime Stats (Profile page only) — all-time totals that never reset.
+// Mirrors the same math the Dashboard used to show before its cards became
+// monthly-scoped: totalPts = registry's cumulative points field, postPts =
+// sum of pts across ALL submissions ever, communityPts = total - postPts.
+async function loadLifetimeStats() {
+  const el = document.getElementById("profile-lifetime-card");
+  if (!el) return;
+  if (currentUser.isAdmin) { el.style.display = "none"; return; }
+  if (!db || useLocalFallback || !currentUser?.uid) { el.style.display = "none"; return; }
+  try {
+    const {getDocs, collection:col, query:q, where} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const uid = currentUser.uid;
+    const [subSnap, commSnap] = await Promise.all([
+      getDocs(q(col(db, "submissions"), where("authorUid", "==", uid))),
+      getDocs(q(col(db, "aac_community_pts"), where("uid", "==", uid)))
+    ]);
+    const subs = subSnap.docs.map(d => d.data());
+    const postPts = subs.reduce((a, s) => a + (s.pts || 0), 0);
+    const submissionCount = subs.filter(s => !s.isTrial).length;
+    const communityPts = commSnap.docs.reduce((a, d) => a + (d.data().pts || 0), 0);
+    const totalPts = currentUser.points || 0;
+
+    document.getElementById("life-val-total").textContent = totalPts;
+    document.getElementById("life-val-posts").textContent = postPts;
+    document.getElementById("life-val-count").textContent = submissionCount;
+    document.getElementById("life-val-community").textContent = communityPts;
+    el.style.display = "block";
+  } catch (e) { console.warn("loadLifetimeStats:", e); el.style.display = "none"; }
 }
 
 // Shows the "Manage Membership" card only for members with a Stripe customer
@@ -9782,6 +9847,7 @@ window.gsDownloadActive = gsDownloadActive;
 async function loadCoworkCard() {
   const card = document.getElementById("cowork-card");
   if (!card) return;
+  card.style.display = "none"; return; // Coworking/Zoom card hidden for all users (Aug 2026)
   try {
     const q    = query(collection(db, "aac_coworking_sessions"), where("active","==",true), orderBy("createdAt","desc"), limit(1));
     const snap = await getDocs(q);
