@@ -2651,6 +2651,44 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         <div id="admin-cowork-list"></div>
       </div>
 
+      <!-- ADMIN: Renewal Modal -->
+      <div id="admin-renewal-panel" style="display:none;margin-top:28px;">
+        <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;margin-bottom:4px;">🔁 Renewal Modal</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Pop-up shown to non-admin members prompting them to renew. Edit the copy and Stripe link below, no code changes needed. Saving resurfaces it even for members who already dismissed the current version.</div>
+        <div class="card" id="renewal-enabled-card" style="border:1.5px solid var(--border);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div>
+            <div style="font-weight:700;font-size:13px;">Show pop-up to members</div>
+            <div id="renewal-enabled-status" style="font-size:12px;color:var(--text-muted);margin-top:2px;">Loading...</div>
+          </div>
+          <button class="btn btn-sm" id="renewal-enabled-btn" onclick="adminToggleRenewalEnabled()">...</button>
+        </div>
+        <div class="card" style="border:1.5px solid var(--border);">
+          <div class="form-group">
+            <label class="form-label">Title</label>
+            <input type="text" id="renewal-title-input" class="form-input" placeholder="e.g. Renew for September 2026" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Body (one point per line)</label>
+            <textarea id="renewal-body-input" class="form-input" rows="4" placeholder="September's cycle is open — renew now to keep your access active."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Button Text</label>
+            <input type="text" id="renewal-btn-input" class="form-input" placeholder="e.g. Renew for September — $27/mo" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Dismiss Link Text</label>
+            <input type="text" id="renewal-dismiss-input" class="form-input" placeholder="e.g. Remind me later" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Stripe Payment Link</label>
+            <input type="url" id="renewal-stripe-input" class="form-input" placeholder="https://buy.stripe.com/..." />
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="saveRenewalModalConfig()">Save Changes</button>
+          <div id="renewal-version-note" style="font-size:11px;color:var(--text-muted);margin-top:10px;"></div>
+          <div id="renewal-save-status" style="display:none;margin-top:10px;font-size:13px;color:var(--text-muted);padding:8px;background:var(--surface2);border-radius:6px;"></div>
+        </div>
+      </div>
+
       <!-- ADMIN: Reset Points Tool -->
       <div id="admin-reset-points" style="display:none;margin-top:28px;">
         <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;margin-bottom:4px;">🔄 Reset Member Points</div>
@@ -3214,7 +3252,7 @@ textarea.gs-input{ resize:vertical; }
     </div>
     <!-- Standard welcome (default) -->
     <div class="welcome-body" id="welcome-body-standard">
-      <h3>Welcome to AAC — August! 🎉</h3>
+      <h3>Welcome to AAC — September! 🎉</h3>
       <div class="welcome-step"><span class="welcome-step-icon">🚀</span><span>Start with the Get Started Guide — the full Weekly Challenge library unlocks once you launch a campaign and submit proof it's active</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">📖</span><span>Read the Ad Fundamentals Playbook — AAC's 7-part guide to paid advertising</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">✅</span><span>Complete Your Ad Audit to prepare for weekly proof submissions</span></div>
@@ -3225,6 +3263,24 @@ textarea.gs-input{ resize:vertical; }
     <div class="welcome-footer">
       <button class="btn btn-gold btn-block" onclick="closeWelcomeModal()">Let's Go! 🚀</button>
       <button class="welcome-dismiss" onclick="closeWelcomeModal()">Don't show this again</button>
+    </div>
+  </div>
+</div>
+
+<!-- RENEWAL MODAL (admin-configurable via Members > Admin Tools > Renewal Modal) -->
+<div class="welcome-overlay" id="renewal-overlay">
+  <div class="welcome-modal">
+    <div class="welcome-header">
+      <div class="welcome-logo">AAC</div>
+      <div style="font-size:13px;letter-spacing:0.12em;text-transform:uppercase;opacity:0.85;">Ad Accountability Challenge</div>
+    </div>
+    <div class="welcome-body">
+      <h3 id="renewal-title">Renew for September 2026 🔁</h3>
+      <div id="renewal-steps"></div>
+    </div>
+    <div class="welcome-footer">
+      <button class="btn btn-gold btn-block" id="renewal-cta-btn">Renew Now</button>
+      <button class="welcome-dismiss" id="renewal-dismiss-btn">Remind me later</button>
     </div>
   </div>
 </div>
@@ -4117,6 +4173,9 @@ function bootApp() {
     // Submissions & Points Editor always visible to admin
     const _subsTool = document.getElementById("admin-submissions-tool");
     if (_subsTool) _subsTool.style.display = "block";
+    // Renewal Modal admin panel always visible to admin
+    const _renewalPanel = document.getElementById("admin-renewal-panel");
+    if (_renewalPanel) { _renewalPanel.style.display = "block"; loadAdminRenewalPanel(); }
     // Expert Review Request feature disabled pending build — webhook config panel stays hidden
     // Community Points Log + Backfill + Coworking panels
     ["admin-community-pts-panel","admin-backfill-pts-panel","admin-cowork-panel"].forEach(id => {
@@ -4134,6 +4193,8 @@ function bootApp() {
     if (_clearFeedTool) _clearFeedTool.style.display = "none";
     const _subsTool = document.getElementById("admin-submissions-tool");
     if (_subsTool) _subsTool.style.display = "none";
+    const _renewalPanel = document.getElementById("admin-renewal-panel");
+    if (_renewalPanel) _renewalPanel.style.display = "none";
     const _expertWebhook = document.getElementById("admin-expert-webhook");
     if (_expertWebhook) _expertWebhook.style.display = "none";
   }
@@ -4165,6 +4226,7 @@ function bootApp() {
 
   // 8. Delayed features
   setTimeout(showWelcomeModal, 600);
+  setTimeout(() => { if (!document.getElementById("welcome-overlay").classList.contains("open")) evaluateRenewalPrompt(); }, 1400);
   setTimeout(initPushNotifications, 1000);
   setTimeout(checkProNotifications, 2000);
 
@@ -7533,6 +7595,131 @@ function closeWelcomeModal() {
   const key = `aac_welcomed_${currentUser.uid}`;
   localStorage.setItem(key, "1");
   document.getElementById("welcome-overlay").classList.remove("open");
+  setTimeout(evaluateRenewalPrompt, 300);
+}
+
+// ==============================
+// RENEWAL MODAL (admin-configurable — Members > Admin Tools > Renewal Modal)
+// ==============================
+const DEFAULT_RENEWAL_CONFIG = {
+  enabled: true,
+  title: "Renew for September 2026 🔁",
+  bodyLines: [
+    "September's cycle is open — renew now to keep your streak, leaderboard spot, and platform access active without interruption.",
+    "This renews your AAC membership access, not your ad campaign — keep that running separately."
+  ],
+  buttonText: "Renew for September — $27/mo",
+  dismissText: "Remind me later",
+  stripeUrl: "https://buy.stripe.com/aFa9ATclZ7V53Pwbpfbo40f",
+  version: 1
+};
+
+let _renewalModalConfig = null;
+
+async function loadRenewalModalConfig(forceRefresh) {
+  if (_renewalModalConfig && !forceRefresh) return _renewalModalConfig;
+  try {
+    const snap = await getDoc(doc(db, "aac_settings", "renewalModal"));
+    _renewalModalConfig = snap.exists() ? { ...DEFAULT_RENEWAL_CONFIG, ...snap.data() } : { ...DEFAULT_RENEWAL_CONFIG };
+  } catch (e) {
+    console.error("loadRenewalModalConfig:", e);
+    _renewalModalConfig = { ...DEFAULT_RENEWAL_CONFIG };
+  }
+  return _renewalModalConfig;
+}
+
+async function evaluateRenewalPrompt() {
+  if (!currentUser || currentUser.isAdmin) return;
+  const cfg = await loadRenewalModalConfig();
+  if (!cfg.enabled) return;
+  const key = `aac_renewal_dismissed_${currentUser.uid}_v${cfg.version || 1}`;
+  if (localStorage.getItem(key)) return;
+  openRenewalModal(cfg);
+}
+
+function openRenewalModal(cfg) {
+  const titleEl = document.getElementById("renewal-title");
+  const stepsEl = document.getElementById("renewal-steps");
+  const ctaBtn  = document.getElementById("renewal-cta-btn");
+  const dismissBtn = document.getElementById("renewal-dismiss-btn");
+  if (!titleEl || !stepsEl || !ctaBtn || !dismissBtn) return;
+  titleEl.textContent = cfg.title || DEFAULT_RENEWAL_CONFIG.title;
+  const lines = (cfg.bodyLines && cfg.bodyLines.length) ? cfg.bodyLines : DEFAULT_RENEWAL_CONFIG.bodyLines;
+  stepsEl.innerHTML = lines.filter(l => l && l.trim())
+    .map(line => `<div class="welcome-step"><span class="welcome-step-icon">🔁</span><span>${esc(line)}</span></div>`)
+    .join("");
+  ctaBtn.textContent = cfg.buttonText || DEFAULT_RENEWAL_CONFIG.buttonText;
+  ctaBtn.onclick = () => { window.open(cfg.stripeUrl || DEFAULT_RENEWAL_CONFIG.stripeUrl, "_blank", "noopener"); closeRenewalModal(cfg); };
+  dismissBtn.textContent = cfg.dismissText || DEFAULT_RENEWAL_CONFIG.dismissText;
+  dismissBtn.onclick = () => closeRenewalModal(cfg);
+  document.getElementById("renewal-overlay").classList.add("open");
+}
+
+function closeRenewalModal(cfg) {
+  if (currentUser) {
+    const version = (cfg && cfg.version) || 1;
+    localStorage.setItem(`aac_renewal_dismissed_${currentUser.uid}_v${version}`, "1");
+  }
+  document.getElementById("renewal-overlay").classList.remove("open");
+}
+
+// ---- Admin controls for the renewal modal ----
+async function loadAdminRenewalPanel() {
+  const cfg = await loadRenewalModalConfig(true);
+  const enabledBtn = document.getElementById("renewal-enabled-btn");
+  const statusEl   = document.getElementById("renewal-enabled-status");
+  if (enabledBtn && statusEl) {
+    statusEl.textContent = cfg.enabled ? "Enabled — showing to non-admin members." : "Disabled — hidden from all members.";
+    enabledBtn.textContent = cfg.enabled ? "Disable Pop-up" : "Enable Pop-up";
+    enabledBtn.className = cfg.enabled ? "btn btn-sm" : "btn btn-gold btn-sm";
+    enabledBtn.style.cssText = cfg.enabled ? "background:var(--danger);color:#fff;border-color:var(--danger);" : "";
+  }
+  const titleInput   = document.getElementById("renewal-title-input");
+  const bodyInput    = document.getElementById("renewal-body-input");
+  const btnInput     = document.getElementById("renewal-btn-input");
+  const dismissInput = document.getElementById("renewal-dismiss-input");
+  const stripeInput  = document.getElementById("renewal-stripe-input");
+  const versionNote  = document.getElementById("renewal-version-note");
+  if (titleInput)   titleInput.value   = cfg.title || "";
+  if (bodyInput)    bodyInput.value    = (cfg.bodyLines || []).join("\n");
+  if (btnInput)     btnInput.value     = cfg.buttonText || "";
+  if (dismissInput) dismissInput.value = cfg.dismissText || "";
+  if (stripeInput)  stripeInput.value  = cfg.stripeUrl || "";
+  if (versionNote)  versionNote.textContent = `Currently version ${cfg.version || 1}. Saving bumps the version, so it resurfaces even for members who already dismissed it.`;
+}
+
+async function adminToggleRenewalEnabled() {
+  const cfg = await loadRenewalModalConfig();
+  try {
+    const updated = { ...cfg, enabled: !cfg.enabled };
+    await setDoc(doc(db, "aac_settings", "renewalModal"), updated);
+    _renewalModalConfig = updated;
+    showToast(updated.enabled ? "Renewal pop-up enabled." : "Renewal pop-up disabled.");
+    loadAdminRenewalPanel();
+  } catch (e) { showToast("Error: " + e.message); }
+}
+
+async function saveRenewalModalConfig() {
+  const statusEl = document.getElementById("renewal-save-status");
+  const cfg = await loadRenewalModalConfig();
+  const bodyLines = (document.getElementById("renewal-body-input")?.value || "")
+    .split("\n").map(s => s.trim()).filter(Boolean);
+  const newCfg = {
+    enabled: cfg.enabled,
+    title: (document.getElementById("renewal-title-input")?.value || "").trim() || DEFAULT_RENEWAL_CONFIG.title,
+    bodyLines: bodyLines.length ? bodyLines : DEFAULT_RENEWAL_CONFIG.bodyLines,
+    buttonText: (document.getElementById("renewal-btn-input")?.value || "").trim() || DEFAULT_RENEWAL_CONFIG.buttonText,
+    dismissText: (document.getElementById("renewal-dismiss-input")?.value || "").trim() || DEFAULT_RENEWAL_CONFIG.dismissText,
+    stripeUrl: (document.getElementById("renewal-stripe-input")?.value || "").trim() || DEFAULT_RENEWAL_CONFIG.stripeUrl,
+    version: (cfg.version || 1) + 1
+  };
+  try {
+    await setDoc(doc(db, "aac_settings", "renewalModal"), newCfg);
+    _renewalModalConfig = newCfg;
+    if (statusEl) { statusEl.style.display = "block"; statusEl.textContent = `Saved — now version ${newCfg.version}, will resurface for everyone.`; }
+    showToast("Renewal modal updated.");
+    loadAdminRenewalPanel();
+  } catch (e) { if (statusEl) { statusEl.style.display = "block"; statusEl.textContent = "Error: " + e.message; } console.error("saveRenewalModalConfig:", e); }
 }
 
 // ==============================
@@ -10244,6 +10431,11 @@ window.adminBackfillPts         = adminBackfillPts;
 window.adminEditCommunityPt     = adminEditCommunityPt;
 window.adminSaveCommunityPt     = adminSaveCommunityPt;
 window.adminDeleteCommunityPt   = adminDeleteCommunityPt;
+window.evaluateRenewalPrompt      = evaluateRenewalPrompt;
+window.closeRenewalModal          = closeRenewalModal;
+window.loadAdminRenewalPanel      = loadAdminRenewalPanel;
+window.adminToggleRenewalEnabled  = adminToggleRenewalEnabled;
+window.saveRenewalModalConfig     = saveRenewalModalConfig;
 
 
 
