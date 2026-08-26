@@ -2193,6 +2193,19 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           <button id="cowork-rsvp-btn" onclick="rsvpCowork()" class="btn btn-gold btn-sm" style="white-space:nowrap;flex-shrink:0;">RSVP +2</button>
         </div>
       </div>
+      <!-- RENEWAL CARD (admin-configurable — Members > Admin Tools > Renewal Modal) -->
+      <div id="renewal-card" class="dash-animate" style="display:none;animation-delay:0.195s;background:linear-gradient(to right, var(--accent-bg), var(--surface));border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="flex:1;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+              <span style="font-size:20px;flex-shrink:0;">🔁</span>
+              <div id="renewal-card-label" style="font-weight:700;font-size:14px;color:var(--text);">Renew for September 2026</div>
+            </div>
+            <div id="renewal-card-sub" style="font-size:12px;color:var(--text-muted);font-weight:500;padding-left:28px;">Keep your access active without interruption.</div>
+          </div>
+          <button id="renewal-card-btn" onclick="handleRenewalCardClick()" class="btn btn-gold btn-sm" style="white-space:nowrap;flex-shrink:0;">Renew Now</button>
+        </div>
+      </div>
       <div class="weekly-challenge-banner dash-animate" id="dash-challenge-banner" style="animation-delay:0.2s;">
         <div class="wc-inner">
           <div class="wc-icon">⚡</div>
@@ -2653,14 +2666,21 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 
       <!-- ADMIN: Renewal Modal -->
       <div id="admin-renewal-panel" style="display:none;margin-top:28px;">
-        <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;margin-bottom:4px;">🔁 Renewal Modal</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Pop-up shown to non-admin members prompting them to renew. Edit the copy and Stripe link below, no code changes needed. Saving resurfaces it even for members who already dismissed the current version.</div>
+        <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;margin-bottom:4px;">🔁 Renewal Modal &amp; Card</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Pop-up and persistent Dashboard card shown to non-admin members prompting them to renew. Both share the copy and Stripe link below, no code changes needed. Saving resurfaces the pop-up even for members who already dismissed the current version.</div>
         <div class="card" id="renewal-enabled-card" style="border:1.5px solid var(--border);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
           <div>
             <div style="font-weight:700;font-size:13px;">Show pop-up to members</div>
             <div id="renewal-enabled-status" style="font-size:12px;color:var(--text-muted);margin-top:2px;">Loading...</div>
           </div>
           <button class="btn btn-sm" id="renewal-enabled-btn" onclick="adminToggleRenewalEnabled()">...</button>
+        </div>
+        <div class="card" id="renewal-card-enabled-card" style="border:1.5px solid var(--border);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div>
+            <div style="font-weight:700;font-size:13px;">Show renewal card on Dashboard</div>
+            <div id="renewal-card-enabled-status" style="font-size:12px;color:var(--text-muted);margin-top:2px;">Loading...</div>
+          </div>
+          <button class="btn btn-sm" id="renewal-card-enabled-btn" onclick="adminToggleRenewalCardEnabled()">...</button>
         </div>
         <div class="card" style="border:1.5px solid var(--border);">
           <div class="form-group">
@@ -4218,6 +4238,7 @@ function bootApp() {
   loadDashboard();
   loadWeeklyChallenge();
   loadCoworkCard(); // non-blocking — shows card only if active session exists
+  loadRenewalCard(); // non-blocking — persistent card, admin-toggleable separately from the pop-up
 
   // 7. Default to dashboard
   navTo("dashboard");
@@ -7603,6 +7624,7 @@ function closeWelcomeModal() {
 // ==============================
 const DEFAULT_RENEWAL_CONFIG = {
   enabled: true,
+  cardEnabled: true,
   title: "Renew for September 2026 🔁",
   bodyLines: [
     "September's cycle is open — renew now to keep your streak, leaderboard spot, and platform access active without interruption.",
@@ -7663,6 +7685,31 @@ function closeRenewalModal(cfg) {
   document.getElementById("renewal-overlay").classList.remove("open");
 }
 
+// ---- Persistent Dashboard renewal card (separate visibility toggle from the pop-up) ----
+async function loadRenewalCard() {
+  const card = document.getElementById("renewal-card");
+  if (!card) return;
+  if (!currentUser || currentUser.isAdmin) { card.style.display = "none"; return; }
+  const cfg = await loadRenewalModalConfig();
+  if (cfg.cardEnabled === false) { card.style.display = "none"; return; }
+  const labelEl = document.getElementById("renewal-card-label");
+  const subEl   = document.getElementById("renewal-card-sub");
+  const btn     = document.getElementById("renewal-card-btn");
+  if (labelEl) labelEl.textContent = cfg.title || DEFAULT_RENEWAL_CONFIG.title;
+  const lines = (cfg.bodyLines && cfg.bodyLines.length) ? cfg.bodyLines : DEFAULT_RENEWAL_CONFIG.bodyLines;
+  if (subEl) subEl.textContent = lines[0] || "";
+  if (btn) {
+    btn.textContent = cfg.buttonText || DEFAULT_RENEWAL_CONFIG.buttonText;
+    btn.onclick = () => handleRenewalCardClick();
+  }
+  card.style.display = "block";
+}
+
+async function handleRenewalCardClick() {
+  const cfg = await loadRenewalModalConfig();
+  window.open(cfg.stripeUrl || DEFAULT_RENEWAL_CONFIG.stripeUrl, "_blank", "noopener");
+}
+
 // ---- Admin controls for the renewal modal ----
 async function loadAdminRenewalPanel() {
   const cfg = await loadRenewalModalConfig(true);
@@ -7673,6 +7720,15 @@ async function loadAdminRenewalPanel() {
     enabledBtn.textContent = cfg.enabled ? "Disable Pop-up" : "Enable Pop-up";
     enabledBtn.className = cfg.enabled ? "btn btn-sm" : "btn btn-gold btn-sm";
     enabledBtn.style.cssText = cfg.enabled ? "background:var(--danger);color:#fff;border-color:var(--danger);" : "";
+  }
+  const cardEnabled  = cfg.cardEnabled !== false;
+  const cardBtn       = document.getElementById("renewal-card-enabled-btn");
+  const cardStatusEl  = document.getElementById("renewal-card-enabled-status");
+  if (cardBtn && cardStatusEl) {
+    cardStatusEl.textContent = cardEnabled ? "Visible — showing on the Dashboard for all members." : "Hidden — card is off for all members.";
+    cardBtn.textContent = cardEnabled ? "Hide Card" : "Show Card";
+    cardBtn.className = cardEnabled ? "btn btn-sm" : "btn btn-gold btn-sm";
+    cardBtn.style.cssText = cardEnabled ? "background:var(--danger);color:#fff;border-color:var(--danger);" : "";
   }
   const titleInput   = document.getElementById("renewal-title-input");
   const bodyInput    = document.getElementById("renewal-body-input");
@@ -7699,6 +7755,18 @@ async function adminToggleRenewalEnabled() {
   } catch (e) { showToast("Error: " + e.message); }
 }
 
+async function adminToggleRenewalCardEnabled() {
+  const cfg = await loadRenewalModalConfig();
+  const currentlyEnabled = cfg.cardEnabled !== false;
+  try {
+    const updated = { ...cfg, cardEnabled: !currentlyEnabled };
+    await setDoc(doc(db, "aac_settings", "renewalModal"), updated);
+    _renewalModalConfig = updated;
+    showToast(currentlyEnabled ? "Renewal card hidden from Dashboard." : "Renewal card visible on Dashboard.");
+    loadAdminRenewalPanel();
+  } catch (e) { showToast("Error: " + e.message); }
+}
+
 async function saveRenewalModalConfig() {
   const statusEl = document.getElementById("renewal-save-status");
   const cfg = await loadRenewalModalConfig();
@@ -7706,6 +7774,7 @@ async function saveRenewalModalConfig() {
     .split("\n").map(s => s.trim()).filter(Boolean);
   const newCfg = {
     enabled: cfg.enabled,
+    cardEnabled: cfg.cardEnabled !== false,
     title: (document.getElementById("renewal-title-input")?.value || "").trim() || DEFAULT_RENEWAL_CONFIG.title,
     bodyLines: bodyLines.length ? bodyLines : DEFAULT_RENEWAL_CONFIG.bodyLines,
     buttonText: (document.getElementById("renewal-btn-input")?.value || "").trim() || DEFAULT_RENEWAL_CONFIG.buttonText,
@@ -10436,6 +10505,9 @@ window.closeRenewalModal          = closeRenewalModal;
 window.loadAdminRenewalPanel      = loadAdminRenewalPanel;
 window.adminToggleRenewalEnabled  = adminToggleRenewalEnabled;
 window.saveRenewalModalConfig     = saveRenewalModalConfig;
+window.loadRenewalCard            = loadRenewalCard;
+window.handleRenewalCardClick     = handleRenewalCardClick;
+window.adminToggleRenewalCardEnabled = adminToggleRenewalCardEnabled;
 
 
 
