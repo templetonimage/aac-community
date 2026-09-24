@@ -3685,6 +3685,19 @@ const _testRestartOverride = new URLSearchParams(location.search).get("testResta
 function _isRestartLedgerType(c) {
   return c.type === "restart" || c.type === "restart_ambassador";
 }
+// Restart + Ambassador points are credited to the restart month (the 4-week block
+// containing RESTART_FIRST_WEEK_IDX, i.e. October), whatever day they were earned.
+// The regular ts-based monthly queries always skip them; this adds them back for that month only.
+async function _getRestartLedgerForMonth(monthWeekIdxs) {
+  if (!monthWeekIdxs.includes(RESTART_FIRST_WEEK_IDX)) return [];
+  try {
+    const snap = await getDocs(query(collection(db, "aac_community_pts"), where("type", "in", ["restart", "restart_ambassador"])));
+    return snap.docs.map(d => d.data());
+  } catch (e) {
+    console.warn("_getRestartLedgerForMonth failed", e);
+    return [];
+  }
+}
 function isRestartWindowOpen() {
   const now = Date.now();
   return _testRestartOverride || (now >= RESTART_OPEN_UTC && now <= RESTART_CLOSE_UTC);
@@ -4721,6 +4734,7 @@ window.loadDashboard = async function() {
       getDocs(q(col(db, 'aac_community_pts'), where('ts', '>=', monthStartTs))),
       getDocs(col(db, 'aac_registry'))
     ]);
+    const restartLedger = await _getRestartLedgerForMonth(monthWeekIdxs);
 
     const regData = regSnap.exists() ? regSnap.data() : {};
     const totalPts = regData.points || 0;
@@ -4773,7 +4787,11 @@ window.loadDashboard = async function() {
     });
     monthCommSnap.docs.forEach(d => {
       const c = d.data();
-      if (_isRestartLedgerType(c)) return; // restart pack: excluded from monthly stats
+      if (_isRestartLedgerType(c)) return; // restart pack: credited to the restart month below
+      const e = monthlyByUid[c.uid] || (monthlyByUid[c.uid] = { pts: 0, weeks: new Set() });
+      e.pts += (c.pts || 0);
+    });
+    restartLedger.forEach(c => {
       const e = monthlyByUid[c.uid] || (monthlyByUid[c.uid] = { pts: 0, weeks: new Set() });
       e.pts += (c.pts || 0);
     });
@@ -4796,7 +4814,10 @@ window.loadDashboard = async function() {
     const myMonthCommPts = monthCommSnap.docs
       .filter(d => d.data().uid === uid && !_isRestartLedgerType(d.data()))
       .reduce((a, d) => a + (d.data().pts || 0), 0);
-    const myMonthTotal = myMonthPostPts + myMonthCommPts;
+    const myMonthRestartPts = restartLedger
+      .filter(c => c.uid === uid)
+      .reduce((a, c) => a + (c.pts || 0), 0);
+    const myMonthTotal = myMonthPostPts + myMonthCommPts + myMonthRestartPts;
 
     _renderDashboard({total:myMonthTotal, postPts:myMonthPostPts, engPts, communityPts:myMonthCommPts, trackerPostCount, weekSubmitted, trackerThisWeek, trackerDots, leaderboard:lbMembers, myUid:uid});
 
@@ -6317,12 +6338,13 @@ async function doRestart(withProof) {
       currentUser.compAccessUntil = data.compAccessUntil || RESTART_COMP_UNTIL_UTC;
       currentUser.joinWeekIdx = RESTART_FIRST_WEEK_IDX;
       currentUser.restartOnly = false;
+      currentUser.points = (currentUser.points || 0) + RESTART_PTS; // lifetime total (Profile)
       lsSet("wac_session", currentUser);
       // Restart lifts the missed-week lock in this session (joinWeekIdx now resets to the restart week).
       _isRestrictedLocked = false;
       hideAccessLockOverlay();
       hideAccessWarningBanner();
-      showToast("Welcome back — you're restarted! +10 pts");
+      showToast("Welcome back, you're restarted! +10 pts, counted on October's leaderboard");
     }
     document.getElementById("restart-overlay").classList.remove("open");
     document.getElementById("restart-only-screen").classList.remove("open");
@@ -7154,6 +7176,7 @@ async function loadLeaderboard() {
       getDocs(query(collection(db, "submissions"), where("timestamp", ">=", monthStartTs))),
       getDocs(query(collection(db, "aac_community_pts"), where("ts", ">=", monthStartTs)))
     ]);
+    const restartLedger = await _getRestartLedgerForMonth(monthWeekIdxs);
     const monthlyByUid = {};
     monthSubSnap.forEach(d => {
       const s = d.data();
@@ -7164,7 +7187,11 @@ async function loadLeaderboard() {
     });
     monthCommSnap.forEach(d => {
       const c = d.data();
-      if (_isRestartLedgerType(c)) return; // restart pack: excluded from monthly leaderboard
+      if (_isRestartLedgerType(c)) return; // restart pack: credited to the restart month below
+      const e = monthlyByUid[c.uid] || (monthlyByUid[c.uid] = { pts: 0, weeks: new Set() });
+      e.pts += (c.pts || 0);
+    });
+    restartLedger.forEach(c => {
       const e = monthlyByUid[c.uid] || (monthlyByUid[c.uid] = { pts: 0, weeks: new Set() });
       e.pts += (c.pts || 0);
     });
@@ -8905,6 +8932,7 @@ window.archiveMonth = async function() {
       getDocs(query(collection(db, "submissions"), where("timestamp", ">=", monthStartTs))),
       getDocs(query(collection(db, "aac_community_pts"), where("ts", ">=", monthStartTs)))
     ]);
+    const restartLedger = await _getRestartLedgerForMonth(monthWeekIdxs);
 
     const monthlyByUid = {};
     monthSubSnap.forEach(d => {
@@ -8916,7 +8944,11 @@ window.archiveMonth = async function() {
     });
     monthCommSnap.forEach(d => {
       const c = d.data();
-      if (_isRestartLedgerType(c)) return; // restart pack: excluded from monthly archive stats
+      if (_isRestartLedgerType(c)) return; // restart pack: credited to the restart month below
+      const e = monthlyByUid[c.uid] || (monthlyByUid[c.uid] = { subPts: 0, commPts: 0, weeks: new Set() });
+      e.commPts += (c.pts || 0);
+    });
+    restartLedger.forEach(c => {
       const e = monthlyByUid[c.uid] || (monthlyByUid[c.uid] = { subPts: 0, commPts: 0, weeks: new Set() });
       e.commPts += (c.pts || 0);
     });
