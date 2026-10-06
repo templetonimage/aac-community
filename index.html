@@ -3335,7 +3335,7 @@ textarea.gs-input{ resize:vertical; }
     </div>
     <!-- Standard welcome (default) -->
     <div class="welcome-body" id="welcome-body-standard">
-      <h3>Welcome to AAC — September! 🎉</h3>
+      <h3 id="welcome-title">Welcome to AAC! 🎉</h3>
       <div class="welcome-step"><span class="welcome-step-icon">🚀</span><span>Start with the Get Started Guide — the full Weekly Challenge library unlocks once you launch a campaign and submit proof it's active</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">📖</span><span>Read the Ad Fundamentals Playbook — AAC's 7-part guide to paid advertising</span></div>
       <div class="welcome-step"><span class="welcome-step-icon">✅</span><span>Complete Your Ad Audit to prepare for weekly proof submissions</span></div>
@@ -8132,6 +8132,9 @@ function showWelcomeModal() {
   if (!currentUser || currentUser.isAdmin) return;
   const key = `aac_welcomed_${currentUser.uid}`;
   if (localStorage.getItem(key)) return;
+  // Heading month tracks the current AAC month automatically (no monthly edit needed).
+  const _wt = document.getElementById("welcome-title");
+  if (_wt) _wt.textContent = `Welcome to AAC — ${_currentMonthLabel().split(" ")[0]}! 🎉`;
   document.getElementById("welcome-overlay").classList.add("open");
 }
 
