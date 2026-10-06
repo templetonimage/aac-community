@@ -2770,6 +2770,12 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         </div>
         <button class="btn btn-outline btn-sm" onclick="loadAdminRestartPanel()" style="margin-bottom:12px;">Refresh</button>
         <div id="admin-restart-list"></div>
+        <div class="card" style="border:1.5px solid var(--border);margin-top:16px;">
+          <div style="font-weight:700;font-size:13px;margin-bottom:4px;">Award Restart +10 to everyone else</div>
+          <div style="font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:12px;">Gives the +10 Restart points to every current member (not cancelled) who hasn't already received them. Points only: membership status, billing, and complimentary access are not changed. Counts on October's leaderboard, same as a regular restart. Safe to run more than once, nobody is awarded twice.</div>
+          <button class="btn btn-gold btn-sm" id="restart-bulk-btn" onclick="adminAwardRestartPtsToAll()">Award +10 to Remaining Members</button>
+          <div id="restart-bulk-status" style="display:none;margin-top:10px;font-size:13px;color:var(--text-muted);padding:8px;background:var(--surface2);border-radius:6px;line-height:1.6;"></div>
+        </div>
       </div>
 
       <!-- ADMIN: Reset Points Tool -->
@@ -6502,6 +6508,75 @@ async function loadAdminRestartPanel() {
   } catch (e) {
     console.error("loadAdminRestartPanel error:", e);
     if (listEl) listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Failed to load.</div>';
+  }
+}
+
+// Admin: give the Restart +10 to every current (non-cancelled) member who never
+// clicked Restart. Points only — does not set restartedAt/compAccessUntil or touch Stripe.
+// Uses the same deterministic ledger ID (restart_{uid}) as the restartAccount function,
+// so nobody can be awarded twice, whether by this tool or by a real restart.
+let _restartBulkInFlight = false;
+async function adminAwardRestartPtsToAll() {
+  if (!currentUser || !currentUser.isAdmin || _restartBulkInFlight) return;
+  const btn = document.getElementById("restart-bulk-btn");
+  const statusEl = document.getElementById("restart-bulk-status");
+  const say = (msg) => { if (statusEl) { statusEl.style.display = "block"; statusEl.textContent = msg; } };
+  _restartBulkInFlight = true;
+  if (btn) btn.disabled = true;
+  try {
+    say("Checking members...");
+    const [regSnap, ledgerSnap] = await Promise.all([
+      getDocs(collection(db, "aac_registry")),
+      getDocs(query(collection(db, "aac_community_pts"), where("type", "==", "restart"))),
+    ]);
+    const alreadyAwarded = new Set(ledgerSnap.docs.map(d => d.data().uid));
+    const eligible = [];
+    regSnap.forEach(d => {
+      const m = sanitizeMember({ id: d.id, ...d.data() });
+      if (m.isAdmin || m.email === ADMIN_EMAIL) return;
+      if (m.subscriptionStatus === "cancelled") return;
+      if (m.restartedAt || alreadyAwarded.has(m.id)) return;
+      eligible.push(m);
+    });
+    if (!eligible.length) { say("Nothing to do. Every current member already has the Restart +10."); return; }
+    const names = eligible.map(m => m.name).sort((a, b) => a.localeCompare(b));
+    if (!confirm(`Award +${RESTART_PTS} Restart pts to ${eligible.length} member${eligible.length !== 1 ? "s" : ""}?\n\n${names.join("\n")}`)) {
+      say("Cancelled. No points awarded.");
+      return;
+    }
+    let done = 0;
+    const failed = [];
+    for (const m of eligible) {
+      say(`Awarding... ${done + failed.length + 1} of ${eligible.length}`);
+      const ledgerRef = doc(db, "aac_community_pts", `restart_${m.id}`);
+      try {
+        const existing = await getDoc(ledgerRef);
+        if (existing.exists()) continue; // awarded since the check above
+        await setDoc(ledgerRef, {
+          uid: m.id, name: m.name, action: "Restart",
+          type: "restart", pts: RESTART_PTS, ts: Date.now(), bulkAward: true,
+        });
+        try {
+          await updateDoc(doc(db, "aac_registry", m.id), { points: increment(RESTART_PTS) });
+        } catch (e) {
+          await deleteDoc(ledgerRef).catch(() => {}); // keep ledger and lifetime total in step
+          throw e;
+        }
+        done++;
+      } catch (e) {
+        console.error("adminAwardRestartPtsToAll failed for", m.id, e);
+        failed.push(m.name);
+      }
+    }
+    say(`Done. Awarded +${RESTART_PTS} to ${done} member${done !== 1 ? "s" : ""}.` + (failed.length ? ` Failed for ${failed.length}: ${failed.join(", ")}. Run again to retry.` : ""));
+    showToast(`Restart points awarded to ${done}.`);
+    if (typeof loadCommunityPtsLog === "function") loadCommunityPtsLog();
+  } catch (e) {
+    console.error("adminAwardRestartPtsToAll error:", e);
+    say("Something went wrong before any points were awarded. Check the console and try again.");
+  } finally {
+    _restartBulkInFlight = false;
+    if (btn) btn.disabled = false;
   }
 }
 
@@ -11060,6 +11135,7 @@ window.clearRestartProofScreenshot = clearRestartProofScreenshot;
 window.submitRestartProof = submitRestartProof;
 window.loadAdminRestartPanel = loadAdminRestartPanel;
 window.revokeRestartAmbassador = revokeRestartAmbassador;
+window.adminAwardRestartPtsToAll = adminAwardRestartPtsToAll;
 
 
 </script>
