@@ -2246,7 +2246,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
               <span style="font-size:20px;flex-shrink:0;">🏅</span>
               <div style="font-weight:700;font-size:14px;color:var(--text);">Add your Ambassador post</div>
             </div>
-            <div style="font-size:12px;color:var(--text-muted);font-weight:500;padding-left:28px;">+25 pts and a badge — closes 9/30</div>
+            <div style="font-size:12px;color:var(--text-muted);font-weight:500;padding-left:28px;">+25 pts and an Ambassador badge, one time</div>
           </div>
           <button onclick="openRestartProofUpload()" class="btn btn-gold btn-sm" style="white-space:nowrap;flex-shrink:0;">Add Proof</button>
         </div>
@@ -2757,7 +2757,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       <!-- ADMIN: Restart Pack -->
       <div id="admin-restart-panel" style="display:none;margin-top:28px;">
         <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;margin-bottom:4px;">🔁 October 1 Restart Pack</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Window: Sep 23–Oct 1. Ambassador proof closes Sep 30 11:59 PM ET.</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Restart window: Sep 23–Oct 1 (closed). Ambassador proof stays open to every member, any time.</div>
         <div style="display:flex;gap:10px;margin-bottom:16px;">
           <div class="card" style="flex:1;border:1.5px solid var(--border);text-align:center;padding:14px;">
             <div id="restart-stat-restarted" style="font-size:24px;font-weight:700;color:var(--gold-dark);">—</div>
@@ -3434,7 +3434,7 @@ textarea.gs-input{ resize:vertical; }
     </div>
     <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 20px 24px;">
       <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:16px;">
-        Make a Feed post about AAC linking jointheaac.com (or share the graphic), tag @jointheacc, and upload a screenshot with the post visible. Keep it live through October 1 — then feel free to delete or archive it. Proof uploads close September 30 at 11:59 PM ET.
+        Make a Feed post about AAC linking jointheaac.com (or share the graphic), tag @jointheacc, and upload a screenshot with the post visible. You can earn this once, any time.
       </div>
       <div class="form-group" style="margin-bottom:14px;">
         <label class="form-label" style="margin-bottom:6px;">Screenshot</label>
@@ -3688,17 +3688,24 @@ const RESTART_AMBASSADOR_ACTIVE = true; // Phase 2 flag — live as of the 9/25 
 const RESTART_SNOOZE_MS = 48 * 60 * 60 * 1000; // "Not Now" hides the restart modal for 48h
 const _testRestartOverride = new URLSearchParams(location.search).get("testRestart") === "1";
 
-function _isRestartLedgerType(c) {
-  return c.type === "restart" || c.type === "restart_ambassador";
+// End of the restart month (the 4-week block containing RESTART_FIRST_WEEK_IDX, i.e. October).
+function _restartMonthEndTs() {
+  return _weekRange(Math.floor(RESTART_FIRST_WEEK_IDX / 4) * 4 + 3)[1];
 }
-// Restart + Ambassador points are credited to the restart month (the 4-week block
-// containing RESTART_FIRST_WEEK_IDX, i.e. October), whatever day they were earned.
-// The regular ts-based monthly queries always skip them; this adds them back for that month only.
+// True only for Restart/Ambassador ledger entries earned up to the end of the restart month.
+// Ambassador proof is now open year-round: entries earned after October are ordinary
+// community points and count in the month they were earned, via the regular ts-based queries.
+function _isRestartLedgerType(c) {
+  return (c.type === "restart" || c.type === "restart_ambassador") && (c.ts || 0) <= _restartMonthEndTs();
+}
+// Restart-era Restart + Ambassador points are credited to the restart month (October),
+// whatever day they were earned. The regular ts-based monthly queries skip them;
+// this adds them back for that month only.
 async function _getRestartLedgerForMonth(monthWeekIdxs) {
   if (!monthWeekIdxs.includes(RESTART_FIRST_WEEK_IDX)) return [];
   try {
     const snap = await getDocs(query(collection(db, "aac_community_pts"), where("type", "in", ["restart", "restart_ambassador"])));
-    return snap.docs.map(d => d.data());
+    return snap.docs.map(d => d.data()).filter(_isRestartLedgerType);
   } catch (e) {
     console.warn("_getRestartLedgerForMonth failed", e);
     return [];
@@ -6391,8 +6398,8 @@ async function loadRestartAmbassadorCard() {
   const card = document.getElementById("restart-ambassador-card");
   if (!card) return;
   if (!currentUser || currentUser.isAdmin || !RESTART_AMBASSADOR_ACTIVE) { card.style.display = "none"; return; }
-  if (!currentUser.restartedAt || currentUser.restartProofAt) { card.style.display = "none"; return; }
-  if (!isProofWindowOpen()) { card.style.display = "none"; return; }
+  // Open year-round to every member, restarted or not. One award per member.
+  if (currentUser.restartProofAt || currentUser.isAmbassador) { card.style.display = "none"; return; }
   card.style.display = "block";
 }
 
@@ -6420,8 +6427,6 @@ function clearRestartProofScreenshot() {
 let _restartProofInFlight = false;
 async function submitRestartProof() {
   if (!currentUser || currentUser.isAdmin || _restartProofInFlight) return;
-  if (!currentUser.restartedAt) { showToast("Restart your account first."); return; }
-  if (!isProofWindowOpen()) { showToast("Proof uploads have closed."); return; }
   if (!_restartProofScreenshotData) {
     document.getElementById("restart-proof-msg").textContent = "Attach a screenshot first.";
     return;
@@ -6484,22 +6489,22 @@ async function loadAdminRestartPanel() {
     const restarted = [];
     snap.forEach(d => {
       const m = sanitizeMember({ id: d.id, ...d.data() });
-      if (m.restartedAt) restarted.push(m);
+      if (m.restartedAt || m.restartProofAt || m.isAmbassador) restarted.push(m);
     });
     const proofCount = restarted.filter(m => m.restartProofAt).length;
-    document.getElementById("restart-stat-restarted").textContent = restarted.length;
+    document.getElementById("restart-stat-restarted").textContent = restarted.filter(m => m.restartedAt).length;
     document.getElementById("restart-stat-proof").textContent = proofCount;
 
-    restarted.sort((a, b) => (b.restartedAt || 0) - (a.restartedAt || 0));
+    restarted.sort((a, b) => Math.max(b.restartedAt || 0, b.restartProofAt || 0) - Math.max(a.restartedAt || 0, a.restartProofAt || 0));
     if (listEl) {
       if (!restarted.length) {
-        listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">No restarts yet.</div>';
+        listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">No restarts or Ambassador proof yet.</div>';
       } else {
         listEl.innerHTML = restarted.map(m => `
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
             <div>
               <div style="font-weight:600;font-size:13px;">${esc(m.name)}${m.isAmbassador ? ' 🏅' : ''}</div>
-              <div style="font-size:11px;color:var(--text-muted);">Restarted ${new Date(m.restartedAt).toLocaleDateString()}${m.restartProofAt ? ' · Proof ' + new Date(m.restartProofAt).toLocaleDateString() : ''}</div>
+              <div style="font-size:11px;color:var(--text-muted);">${[m.restartedAt ? 'Restarted ' + new Date(m.restartedAt).toLocaleDateString() : '', m.restartProofAt ? 'Proof ' + new Date(m.restartProofAt).toLocaleDateString() : ''].filter(Boolean).join(' · ')}</div>
             </div>
             ${m.isAmbassador ? `<button class="btn btn-outline btn-sm" onclick="revokeRestartAmbassador('${m.id}')">Revoke</button>` : ''}
           </div>`).join("");
