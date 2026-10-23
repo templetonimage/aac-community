@@ -2781,6 +2781,13 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       </div>
 
       <!-- ADMIN: Reset Points Tool -->
+      <div id="admin-default-pw" style="display:none;margin-top:28px;">
+        <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;margin-bottom:4px;">🔑 Check for Welcome Passwords</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Finds members whose login still uses the default welcome password and makes them choose a new one at their next sign-in. Safe to run more than once. Takes about a second per member.</div>
+        <button class="btn btn-gold btn-sm" id="default-pw-btn" onclick="adminFlagDefaultPasswords()">Run Check</button>
+        <div id="default-pw-status" style="display:none;margin-top:10px;font-size:13px;color:var(--text-muted);padding:8px;background:var(--surface2);border-radius:6px;line-height:1.6;"></div>
+      </div>
+
       <div id="admin-reset-points" style="display:none;margin-top:28px;">
         <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;margin-bottom:4px;">🔄 Reset Member Points</div>
         <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Zeroes out <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px;">points</code> and <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px;">totalPosts</code> (lifetime stats) for every member in the registry. Submission and engagement history in Firestore is preserved. The monthly Leaderboard resets automatically and doesn't need this tool.</div>
@@ -3422,6 +3429,27 @@ textarea.gs-input{ resize:vertical; }
     <div class="welcome-footer">
       <button class="btn btn-gold btn-block" onclick="doRestart(false)">Restart — It's Free</button>
       <button class="btn btn-outline btn-block" style="margin-top:10px;" onclick="doRestart(true)">Restart + Add Proof</button>
+      <button class="welcome-dismiss" onclick="handleLogout()">Log out</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIRST-LOGIN PASSWORD SCREEN (Security Stage 3b): shown before the app loads when the login has a known password -->
+<div class="restart-only-screen" id="must-change-pw-screen" style="z-index:6000;">
+  <div class="welcome-modal" style="max-width:380px;">
+    <div class="welcome-header">
+      <div class="welcome-logo">AAC</div>
+      <div style="font-size:13px;letter-spacing:0.12em;text-transform:uppercase;opacity:0.85;">Ad Accountability Challenge</div>
+    </div>
+    <div class="welcome-body">
+      <h3>Set your own password</h3>
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:14px;">You signed in with a welcome password. Choose a new one (8+ characters) to keep your account secure.</div>
+      <div class="form-group"><input type="password" id="mcp-new" class="form-input" placeholder="New password" autocomplete="new-password" /></div>
+      <div class="form-group"><input type="password" id="mcp-confirm" class="form-input" placeholder="Confirm new password" autocomplete="new-password" /></div>
+      <div id="mcp-msg" style="font-size:13px;color:var(--danger);min-height:18px;"></div>
+    </div>
+    <div class="welcome-footer">
+      <button class="btn btn-gold btn-block" id="mcp-save-btn" onclick="submitInitialPassword()">Save Password</button>
       <button class="welcome-dismiss" onclick="handleLogout()">Log out</button>
     </div>
   </div>
@@ -4309,6 +4337,18 @@ onAuthStateChanged(auth, async (user) => {
   }
   if (_booted) return;
 
+  // Security Stage 3b: logins created with a known password must set their own first.
+  if (user.email !== ADMIN_EMAIL) {
+    try {
+      const tokenResult = await user.getIdTokenResult(true);
+      if (tokenResult && tokenResult.claims && tokenResult.claims.mustChangePassword) {
+        document.getElementById("auth-screen").style.display = "none";
+        document.getElementById("must-change-pw-screen").classList.add("open");
+        return;
+      }
+    } catch (e) { console.warn("mustChangePassword check failed:", e); }
+  }
+
   // Check for stale session
   const saved = lsGet("wac_session");
   if (saved && saved.email !== user.email) {
@@ -4411,7 +4451,7 @@ function bootApp() {
   if (_proNavBtn) _proNavBtn.style.display = userHasPro() ? "flex" : "none";
 
   // 5. Show/hide admin elements
-  const adminBoxes = ["admin-announce-box", "admin-resource-box", "admin-create-box", "admin-registry", "firebase-setup-card", "admin-export-csv-btn", "admin-bug-reports", "admin-reset-points", "admin-archive-month", "admin-submissions-tool"];
+  const adminBoxes = ["admin-announce-box", "admin-resource-box", "admin-create-box", "admin-registry", "firebase-setup-card", "admin-export-csv-btn", "admin-bug-reports", "admin-default-pw", "admin-reset-points", "admin-archive-month", "admin-submissions-tool"];
   adminBoxes.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = "none";
@@ -11079,6 +11119,54 @@ window.clearRestartProofScreenshot = clearRestartProofScreenshot;
 window.submitRestartProof = submitRestartProof;
 window.loadAdminRestartPanel = loadAdminRestartPanel;
 window.revokeRestartAmbassador = revokeRestartAmbassador;
+
+// ==============================
+// FIRST-LOGIN PASSWORD CHANGE (Security Stage 3b)
+// ==============================
+async function submitInitialPassword() {
+  const pw = document.getElementById("mcp-new").value;
+  const confirmPw = document.getElementById("mcp-confirm").value;
+  const msg = document.getElementById("mcp-msg");
+  const btn = document.getElementById("mcp-save-btn");
+  msg.textContent = "";
+  if (pw.length < 8) { msg.textContent = "Use at least 8 characters."; return; }
+  if (pw !== confirmPw) { msg.textContent = "The two passwords don't match."; return; }
+  btn.disabled = true; btn.textContent = "Saving...";
+  try {
+    const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js");
+    const fns = getFunctions(app, STRIPE_FN_REGION);
+    await httpsCallable(fns, "changeInitialPassword")({ newPassword: pw });
+    const email = auth.currentUser && auth.currentUser.email;
+    if (email) await signInWithEmailAndPassword(auth, email, pw); // fresh session with the new password
+    location.reload();
+  } catch (e) {
+    console.error("submitInitialPassword failed:", e);
+    msg.textContent = (e && e.message) ? e.message : "Couldn't save. Please try again.";
+    btn.disabled = false; btn.textContent = "Save Password";
+  }
+}
+
+async function adminFlagDefaultPasswords() {
+  if (!currentUser || !currentUser.isAdmin) return;
+  if (!confirm("Check every member login for the default welcome password? Anyone still using it will be asked to set a new one at their next sign-in.")) return;
+  const btn = document.getElementById("default-pw-btn");
+  const status = document.getElementById("default-pw-status");
+  btn.disabled = true; btn.textContent = "Checking...";
+  status.style.display = "block"; status.textContent = "Checking member logins. This can take a minute...";
+  try {
+    const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js");
+    const fns = getFunctions(app, STRIPE_FN_REGION);
+    const r = (await httpsCallable(fns, "flagDefaultPasswords", { timeout: 540000 })({})).data || {};
+    status.textContent = `Done. Checked ${r.checked || 0} logins: ${r.flagged || 0} newly flagged, ${r.alreadyFlagged || 0} already flagged, ${r.notDefault || 0} using their own password` + (r.couldNotCheck ? `, ${r.couldNotCheck} couldn't be checked (run again later).` : ".");
+  } catch (e) {
+    console.error("adminFlagDefaultPasswords failed:", e);
+    status.textContent = "Check failed: " + (e && e.message ? e.message : "unknown error");
+  } finally {
+    btn.disabled = false; btn.textContent = "Run Check";
+  }
+}
+window.submitInitialPassword = submitInitialPassword;
+window.adminFlagDefaultPasswords = adminFlagDefaultPasswords;
 window.adminAwardRestartPtsToAll = adminAwardRestartPtsToAll;
 
 
