@@ -1,0 +1,18 @@
+rules_version = '2';
+// Snapshot of the LIVE rules on Oct 23 2026 (after the mail hotfix), used only to confirm current behavior.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /aac_registry/{uid} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.uid == uid;
+      allow read, write: if request.auth.token.email == 'nate@templetonimage.com';
+    }
+    match /posts/{docId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if resource.data.authorUid == request.auth.uid
+        || resource.data.authorUid == request.auth.token.email
+        || request.auth.token.email == 'nate@templetonimage.com';
+    }
+  }
+}

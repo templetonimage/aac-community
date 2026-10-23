@@ -1,0 +1,249 @@
+rules_version = '2';
+
+// AAC Firestore rules: Security Stage 2 (Oct 2026)
+// - No catch-all: any collection not listed here is denied.
+// - Admin = nate@templetonimage.com. Cloud Functions (Stripe webhook, restartAccount,
+//   inactivity nudge) use the Admin SDK and skip these rules.
+// - Assumes public sign-up stays OFF (Authentication > Settings > User actions),
+//   so every signed-in account is a member or the admin.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ───────────────────────────────────────────────
+    function signedIn() { return request.auth != null; }
+    function isAdmin()  { return signedIn() && request.auth.token.email == 'nate@templetonimage.com'; }
+    function me()       { return request.auth.uid; }
+    function myEmail()  { return request.auth.token.get('email', ''); }
+
+    function changed()         { return request.resource.data.diff(resource.data).affectedKeys(); }
+    function onlyChanges(keys) { return changed().hasOnly(keys); }
+    function newData()         { return request.resource.data; }
+
+    // Upper bound on the app's weekly index (4 per month from July 2026) at request time.
+    function maxWeekIdx() { return int((request.time.toMillis() - 1782878400000) / 604800000) + 2; }
+    function numOrNull(v) { return v == null || v is number; }
+    // Link fields must be empty or a plain http(s) URL (no javascript:, data:, quotes or spaces).
+    function urlOk(f) {
+      return !(f in newData()) || newData()[f] == ''
+        || (newData()[f] is string && newData()[f].matches('https?://[^\\s"\'<>]+'));
+    }
+    function photoOk() {
+      return !('photoURL' in newData()) || newData().photoURL == ''
+        || (newData().photoURL is string
+            && newData().photoURL.matches('data:image/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+'));
+    }
+
+    // ── Member registry (doc ID = Auth UID) ───────────────────
+    // Largest single member award is +25 (All-Star bonus, Ambassador proof).
+    function ptsDeltaOk() {
+      return !changed().hasAny(['points'])
+        || (newData().points is number
+            && math.abs(newData().points - resource.data.get('points', 0)) <= 25);
+    }
+    function postsDeltaOk() {
+      return !changed().hasAny(['totalPosts'])
+        || (newData().totalPosts is number
+            && math.abs(newData().totalPosts - resource.data.get('totalPosts', 0)) <= 1);
+    }
+    function streakOk() {
+      return !changed().hasAny(['allStarStreak', 'allStarStreakWeekIdx', 'allStarBadgeUntilWeekIdx'])
+        || (newData().get('allStarStreak', 0) is number
+            && numOrNull(newData().get('allStarStreakWeekIdx', null))
+            && numOrNull(newData().get('allStarBadgeUntilWeekIdx', null))
+            && (newData().get('allStarStreakWeekIdx', null) == null
+                || newData().allStarStreakWeekIdx <= maxWeekIdx())
+            && (newData().get('allStarBadgeUntilWeekIdx', null) == null
+                || newData().allStarBadgeUntilWeekIdx <= maxWeekIdx() + 4));
+    }
+    // Ambassador badge: only turned on (never self-cleared), with a proof timestamp.
+    function ambassadorOk() {
+      return !changed().hasAny(['isAmbassador', 'restartProofAt'])
+        || (newData().get('isAmbassador', false) == true
+            && resource.data.get('isAmbassador', false) != true
+            && newData().get('restartProofAt', null) is number);
+    }
+    // Weekly-proof lockout: the app may lock a member (remembering the old status)
+    // and unlock them back to exactly that status after a new proof.
+    function statusOk() {
+      let oldStatus = resource.data.get('subscriptionStatus', 'trial');
+      let oldPre = resource.data.get('preRestrictionStatus', null);
+      return !changed().hasAny(['subscriptionStatus', 'preRestrictionStatus'])
+        || (oldStatus != 'restricted' && oldStatus != 'cancelled'
+            && newData().subscriptionStatus == 'restricted'
+            && newData().preRestrictionStatus == oldStatus)
+        || (oldStatus == 'restricted'
+            && newData().get('preRestrictionStatus', null) == null
+            && ((oldPre != null && newData().subscriptionStatus == oldPre)
+                || (oldPre == null && newData().subscriptionStatus == 'active')));
+    }
+    function memberRegistryUpdateOk() {
+      return onlyChanges([
+          'points', 'totalPosts', 'lastLogin', 'restartSnoozedUntil',
+          'business', 'type', 'ig', 'website', 'photoURL',
+          'auditData', 'buildoutData',
+          'activeBriefId', 'gsOpenedAt', 'gsLastActive', 'gsStepsDone', 'gsTotalSteps', 'gsPct',
+          'allStarStreak', 'allStarStreakWeekIdx', 'allStarBadgeUntilWeekIdx',
+          'isAmbassador', 'restartProofAt',
+          'subscriptionStatus', 'preRestrictionStatus'])
+        && ptsDeltaOk() && postsDeltaOk() && streakOk() && ambassadorOk() && statusOk()
+        && (!changed().hasAny(['website']) || urlOk('website'))
+        && (!changed().hasAny(['photoURL']) || photoOk());
+    }
+    match /aac_registry/{uid} {
+      allow read: if signedIn();
+      allow update: if isAdmin() || (signedIn() && uid == me() && memberRegistryUpdateOk());
+      allow create, delete: if isAdmin();
+
+      // Get Started guide briefs: private to the member.
+      match /campaignBriefs/{briefId} {
+        allow read, write: if isAdmin() || (signedIn() && uid == me());
+      }
+    }
+
+    // ── Community feed ────────────────────────────────────────
+    function ownsPost() {
+      return signedIn() && (resource.data.get('authorUid', '') == me()
+        || (myEmail() != '' && resource.data.get('authorUid', '') == myEmail()));
+    }
+    // Props: one name added or removed, count kept in step.
+    function propsChangeOk() {
+      return onlyChanges(['props', 'propsCount'])
+        && newData().props is list
+        && newData().propsCount == newData().props.size()
+        && math.abs(newData().props.size() - resource.data.get('props', []).size()) == 1;
+    }
+    // Replies: add exactly one reply of your own, or remove exactly one reply of your own.
+    function replyAddOk() {
+      let added = newData().replies.removeAll(resource.data.get('replies', []));
+      return onlyChanges(['replies']) && newData().replies is list
+        && newData().replies.hasAll(resource.data.get('replies', []))
+        && newData().replies.size() == resource.data.get('replies', []).size() + 1
+        && added.size() == 1 && added[0].uid == me();
+    }
+    function replyRemoveOk() {
+      let removed = resource.data.get('replies', []).removeAll(newData().replies);
+      return onlyChanges(['replies']) && newData().replies is list
+        && resource.data.get('replies', []).hasAll(newData().replies)
+        && newData().replies.size() == resource.data.get('replies', []).size() - 1
+        && removed.size() == 1 && removed[0].uid == me();
+    }
+    match /posts/{postId} {
+      allow read: if signedIn();
+      allow create: if isAdmin()
+        || (signedIn() && newData().authorUid == me()
+            && newData().get('type', 'regular') in ['regular', 'pvr']
+            && newData().get('propsCount', 0) == 0
+            && newData().get('props', []).size() == 0
+            && newData().get('replies', []).size() == 0
+            && urlOk('url') && urlOk('pvr_url'));
+      allow update: if isAdmin()
+        || (ownsPost() && onlyChanges(['text', 'url', 'pvr_prompt']) && urlOk('url'))
+        || (signedIn() && (propsChangeOk() || replyAddOk() || replyRemoveOk()));
+      allow delete: if isAdmin() || ownsPost();
+    }
+
+    // ── Weekly proof and activity ─────────────────────────────
+    // Largest proof award: 10 on time + 2 new campaign + 5 challenge = 17.
+    match /submissions/{subId} {
+      allow read: if signedIn();
+      allow create: if isAdmin()
+        || (signedIn() && newData().authorUid == me()
+            && newData().pts is number && newData().pts >= 0 && newData().pts <= 17
+            && urlOk('url'));
+      allow update: if isAdmin()
+        || (signedIn() && resource.data.get('authorUid', '') == me()
+            && onlyChanges(['url', 'note', 'editedAt']) && urlOk('url'));
+      allow delete: if isAdmin() || (signedIn() && resource.data.get('authorUid', '') == me());
+    }
+    match /engagements/{engId} {
+      allow read: if signedIn();
+      allow create: if isAdmin()
+        || (signedIn() && newData().authorUid == me()
+            && newData().pts is number && newData().pts >= 0 && newData().pts <= 2);
+      allow update: if isAdmin();
+      allow delete: if isAdmin() || (signedIn() && resource.data.get('authorUid', '') == me());
+    }
+    match /trackers/{uid} {
+      allow read: if isAdmin() || (signedIn() && uid == me());
+      allow create, update: if isAdmin()
+        || (signedIn() && uid == me() && newData().get('uid', me()) == me());
+      allow delete: if isAdmin();
+    }
+
+    // ── Community points ledger (feeds the monthly leaderboard) ──
+    // Members log their own small awards (post 2, like/reply 1, peer review 5, RSVP 2).
+    // The one +25 Ambassador entry has a fixed ID per member. Restart (+10) entries
+    // are written by the restartAccount function or the admin only.
+    match /aac_community_pts/{entryId} {
+      allow read: if signedIn();
+      allow create: if isAdmin()
+        || (signedIn() && newData().uid == me() && newData().pts is number
+            && ((!('type' in newData()) && newData().pts > 0 && newData().pts <= 5)
+                || (newData().get('type', '') == 'restart_ambassador'
+                    && entryId == 'restart_ambassador_' + me()
+                    && newData().pts == 25)));
+      allow update: if isAdmin();
+      allow delete: if isAdmin() || (signedIn() && resource.data.get('uid', '') == me());
+    }
+
+    // ── Ambassador proof (one doc per member, ID = UID) ───────
+    match /restart_proofs/{uid} {
+      allow read: if isAdmin() || (signedIn() && uid == me());
+      allow create, update: if isAdmin() || (signedIn() && uid == me() && newData().uid == me());
+      allow delete: if isAdmin();
+    }
+
+    // ── Coworking ─────────────────────────────────────────────
+    match /aac_coworking_sessions/{sessionId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+      match /rsvps/{uid} {
+        allow read: if signedIn();
+        allow create: if isAdmin() || (signedIn() && uid == me() && newData().uid == me());
+        allow update, delete: if isAdmin();
+      }
+      match /attendees/{uid} {
+        allow read: if signedIn();
+        allow write: if isAdmin();
+      }
+    }
+
+    // ── Reports in, admin reads ───────────────────────────────
+    match /bug_reports/{id} {
+      allow create: if signedIn() && newData().get('uid', '') == me()
+        && newData().get('resolved', false) == false;
+      allow read, update, delete: if isAdmin();
+    }
+    match /platform_errors/{id} {
+      allow create: if signedIn();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ── Admin-only content and config (members read) ──────────
+    match /announcements/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+    match /resources/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+    match /aac_settings/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ── Admin only ────────────────────────────────────────────
+    match /aac_month_archives/{id} {
+      allow read, write: if isAdmin();
+    }
+    // Trigger Email extension collection: creating a doc sends an email.
+    match /mail/{id} {
+      allow read, write: if isAdmin();
+    }
+    // Expert Review feature is disabled; keep the old data admin-only.
+    match /expert_reviews/{id} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

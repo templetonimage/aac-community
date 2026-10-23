@@ -1,0 +1,10 @@
+rules_version = '2';
+// AAC does not use Cloud Storage (profile photos are stored as small images on the member doc).
+// Deny everything; Cloud Functions (Admin SDK) are unaffected.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
