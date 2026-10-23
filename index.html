@@ -7740,28 +7740,20 @@ async function createMemberAccount() {
   const resultEl = document.getElementById("cm-result");
 
   if (!name || !email || !pass) { showToast("Name, email, and password required."); return; }
+  if (pass.length < 8) { showToast("Password must be at least 8 characters."); return; }
 
-  const rounds = []; // rounds field is unused (access is subscriptionStatus-driven), kept only for schema compat
   const isFounder = document.getElementById("cm-founder").checked;
   const isVIP = document.getElementById("cm-vip").checked;
 
   try {
-    // Step 1: Create Firebase Auth user via REST API (without signing out admin)
-    const apiKey = FIREBASE_CONFIG.apiKey;
-    const resp = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password: pass, returnSecureToken: true })
-    });
-    const data = await resp.json();
-    if (data.error) throw new Error(data.error.message);
+    // Security Stage 3: the admin-only createMemberAccount Cloud Function creates the
+    // login (Admin SDK, works with public sign-up OFF) and the registry doc together.
+    const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js");
+    const fns = getFunctions(app, STRIPE_FN_REGION);
+    const createMemberAccountFn = httpsCallable(fns, "createMemberAccount");
+    await createMemberAccountFn({ name, email, password: pass, website, ig, business: biz, type, isFounder, isVIP });
 
-    const uid = data.localId;
-
-    // Step 2: Create aac_registry doc
-    await addRegistryMember(uid, name, email, website, ig, biz, type, rounds, isFounder, isVIP);
-
-    // Step 3: Show success
+    // Show success
     resultEl.innerHTML = `<div class="card" style="background:#f0fdf4;border-color:#86efac;">
       <div style="font-weight:700;color:var(--success);margin-bottom:8px;">✅ Account Created</div>
       <div class="text-sm"><strong>Name:</strong> ${esc(name)}</div>
@@ -7784,25 +7776,6 @@ async function createMemberAccount() {
     resultEl.innerHTML = `<div style="color:var(--danger);font-size:13px;margin-top:8px;">❌ ${esc(e.message)}</div>`;
     logPlatformError("createMemberAccount", e.message);
   }
-}
-
-async function addRegistryMember(uid, name, email, website, ig, biz, type, rounds, isFounder, isVIP) {
-  await setDoc(doc(db, "aac_registry", uid), {
-    name, email, uid,
-    website: website || "",
-    ig: ig || "",
-    business: biz || "",
-    type: type || "",
-    rounds, points: 0, totalPosts: 0,
-    isFounder, isVIP, isAllStar: false,
-    allStarStreak: 0, allStarStreakWeekIdx: null, allStarBadgeUntilWeekIdx: null,
-    // AAC Pro fields — default inactive
-    isPro: false, proSince: null, proExpiry: null, trialUntil: null,
-    // Rolling membership state
-    subscriptionStatus: "trial", preRestrictionStatus: null, joinWeekIdx: getWeekIndex(),
-    stripeCustomerId: null, stripeSubscriptionId: null,
-    addedAt: Date.now()
-  });
 }
 
 function copyWelcomeEmail(name, email, pass) {
