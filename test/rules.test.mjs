@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { initializeTestEnvironment, assertSucceeds, assertFails } from "@firebase/rules-unit-testing";
 import {
   doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc, collection, getDocs, query, where,
-  increment, arrayUnion,
+  increment, arrayUnion, deleteField,
 } from "firebase/firestore";
 
 let env;
@@ -60,6 +60,8 @@ beforeEach(async () => {
     await setDoc(doc(f, "resources/r1"), { title: "R" });
     await setDoc(doc(f, "expert_reviews/e1"), { uid: "bob" });
     await setDoc(doc(f, "aac_month_archives/2026-10_summary"), { monthKey: "2026-10" });
+    await setDoc(doc(f, "aac_private/alice"), { email: "alice@x.com", emailLower: "alice@x.com", stripeCustomerId: "cus_A", stripeSubscriptionId: "sub_A" });
+    await setDoc(doc(f, "aac_private/bob"), { email: "bob@x.com", emailLower: "bob@x.com", stripeCustomerId: "cus_B" });
   });
 });
 
@@ -335,4 +337,26 @@ test("ALLOW admin coworking, bug reports, archives, mail", async () => {
   await assertSucceeds(deleteDoc(doc(d, "bug_reports/b1")));
   await assertSucceeds(setDoc(doc(d, "aac_month_archives/2026-10_alice"), { monthKey: "2026-10" }));
   await assertSucceeds(addDoc(collection(d, "mail"), { to: "a@b.com" }));
+});
+
+// ── Private member fields (Stage 2b) ─────────────────────
+test("ALLOW member reads own private doc (billing card)", () => assertSucceeds(getDoc(doc(db(ALICE), "aac_private/alice"))));
+test("ALLOW member reads own private doc even if it doesn't exist yet", () => assertSucceeds(getDoc(doc(db({ uid: "newbie", email: "n@x.com" }), "aac_private/newbie"))));
+test("DENY member reads someone else's private doc", () => assertFails(getDoc(doc(db(ALICE), "aac_private/bob"))));
+test("DENY member lists private docs", () => assertFails(getDocs(collection(db(ALICE), "aac_private"))));
+test("DENY member writes own private doc (Stripe IDs are server-set)", async () => {
+  await assertFails(updateDoc(doc(db(ALICE), "aac_private/alice"), { stripeCustomerId: "cus_X" }));
+  await assertFails(setDoc(doc(db({ uid: "newbie", email: "n@x.com" }), "aac_private/newbie"), { email: "n@x.com" }));
+});
+test("DENY signed-out read of private docs", () => assertFails(getDoc(doc(db(null), "aac_private/alice"))));
+test("ALLOW admin lists private docs, edits email, runs migration (copy + delete registry fields)", async () => {
+  const d = db(ADMIN);
+  await assertSucceeds(getDocs(collection(d, "aac_private")));
+  await assertSucceeds(setDoc(doc(d, "aac_private/alice"), { email: "new@x.com", emailLower: "new@x.com", updatedAt: NOW }, { merge: true }));
+  await assertSucceeds(setDoc(doc(d, "aac_private/carol"), { email: "c@x.com", emailLower: "c@x.com", stripeCustomerId: null, stripeSubscriptionId: null, updatedAt: NOW }, { merge: true }));
+  await assertSucceeds(updateDoc(doc(d, "aac_registry/alice"), { email: deleteField(), stripeCustomerId: deleteField() }));
+});
+test("DENY member re-adding email/Stripe fields to the registry", async () => {
+  await assertFails(updateDoc(doc(db(ALICE), "aac_registry/alice"), { stripeCustomerId: "cus_X" }));
+  await assertFails(updateDoc(doc(db(ALICE), "aac_registry/alice"), { email: "x@x.com" }));
 });

@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// AAC Firestore rules: Security Stage 2 (Oct 2026)
+// AAC Firestore rules: Security Stage 2 + 2b (Oct 2026)
 // - No catch-all: any collection not listed here is denied.
 // - Admin = nate@templetonimage.com. Cloud Functions (Stripe webhook, restartAccount,
 //   inactivity nudge) use the Admin SDK and skip these rules.
@@ -140,6 +140,14 @@ service cloud.firestore {
         || (ownsPost() && onlyChanges(['text', 'url', 'pvr_prompt']) && urlOk('url'))
         || (signedIn() && (propsChangeOk() || replyAddOk() || replyRemoveOk()));
       allow delete: if isAdmin() || ownsPost();
+    }
+
+    // ── Private member fields (Stage 2b) ──────────────────────
+    // Email + Stripe IDs, keyed by Auth UID. Only that member and the admin can read;
+    // only the admin (and Cloud Functions via the Admin SDK) can write.
+    match /aac_private/{uid} {
+      allow read: if isAdmin() || (signedIn() && uid == me());
+      allow write: if isAdmin();
     }
 
     // ── Weekly proof and activity ─────────────────────────────
