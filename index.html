@@ -8151,86 +8151,8 @@ function showFirebaseSetupCard() {
   const el = document.getElementById("firebase-setup-content");
   el.innerHTML = `
     <p class="text-sm text-muted" style="margin-bottom:12px;">Firebase project: <strong>aac-26</strong> · Admin: ${esc(ADMIN_EMAIL)} · Round: ${CURRENT_ROUND}</p>
-    <div style="font-size:12px;font-weight:600;margin-bottom:6px;">Required Firestore Security Rules</div>
-    <div style="position:relative;">
-      <div id="firebase-rules-block" style="background:#f8f8f8;border:1px solid var(--border);border-radius:6px;padding:12px;font-family:monospace;font-size:11px;line-height:1.7;white-space:pre-wrap;overflow-x:auto;">rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /aac_registry/{uid} {
-      allow read: if request.auth != null;
-      allow write: if request.auth.uid == uid;
-      allow read, write: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
-
-      match /campaignBriefs/{briefId} {
-        allow read, write: if request.auth.uid == uid;
-        allow read, write: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
-      }
-    }
-    match /submissions/{docId} {
-      allow create: if request.auth != null;
-      allow read: if request.auth != null;
-      allow update, delete: if resource.data.authorUid == request.auth.uid
-        || request.auth.token.email == '${esc(ADMIN_EMAIL)}';
-    }
-    match /engagements/{docId} {
-      allow create: if request.auth != null;
-      allow read: if request.auth != null;
-      allow update, delete: if resource.data.authorUid == request.auth.uid
-        || request.auth.token.email == '${esc(ADMIN_EMAIL)}';
-    }
-    match /trackers/{uid} {
-      allow read, write: if request.auth.uid == uid;
-      allow read, write: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
-    }
-    match /posts/{docId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if resource.data.authorUid == request.auth.uid
-        || resource.data.authorUid == request.auth.token.email
-        || request.auth.token.email == '${esc(ADMIN_EMAIL)}';
-    }
-    match /announcements/{docId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
-    }
-    match /resources/{docId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
-    }
-    match /expert_reviews/{docId} {
-      allow read, write: if request.auth != null;
-    }
-    match /mail/{docId} {
-      allow create: if request.auth != null;
-      allow read, update, delete: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
-    }
-    match /bug_reports/{docId} {
-      allow create: if request.auth != null;
-      allow read: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
-    }
-    match /aac_coworking_sessions/{sessionId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
-      match /rsvps/{uid} {
-        allow read: if request.auth != null;
-        allow write: if request.auth.uid == uid;
-      }
-      match /attendees/{uid} {
-        allow read: if request.auth != null;
-        allow write: if request.auth.token.email == '${esc(ADMIN_EMAIL)}';
-      }
-    }
-    match /aac_community_pts/{docId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow delete: if request.auth.token.email == '${esc(ADMIN_EMAIL)}'
-        || resource.data.uid == request.auth.uid;
-    }
-  }
-}</div>
-      <button onclick="(()=>{const el=document.getElementById('firebase-rules-block');navigator.clipboard.writeText(el.textContent).then(()=>showToast('Rules copied!')).catch(()=>showToast('Copy failed.'))})()" style="position:absolute;top:8px;right:8px;background:var(--gold);color:#1a1a1a;border:none;border-radius:4px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;">Copy</button>
-    </div>
-    <p style="font-size:11px;color:var(--text-muted);margin-top:8px;">Paste these into Firebase Console → Firestore → Rules tab → Publish.</p>
+    <div style="font-size:12px;font-weight:600;margin-bottom:6px;">Firestore Security Rules</div>
+    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;">The tested rules live in GitHub: <strong>templetonimage/aac-community</strong>, branch <strong>security-stage2-rules-test</strong>, file <strong>firestore.rules</strong> (with emulator tests). Publish from there in Firebase Console → Firestore → Rules. Don't paste older rules over them: they let members change their own points, Pro and membership status.</p>
   `;
 }
 
