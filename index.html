@@ -4263,6 +4263,9 @@ async function resolveUser(user) {
   const snap = await getDoc(doc(db, "aac_registry", uid));
   if (!snap.exists()) return null;
   const d = sanitizeMember({ id: snap.id, ...snap.data() });
+  // Security Stage 2b: email + Stripe IDs live in aac_private/{uid} (owner + admin only).
+  let priv = {};
+  try { const ps = await getDoc(doc(db, "aac_private", uid)); if (ps.exists()) priv = ps.data() || {}; } catch (e) { console.warn("aac_private read failed:", e); }
   if (d.subscriptionStatus === "cancelled") {
     // Restart pack: cancelled members can log in during the restart window to
     // reach the restart-only screen, but get none of the normal app data.
@@ -4303,8 +4306,8 @@ async function resolveUser(user) {
     preRestrictionStatus: d.preRestrictionStatus || null,
     joinWeekIdx: d.joinWeekIdx,
     addedAt: d.addedAt || null,
-    stripeCustomerId: d.stripeCustomerId || null,
-    stripeSubscriptionId: d.stripeSubscriptionId || null,
+    stripeCustomerId: priv.stripeCustomerId || d.stripeCustomerId || null,
+    stripeSubscriptionId: priv.stripeSubscriptionId || d.stripeSubscriptionId || null,
     cancelAtPeriodEnd: d.cancelAtPeriodEnd || false,
     currentPeriodEnd: d.currentPeriodEnd || null,
     restartedAt: d.restartedAt || null,
@@ -7417,14 +7420,28 @@ async function loadDirectory() {
   await renderMemberGrid();
 }
 
+// Security Stage 2b: admin views merge email + Stripe IDs from aac_private (legacy registry fields as fallback).
+async function _loadPrivateMap() {
+  const map = {};
+  try { (await getDocs(collection(db, "aac_private"))).forEach(d => { map[d.id] = d.data() || {}; }); }
+  catch (e) { console.warn("aac_private list failed:", e); }
+  return map;
+}
+function _mergePrivate(m, privMap) {
+  const p = privMap[m.id] || {};
+  return { ...m, email: p.email || m.email || "", stripeCustomerId: p.stripeCustomerId || m.stripeCustomerId || null,
+    stripeSubscriptionId: p.stripeSubscriptionId || m.stripeSubscriptionId || null };
+}
+
 async function renderAdminRegistry() {
   try {
-    const [snap, subsSnap] = await Promise.all([
+    const [snap, subsSnap, privMap] = await Promise.all([
       getDocs(collection(db, "aac_registry")),
-      getDocs(collection(db, "submissions"))
+      getDocs(collection(db, "submissions")),
+      _loadPrivateMap()
     ]);
     const all = [];
-    snap.forEach(d => all.push(sanitizeMember({ id: d.id, ...d.data() })));
+    snap.forEach(d => all.push(_mergePrivate(sanitizeMember({ id: d.id, ...d.data() }), privMap)));
     all.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
 
     const allSubs = subsSnap.docs.map(d => d.data());
@@ -7746,7 +7763,8 @@ async function editRegistryEmail(docId, currentEmail) {
   const newEmail = prompt("New email:", currentEmail);
   if (!newEmail || newEmail === currentEmail) return;
   try {
-    await updateDoc(doc(db, "aac_registry", docId), { email: newEmail });
+    const cleanEmail = newEmail.trim();
+    await setDoc(doc(db, "aac_private", docId), { email: cleanEmail, emailLower: cleanEmail.toLowerCase(), updatedAt: Date.now() }, { merge: true });
     showToast("Email updated.");
     loadDirectory();
   } catch { showToast("Failed to update email."); }
@@ -8981,7 +8999,8 @@ window.archiveMonth = async function() {
   try {
     let members = [];
     const regSnap = await getDocs(collection(db, "aac_registry"));
-    regSnap.forEach(d => members.push(sanitizeMember({ id: d.id, ...d.data() })));
+    const privMap = await _loadPrivateMap();
+    regSnap.forEach(d => members.push(_mergePrivate(sanitizeMember({ id: d.id, ...d.data() }), privMap)));
     members = members.filter(m => m.subscriptionStatus !== "cancelled");
 
     const monthWeekIdxs = getCurrentMonthWeekIdxs();
