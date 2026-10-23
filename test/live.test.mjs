@@ -7,8 +7,9 @@ let env;
 before(async () => {
   env = await initializeTestEnvironment({ projectId: "demo-aac", firestore: { rules: readFileSync("live.rules", "utf8") } });
   await env.withSecurityRulesDisabled(async c => {
-    await setDoc(doc(c.firestore(), "posts/p"), { authorUid: "bob", props: [], propsCount: 0, replies: [] });
-    await setDoc(doc(c.firestore(), "aac_registry/alice"), { uid: "alice", isPro: false, points: 1 });
+    const f = c.firestore();
+    await setDoc(doc(f, "posts/p"), { authorUid: "bob", props: [], propsCount: 0, replies: [] });
+    await setDoc(doc(f, "aac_registry/alice"), { uid: "alice", isPro: false, points: 1 });
   });
 });
 after(async () => env.cleanup());
