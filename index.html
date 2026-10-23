@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<!-- Security: Content-Security-Policy. connect-src limits where the page can send data (Firebase + AAC Cloud Functions). Add any new outside service here or it will be blocked. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.googleapis.com https://www.gstatic.com https://us-central1-aac-26.cloudfunctions.net; frame-src https://aac-26.firebaseapp.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
 <title>AAC — Ad Accountability Challenge</title>
 <link rel="manifest" href="manifest.json" />
@@ -4042,9 +4044,28 @@ function linkify(text) {
 }
 function esc(str) {
   if (!str) return "";
-  const d = document.createElement("div");
-  d.textContent = str;
-  return d.innerHTML;
+  // Security: also escapes quotes so values are safe inside HTML attributes.
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+// Security: returns a normalized http(s) URL that is safe to put in an href, or "" if it isn't one.
+// Bare domains ("example.com/page") get https:// added. Blocks javascript:, data:, vbscript:, etc.
+// allowImg=true also allows in-app image data (data:image png/jpeg/webp/gif, never SVG).
+function safeHref(u, allowImg) {
+  if (!u) return "";
+  let v = String(u).trim();
+  if (allowImg && /^data:image\/(png|jpe?g|webp|gif);base64,[a-z0-9+\/=\s]+$/i.test(v)) return v;
+  if (v.startsWith("//")) v = "https:" + v;
+  else if (!/^[a-z][a-z0-9+.-]*:/i.test(v)) v = "https://" + v;
+  try {
+    const x = new URL(v);
+    return (x.protocol === "https:" || x.protocol === "http:") && x.hostname.includes(".") ? x.href : "";
+  } catch (e) { return ""; }
+}
+// Security: for values placed inside a '...' JS string in an inline onclick="..." handler.
+// esc() alone is not enough there: the browser decodes &#39; back to ' before running the JS.
+function jsq(s) {
+  return esc(String(s ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\r?\n/g, "\\n").replace(/[\u2028\u2029]/g, " "));
 }
 
 function timeAgo(ts) {
@@ -4934,7 +4955,7 @@ async function submitPost() {
   const text = document.getElementById("feed-compose").value.trim();
   let url = document.getElementById("feed-url").value.trim();
   if (!text) { showToast("Write something first."); return; }
-  if (url && !/^https?:\/\//i.test(url)) url = "https://" + url;
+  if (url) { url = safeHref(url); if (!url) { showToast("That link isn't a valid web address."); return; } }
 
   // Enforce 2 posts per week cap
   try {
@@ -5004,7 +5025,7 @@ function renderFeed(posts) {
     const avatarContent = photoURL
       ? `<img src="${esc(photoURL)}" alt="${esc(p.author)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;" />`
       : getInitials(p.author);
-    const urlHtml = p.url ? `<div style="margin-bottom:8px;"><a href="${esc(p.url)}" target="_blank" rel="noopener" style="font-size:13px;word-break:break-all;">${esc(p.url)}</a></div>` : "";
+    const urlHtml = safeHref(p.url) ? `<div style="margin-bottom:8px;"><a href="${esc(safeHref(p.url))}" target="_blank" rel="noopener" style="font-size:13px;word-break:break-all;">${esc(p.url)}</a></div>` : "";
     const isOwner = p.authorUid === currentUser.uid || currentUser.isAdmin;
     const propsNames = (p.props || []).join(", ");
     const replies = p.replies || [];
@@ -5023,7 +5044,7 @@ function renderFeed(posts) {
         <div class="post-reply-bubble">
           <div class="post-reply-author" style="display:flex;align-items:center;justify-content:space-between;">
             <span>${esc(r.name)}</span>
-            ${canDeleteReply ? `<button onclick="deleteReply('${p.id}',${r.timestamp},'${esc(r.uid)}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:11px;padding:2px 4px;opacity:0.6;" title="Delete reply">🗑</button>` : ""}
+            ${canDeleteReply ? `<button onclick="deleteReply('${jsq(p.id)}',${Number(r.timestamp)},'${jsq(r.uid)}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:11px;padding:2px 4px;opacity:0.6;" title="Delete reply">🗑</button>` : ""}
           </div>
           <div class="post-reply-text">${linkify(r.text)}</div>
           <div class="post-reply-time">${timeAgo(r.timestamp)}</div>
@@ -5043,16 +5064,16 @@ function renderFeed(posts) {
           <div class="feed-time">${timeAgo(p.timestamp)}</div>
         </div>
         ${isOwner ? `<div style="display:flex;gap:6px;margin-left:auto;">
-          <button onclick="openPostEdit('${p.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:4px 6px;border-radius:6px;" title="Edit">✏️</button>
-          <button onclick="deletePost('${p.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:4px 6px;border-radius:6px;" title="Delete">🗑</button>
+          <button onclick="openPostEdit('${jsq(p.id)}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:4px 6px;border-radius:6px;" title="Edit">✏️</button>
+          <button onclick="deletePost('${jsq(p.id)}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:4px 6px;border-radius:6px;" title="Delete">🗑</button>
         </div>` : ""}
       </div>
       <div class="feed-edit-overlay" id="post-edit-${p.id}">
         <textarea class="feed-edit-textarea" id="post-edit-text-${p.id}">${esc(p.text)}</textarea>
         <input class="feed-edit-url" id="post-edit-url-${p.id}" type="url" value="${esc(p.url || "")}" placeholder="Link URL (optional)" />
         <div class="feed-edit-actions">
-          <button class="btn btn-gold btn-sm" onclick="savePostEdit('${p.id}')">Save</button>
-          <button class="btn btn-outline btn-sm" onclick="closePostEdit('${p.id}')">Cancel</button>
+          <button class="btn btn-gold btn-sm" onclick="savePostEdit('${jsq(p.id)}')">Save</button>
+          <button class="btn btn-outline btn-sm" onclick="closePostEdit('${jsq(p.id)}')">Cancel</button>
         </div>
       </div>
       <div id="post-body-${p.id}">
@@ -5060,27 +5081,27 @@ function renderFeed(posts) {
         ${urlHtml}
       </div>
       <div class="feed-actions">
-        <button onclick="giveProps('${p.id}')" style="${p.props && p.props.includes(currentUser.name) ? 'color:var(--gold-dark);font-weight:700;' : ''}">👏 ${p.propsCount || 0}</button>
-        <button onclick="togglePropsList('${p.id}')">👥</button>
-        <button class="post-reply-btn" onclick="togglePostCompose('${p.id}')">💬 Reply</button>
+        <button onclick="giveProps('${jsq(p.id)}')" style="${p.props && p.props.includes(currentUser.name) ? 'color:var(--gold-dark);font-weight:700;' : ''}">👏 ${p.propsCount || 0}</button>
+        <button onclick="togglePropsList('${jsq(p.id)}')">👥</button>
+        <button class="post-reply-btn" onclick="togglePostCompose('${jsq(p.id)}')">💬 Reply</button>
       </div>
       <div class="props-list" id="props-${p.id}">${propsNames || "No props yet"}</div>
       ${replies.length > 0 ? `<div class="post-replies-section">
-        <button class="post-replies-toggle" onclick="togglePostReplies('${p.id}')">
+        <button class="post-replies-toggle" onclick="togglePostReplies('${jsq(p.id)}')">
           💬 ${replyCountLabel} <span id="post-toggle-icon-${p.id}">▸</span>
         </button>
         <div id="post-reply-list-${p.id}" style="display:none;">
           ${previewReplies}
           ${hasMore ? `<div id="post-extra-replies-${p.id}" style="display:none;">${extraReplies}</div>
-          <button class="see-more-btn" id="post-see-more-btn-${p.id}" onclick="toggleSeeMore('${p.id}')" data-open="false">See ${replies.length - PREVIEW} more</button>` : ""}
+          <button class="see-more-btn" id="post-see-more-btn-${p.id}" onclick="toggleSeeMore('${jsq(p.id)}')" data-open="false">See ${replies.length - PREVIEW} more</button>` : ""}
           <div class="post-reply-compose" id="post-compose-${p.id}">
             <textarea class="post-reply-input" id="post-input-${p.id}" placeholder="Write a reply..."></textarea>
-            <button class="post-reply-send" onclick="submitPostReply('${p.id}')">Reply</button>
+            <button class="post-reply-send" onclick="submitPostReply('${jsq(p.id)}')">Reply</button>
           </div>
         </div>
       </div>` : `<div class="post-reply-compose" id="post-compose-${p.id}" style="margin-top:8px;">
         <textarea class="post-reply-input" id="post-input-${p.id}" placeholder="Write a reply..."></textarea>
-        <button class="post-reply-send" onclick="submitPostReply('${p.id}')">Reply</button>
+        <button class="post-reply-send" onclick="submitPostReply('${jsq(p.id)}')">Reply</button>
       </div>`}
     </div>`;
   }).join("");
@@ -5131,25 +5152,25 @@ function renderPVRCard(p) {
         <div class="feed-time">${timeAgo(p.timestamp)}</div>
       </div>
       ${isOwner ? `<div style="display:flex;gap:6px;margin-left:auto;">
-        <button onclick="openPVREdit('${p.id}')" style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:13px;padding:4px 6px;border-radius:6px;" title="Edit">✏️</button>
-        <button onclick="deletePost('${p.id}')" style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:13px;padding:4px 6px;border-radius:6px;" title="Delete">🗑</button>
+        <button onclick="openPVREdit('${jsq(p.id)}')" style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:13px;padding:4px 6px;border-radius:6px;" title="Edit">✏️</button>
+        <button onclick="deletePost('${jsq(p.id)}')" style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:13px;padding:4px 6px;border-radius:6px;" title="Delete">🗑</button>
       </div>` : ""}
     </div>
     <div class="pvr-edit-overlay" id="pvr-edit-${p.id}">
       <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:4px;">URL cannot be changed after posting.</div>
       <textarea class="pvr-edit-textarea" id="pvr-edit-prompt-${p.id}">${esc(p.pvr_prompt || "")}</textarea>
       <div class="pvr-edit-actions">
-        <button class="btn btn-gold btn-sm" onclick="savePVREdit('${p.id}')">Save</button>
-        <button class="btn btn-sm" style="border:1px solid rgba(255,255,255,0.2);background:none;color:rgba(255,255,255,0.6);border-radius:8px;padding:7px 14px;font-family:'Inter',sans-serif;font-size:13px;cursor:pointer;" onclick="closePVREdit('${p.id}')">Cancel</button>
+        <button class="btn btn-gold btn-sm" onclick="savePVREdit('${jsq(p.id)}')">Save</button>
+        <button class="btn btn-sm" style="border:1px solid rgba(255,255,255,0.2);background:none;color:rgba(255,255,255,0.6);border-radius:8px;padding:7px 14px;font-family:'Inter',sans-serif;font-size:13px;cursor:pointer;" onclick="closePVREdit('${jsq(p.id)}')">Cancel</button>
       </div>
     </div>
     <div id="pvr-body-${p.id}">
       ${p.pvr_prompt ? `<div class="pvr-prompt">${linkify(p.pvr_prompt)}</div>` : ""}
     </div>
-    <a href="${esc(p.pvr_url)}" target="_blank" rel="noopener" class="pvr-visit-btn">🌐 Visit Page</a>
+    ${safeHref(p.pvr_url) ? `<a href="${esc(safeHref(p.pvr_url))}" target="_blank" rel="noopener" class="pvr-visit-btn">🌐 Visit Page</a>` : ""}
     <div class="pvr-replies-section">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <button class="pvr-replies-toggle" onclick="togglePVRReplies('${p.id}')">
+        <button class="pvr-replies-toggle" onclick="togglePVRReplies('${jsq(p.id)}')">
           💬 ${replyCountLabel} <span id="pvr-toggle-icon-${p.id}">▸</span>
         </button>
         <span class="pvr-pts-pill">+2 pts for feedback</span>
@@ -5157,13 +5178,13 @@ function renderPVRCard(p) {
       <div id="pvr-reply-list-${p.id}" style="display:none;">
         ${previewReplies}
         ${hasMore ? `<div id="pvr-extra-replies-${p.id}" style="display:none;">${extraReplies}</div>
-        <button class="see-more-btn" id="pvr-see-more-btn-${p.id}" onclick="togglePVRSeeMore('${p.id}')" data-open="false">See ${replies.length - PREVIEW} more</button>` : ""}
+        <button class="see-more-btn" id="pvr-see-more-btn-${p.id}" onclick="togglePVRSeeMore('${jsq(p.id)}')" data-open="false">See ${replies.length - PREVIEW} more</button>` : ""}
         ${canReply ? `
         <div class="pvr-reply-compose" id="pvr-compose-${p.id}">
           <textarea class="pvr-reply-input" id="pvr-input-${p.id}" placeholder="${currentUser.isAdmin ? "Leave an admin comment (no points awarded)..." : "Leave your feedback..."}"></textarea>
-          <button class="pvr-reply-send" onclick="${currentUser.isAdmin ? `submitAdminPVRComment('${p.id}')` : `submitPVRReply('${p.id}', '${esc(p.authorUid)}')`}">${currentUser.isAdmin ? "Comment" : "Send +2pts"}</button>
+          <button class="pvr-reply-send" onclick="${currentUser.isAdmin ? `submitAdminPVRComment('${jsq(p.id)}')` : `submitPVRReply('${jsq(p.id)}', '${jsq(p.authorUid)}')`}">${currentUser.isAdmin ? "Comment" : "Send +2pts"}</button>
         </div>
-        <button class="pvr-feedback-btn" id="pvr-feedback-btn-${p.id}" onclick="togglePVRCompose('${p.id}')">${currentUser.isAdmin ? "💬 Add Admin Comment" : "✏️ Leave Feedback"}</button>
+        <button class="pvr-feedback-btn" id="pvr-feedback-btn-${p.id}" onclick="togglePVRCompose('${jsq(p.id)}')">${currentUser.isAdmin ? "💬 Add Admin Comment" : "✏️ Leave Feedback"}</button>
         ` : `<div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:4px;">You can't reply to your own request.</div>`}
       </div>
     </div>
@@ -5442,7 +5463,9 @@ async function savePostEdit(postId) {
   const textEl = document.getElementById("post-edit-text-" + postId);
   const urlEl = document.getElementById("post-edit-url-" + postId);
   const text = textEl ? textEl.value.trim() : "";
-  const url = urlEl ? urlEl.value.trim() : "";
+  const rawUrl = urlEl ? urlEl.value.trim() : "";
+  const url = rawUrl ? safeHref(rawUrl) : "";
+  if (rawUrl && !url) { showToast("That link isn't a valid web address."); return; }
   if (!text) { showToast("Post can't be empty."); return; }
   try {
     await updateDoc(doc(db, "posts", postId), { text, url: url || "" });
@@ -5617,7 +5640,7 @@ async function submitPVR() {
   let url = document.getElementById("pvr-url").value.trim();
   const prompt = document.getElementById("pvr-prompt").value.trim();
   if (!prompt) { showToast("Describe the feedback you're looking for."); return; }
-  if (url && !/^https?:\/\//i.test(url)) url = "https://" + url;
+  if (url) { url = safeHref(url); if (!url) { showToast("That link isn't a valid web address."); return; } }
   const weekIdx = getWeekIndex();
   const count = await getWeeklyPVRCount();
   if (count >= 1) { showToast("One Ad Peer Review Request per week."); return; }
@@ -5813,12 +5836,12 @@ function renderAnnouncements(anns) {
     const restText    = hasMore ? bodyText.slice(firstNewline + 1) : "";
     const adminActions = isAdmin ? `
       <div style="display:flex;gap:12px;margin-top:8px;">
-        <button onclick="archiveAnn('${a.id}')" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:0;">📁 Archive</button>
-        <button onclick="deleteAnn('${a.id}')" style="background:none;border:none;color:var(--danger);font-size:12px;cursor:pointer;padding:0;">🗑 Delete</button>
+        <button onclick="archiveAnn('${jsq(a.id)}')" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:0;">📁 Archive</button>
+        <button onclick="deleteAnn('${jsq(a.id)}')" style="background:none;border:none;color:var(--danger);font-size:12px;cursor:pointer;padding:0;">🗑 Delete</button>
       </div>` : "";
     const adminInlineActions = isAdmin
-      ? ` · <button onclick="archiveAnn('${a.id}')" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:0;">Archive</button>`
-        + ` · <button onclick="deleteAnn('${a.id}')" style="background:none;border:none;color:var(--danger);font-size:12px;cursor:pointer;padding:0;">Delete</button>`
+      ? ` · <button onclick="archiveAnn('${jsq(a.id)}')" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:0;">Archive</button>`
+        + ` · <button onclick="deleteAnn('${jsq(a.id)}')" style="background:none;border:none;color:var(--danger);font-size:12px;cursor:pointer;padding:0;">Delete</button>`
       : "";
     return `<div class="card announcement-card" style="margin-bottom:12px;">
       <div class="announcement-tag">ANNOUNCEMENT</div>
@@ -5872,8 +5895,8 @@ function openArchivedAnnsModal() {
       const bodyText = a.body || "";
       const adminActions = currentUser.isAdmin
         ? `<div style="display:flex;gap:12px;margin-top:10px;">
-            <button onclick="unarchiveAnn('${a.id}')" style="background:none;border:none;color:var(--gold-dark);font-size:12px;cursor:pointer;padding:0;">↩ Restore</button>
-            <button onclick="deleteAnn('${a.id}')" style="background:none;border:none;color:var(--danger);font-size:12px;cursor:pointer;padding:0;">🗑 Delete</button>
+            <button onclick="unarchiveAnn('${jsq(a.id)}')" style="background:none;border:none;color:var(--gold-dark);font-size:12px;cursor:pointer;padding:0;">↩ Restore</button>
+            <button onclick="deleteAnn('${jsq(a.id)}')" style="background:none;border:none;color:var(--danger);font-size:12px;cursor:pointer;padding:0;">🗑 Delete</button>
            </div>` : "";
       return `<div style="border-bottom:1px solid var(--border);padding:14px 0;${i === 0 ? "padding-top:4px;" : ""}">
         <div class="announcement-tag" style="margin-bottom:6px;">ARCHIVED</div>
@@ -5912,7 +5935,9 @@ async function submitResource() {
   const title = document.getElementById("res-title").value.trim();
   const desc = document.getElementById("res-desc").value.trim();
   const body = document.getElementById("res-body").value.trim();
-  const url = document.getElementById("res-url").value.trim();
+  const rawResUrl = document.getElementById("res-url").value.trim();
+  const url = rawResUrl ? safeHref(rawResUrl) : "";
+  if (rawResUrl && !url) { showToast("That link isn't a valid web address."); return; }
   const linkLabel = document.getElementById("res-link-label").value.trim();
   const tags = document.getElementById("res-tags").value.trim().split(",").map(t => t.trim()).filter(Boolean);
   const source = document.getElementById("res-source").value.trim();
@@ -6023,7 +6048,7 @@ function renderResourceFilters() {
   const tags = getAllTags();
   const el = document.getElementById("filter-bar");
   el.innerHTML = `<button class="filter-btn ${_currentFilter === 'All' ? 'active' : ''}" onclick="setFilter('All')">All</button>` +
-    tags.map(t => `<button class="filter-btn ${_currentFilter === t ? 'active' : ''}" onclick="setFilter('${esc(t)}')">${esc(t)}</button>`).join("");
+    tags.map(t => `<button class="filter-btn ${_currentFilter === t ? 'active' : ''}" onclick="setFilter('${jsq(t)}')">${esc(t)}</button>`).join("");
 }
 
 function setFilter(tag) {
@@ -6042,7 +6067,7 @@ function renderResources() {
     const isCoreUpdate = r.title === "Meta & Google Ad Policy Updates";
     const isBuildout = r.title === "Offer-to-Ads Buildout Checklist";
     const isGetStarted = r.title === "Get Started: Launch Your First Campaign";
-    const clickHandler = isGetStarted ? `gsOpen()` : isAdGuide ? `openAdFundamentalsModal()` : isBuildout ? `openBuildoutChecklist()` : `openResModal('${r.id}')`;
+    const clickHandler = isGetStarted ? `gsOpen()` : isAdGuide ? `openAdFundamentalsModal()` : isBuildout ? `openBuildoutChecklist()` : `openResModal('${jsq(r.id)}')`;
     const accentStyle = (isAdGuide || isCoreUpdate || isBuildout || isGetStarted)
       ? `border:1.5px solid var(--gold);background:linear-gradient(to right, var(--accent-bg), var(--surface));`
       : "";
@@ -6060,7 +6085,7 @@ function openResModal(id) {
   if (!r) return;
   const el = document.getElementById("res-modal-content");
   // Only show link button if both url AND linkLabel are present
-  const linkBtn = (r.url && r.linkLabel) ? `<a href="${esc(r.url)}" target="_blank" rel="noopener" class="btn btn-gold btn-sm mt-16">${esc(r.linkLabel)}</a>` : "";
+  const linkBtn = (safeHref(r.url) && r.linkLabel) ? `<a href="${esc(safeHref(r.url))}" target="_blank" rel="noopener" class="btn btn-gold btn-sm mt-16">${esc(r.linkLabel)}</a>` : "";
   // Use linkify on body so URLs auto-link; then replace [[AD_GUIDE_LINK]] token
   const linkedBody = linkify(r.body || r.description || "");
   const renderedBody = linkedBody.replace(
@@ -6506,7 +6531,7 @@ async function loadAdminRestartPanel() {
               <div style="font-weight:600;font-size:13px;">${esc(m.name)}${m.isAmbassador ? ' 🏅' : ''}</div>
               <div style="font-size:11px;color:var(--text-muted);">${[m.restartedAt ? 'Restarted ' + new Date(m.restartedAt).toLocaleDateString() : '', m.restartProofAt ? 'Proof ' + new Date(m.restartProofAt).toLocaleDateString() : ''].filter(Boolean).join(' · ')}</div>
             </div>
-            ${m.isAmbassador ? `<button class="btn btn-outline btn-sm" onclick="revokeRestartAmbassador('${m.id}')">Revoke</button>` : ''}
+            ${m.isAmbassador ? `<button class="btn btn-outline btn-sm" onclick="revokeRestartAmbassador('${jsq(m.id)}')">Revoke</button>` : ''}
           </div>`).join("");
       }
     }
@@ -6776,7 +6801,7 @@ async function submitUpdate() {
     if (!_screenshotData) { showToast("A campaign screenshot is required."); return; }
   }
 
-  if (url && !/^https?:\/\//i.test(url)) url = "https://" + url;
+  if (url) { url = safeHref(url); if (!url) { showToast("That link isn't a valid web address."); return; } }
 
   const isTrial = trialIdx !== -1;
   const now = Date.now();
@@ -6974,7 +6999,7 @@ async function loadEngHistory() {
     if (!el2) return;
     if (!items.length) { el2.innerHTML = '<p class="text-sm text-muted">No engagements yet.</p>'; return; }
     el2.innerHTML = items.slice(0, 20).map(e => `<div class="eng-history-item">
-      <div style="font-weight:600;">${esc(e.type)} — <a href="${esc(e.targetUrl)}" target="_blank" rel="noopener">${esc(e.targetUrl)}</a></div>
+      <div style="font-weight:600;">${esc(e.type)} — <a href="${esc(safeHref(e.targetUrl))}" target="_blank" rel="noopener">${esc(e.targetUrl)}</a></div>
       ${e.note ? `<div class="text-muted">${esc(e.note)}</div>` : ""}
       <div class="text-muted" style="font-size:11px;">${timeAgo(e.timestamp)} · +${e.pts} pts</div>
     </div>`).join("");
@@ -7007,7 +7032,7 @@ async function loadMySubmissions() {
       return `<div class="submission-item">
       <div class="submission-info">
         <div class="submission-week">${weekDisplay}${trialBadge}${s.isLate ? ' <span style="color:var(--danger);font-size:11px;">(late)</span>' : ""}</div>
-        ${s.url ? `<div class="submission-url"><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a></div>` : ""}
+        ${safeHref(s.url) ? `<div class="submission-url"><a href="${esc(safeHref(s.url))}" target="_blank" rel="noopener">${esc(s.url)}</a></div>` : ""}
         ${s.note ? `<div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${esc(s.note)}</div>` : ""}
       </div>
       <div class="submission-pts">+${s.pts}</div>
@@ -7048,7 +7073,7 @@ window.editSubmission = async function(docId, currentUrl, currentNote) {
   if (!trimUrl && !trimNote) { showToast("At least a URL or description is required."); return; }
   try {
     const updates = { editedAt: Date.now() };
-    if (trimUrl)  updates.url  = normalizeUrl(trimUrl);
+    if (trimUrl) { updates.url = safeHref(trimUrl); if (!updates.url) { showToast("That link isn't a valid web address."); return; } }
     if (trimNote) updates.note = trimNote;
     await updateDoc(doc(db, "submissions", docId), updates);
     showToast("Submission updated!");
@@ -7373,7 +7398,7 @@ async function renderAdminRegistry() {
         const status = m.subscriptionStatus || "trial";
         const notCancelled = status !== "cancelled";
         const igHandle = m.ig ? m.ig.trim().replace(/^@+/, "") : "";
-        const igUrl = igHandle ? `https://www.instagram.com/${igHandle}` : "";
+        const igUrl = igHandle ? `https://www.instagram.com/${encodeURIComponent(igHandle)}` : "";
         const proBadgeHtml = m.isPro ? `<span class="pro-badge" style="margin-left:0;">PRO</span>` : "";
         const trialHtml = m.trialUntil && !m.isPro && m.trialUntil > Date.now() ? `<span style="display:inline-flex;align-items:center;background:#e8f5e9;color:#27ae60;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;margin-left:4px;">Pro trial until ${new Date(m.trialUntil).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</span>` : "";
         const membershipTrialHtml = (status === "trial" && typeof m.addedAt === "number") ? `<span style="display:inline-flex;align-items:center;background:#fff3cd;color:#856404;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;margin-left:4px;">Membership trial ends ${new Date(m.addedAt + 30*86400000).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</span>` : "";
@@ -7416,24 +7441,24 @@ async function renderAdminRegistry() {
               : `<span style="color:var(--text-muted);">⏳ Never logged in</span>`}
           </div>
           <div class="text-sm" style="margin-bottom:6px;">${streakHtml}${lastSubHtml}</div>
-          ${m.website ? `<div style="font-size:11px;margin-bottom:4px;"><a href="${esc(m.website)}" target="_blank" rel="noopener" style="color:var(--gold-dark);">🌐 ${esc(m.website)}</a></div>` : ""}
-          ${igUrl ? `<div style="font-size:11px;margin-bottom:6px;"><a href="${igUrl}" target="_blank" rel="noopener" style="color:var(--text-muted);">📸 ${esc(m.ig)}</a></div>` : ""}
+          ${safeHref(m.website) ? `<div style="font-size:11px;margin-bottom:4px;"><a href="${esc(safeHref(m.website))}" target="_blank" rel="noopener" style="color:var(--gold-dark);">🌐 ${esc(m.website)}</a></div>` : ""}
+          ${igUrl ? `<div style="font-size:11px;margin-bottom:6px;"><a href="${esc(igUrl)}" target="_blank" rel="noopener" style="color:var(--text-muted);">📸 ${esc(m.ig)}</a></div>` : ""}
           <div class="admin-member-controls">
-            <select class="admin-status-select status-${status}" onchange="setRegistryStatus('${docId}', this.value)">
+            <select class="admin-status-select status-${status}" onchange="setRegistryStatus('${jsq(docId)}', this.value)">
               <option value="trial" ${status === "trial" ? "selected" : ""}>Trial</option>
               <option value="active" ${status === "active" ? "selected" : ""}>Active</option>
               <option value="restricted" ${status === "restricted" ? "selected" : ""}>Restricted</option>
               <option value="cancelled" ${status === "cancelled" ? "selected" : ""}>Cancelled</option>
             </select>
-            <button class="${m.isFounder?'active-flag':''}" onclick="toggleRegistryFlag('${docId}','isFounder')">🏅 Founder</button>
-            <button class="${m.isExpert?'active-flag':''}" onclick="toggleRegistryFlag('${docId}','isExpert')" style="${m.isExpert ? 'background:rgba(88,117,72,0.12);border-color:var(--gold);color:var(--gold-dark);font-weight:600;' : ''}">🎯 Expert</button>
-            <button class="${m.isVIP?'active-flag':''}" onclick="toggleRegistryFlag('${docId}','isVIP')">⚡ VIP</button>
-            <button class="${m.isAllStar?'active-flag':''}" onclick="toggleRegistryFlag('${docId}','isAllStar')" title="Manual permanent override — separate from the automatic 4-week streak badge">⭐ Manual All-Star</button>
-            <button onclick="editRegistryEmail('${docId}','${esc(m.email)}')">✏️ Email</button>
-            <button onclick="toggleProAccess('${docId}',${!!m.isPro})" style="${m.isPro ? "background:var(--accent-bg);border-color:var(--gold);color:var(--gold-dark);font-weight:600;" : ""}">${m.isPro ? "★ Remove Pro" : "★ Grant Pro"}</button>
-            <button onclick="setTrialAccess('${docId}','${esc(m.name)}')">⏱ Trial Access</button>
-            ${status === "trial" ? `<button onclick="resetTrialClock('${docId}')" title="Resets addedAt to today, restarts the 30-day membership trial window">🔄 Reset Trial Clock</button>` : ""}
-            <button onclick="removeRegistryMember('${docId}','${esc(m.name)}')" style="color:var(--danger);">✕ Remove</button>
+            <button class="${m.isFounder?'active-flag':''}" onclick="toggleRegistryFlag('${jsq(docId)}','isFounder')">🏅 Founder</button>
+            <button class="${m.isExpert?'active-flag':''}" onclick="toggleRegistryFlag('${jsq(docId)}','isExpert')" style="${m.isExpert ? 'background:rgba(88,117,72,0.12);border-color:var(--gold);color:var(--gold-dark);font-weight:600;' : ''}">🎯 Expert</button>
+            <button class="${m.isVIP?'active-flag':''}" onclick="toggleRegistryFlag('${jsq(docId)}','isVIP')">⚡ VIP</button>
+            <button class="${m.isAllStar?'active-flag':''}" onclick="toggleRegistryFlag('${jsq(docId)}','isAllStar')" title="Manual permanent override — separate from the automatic 4-week streak badge">⭐ Manual All-Star</button>
+            <button onclick="editRegistryEmail('${jsq(docId)}','${jsq(m.email)}')">✏️ Email</button>
+            <button onclick="toggleProAccess('${jsq(docId)}',${!!m.isPro})" style="${m.isPro ? "background:var(--accent-bg);border-color:var(--gold);color:var(--gold-dark);font-weight:600;" : ""}">${m.isPro ? "★ Remove Pro" : "★ Grant Pro"}</button>
+            <button onclick="setTrialAccess('${jsq(docId)}','${jsq(m.name)}')">⏱ Trial Access</button>
+            ${status === "trial" ? `<button onclick="resetTrialClock('${jsq(docId)}')" title="Resets addedAt to today, restarts the 30-day membership trial window">🔄 Reset Trial Clock</button>` : ""}
+            <button onclick="removeRegistryMember('${jsq(docId)}','${jsq(m.name)}')" style="color:var(--danger);">✕ Remove</button>
           </div>
         </div>`;
       }).join("") + `</div>`;
@@ -7462,12 +7487,12 @@ async function renderMemberGrid() {
       ? `<img src="${esc(m.photoURL)}" alt="${esc(m.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;" />`
       : initials;
     const igHandle = m.ig ? m.ig.trim().replace(/^@+/, "") : "";
-    const igUrl = igHandle ? `https://www.instagram.com/${igHandle}` : "";
-    const websiteBtn = m.website
-      ? `<a href="${esc(normalizeUrl(m.website))}" target="_blank" rel="noopener" class="member-card-link" onclick="event.stopPropagation()" style="display:block;text-align:center;font-size:11px;color:var(--gold-dark);margin-top:4px;word-break:break-all;">🌐 Visit Site</a>`
+    const igUrl = igHandle ? `https://www.instagram.com/${encodeURIComponent(igHandle)}` : "";
+    const websiteBtn = safeHref(m.website)
+      ? `<a href="${esc(safeHref(m.website))}" target="_blank" rel="noopener" class="member-card-link" onclick="event.stopPropagation()" style="display:block;text-align:center;font-size:11px;color:var(--gold-dark);margin-top:4px;word-break:break-all;">🌐 Visit Site</a>`
       : "";
     const igBtn = igUrl
-      ? `<a href="${igUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:block;text-align:center;font-size:11px;color:var(--text-muted);margin-top:2px;">📸 ${esc(m.ig)}</a>`
+      ? `<a href="${esc(igUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:block;text-align:center;font-size:11px;color:var(--text-muted);margin-top:2px;">📸 ${esc(m.ig)}</a>`
       : "";
     return `<div class="member-card" data-member-key="${m.id}" onclick="handleMemberCardClick(this)">
       <div class="member-card-avatar">${memberAvatarContent}</div>
@@ -7515,7 +7540,7 @@ async function openMemberProfile(member) {
   const weeksCompleted = monthWeekIdxs.filter(w => memberSubmittedWeeks.has(w)).length;
 
   const dots = monthWeekIdxs.map(w => `<div class="member-dot ${memberSubmittedWeeks.has(w) ? 'done' : ''}"></div>`).join("");
-  const websiteBtn = member.website ? `<a href="${esc(normalizeUrl(member.website))}" target="_blank" rel="noopener" class="btn btn-gold btn-block btn-sm mt-16">Visit Website</a>` : "";
+  const websiteBtn = safeHref(member.website) ? `<a href="${esc(safeHref(member.website))}" target="_blank" rel="noopener" class="btn btn-gold btn-block btn-sm mt-16">Visit Website</a>` : "";
   const modalAvatarContent = member.photoURL
     ? `<img src="${esc(member.photoURL)}" alt="${esc(member.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;" />`
     : getInitials(member.name);
@@ -7705,7 +7730,9 @@ function initPasswordField() {
 async function createMemberAccount() {
   const name = document.getElementById("cm-name").value.trim();
   const email = document.getElementById("cm-email").value.trim();
-  const website = document.getElementById("cm-website").value.trim();
+  const rawCmWebsite = document.getElementById("cm-website").value.trim();
+  const website = rawCmWebsite ? safeHref(rawCmWebsite) : "";
+  if (rawCmWebsite && !website) { showToast("That link isn't a valid web address."); return; }
   const ig = document.getElementById("cm-ig") ? document.getElementById("cm-ig").value.trim() : "";
   const biz = document.getElementById("cm-biz").value.trim();
   const type = document.getElementById("cm-type").value.trim();
@@ -7740,7 +7767,7 @@ async function createMemberAccount() {
       <div class="text-sm"><strong>Name:</strong> ${esc(name)}</div>
       <div class="text-sm"><strong>Email:</strong> ${esc(email)}</div>
       <div class="text-sm"><strong>Password:</strong> ${esc(pass)}</div>
-      <button class="btn btn-outline btn-sm mt-8" onclick="copyWelcomeEmail('${esc(name)}','${esc(email)}','${esc(pass)}')">📋 Copy Welcome Email to Clipboard</button>
+      <button class="btn btn-outline btn-sm mt-8" onclick="copyWelcomeEmail('${jsq(name)}','${jsq(email)}','${jsq(pass)}')">📋 Copy Welcome Email to Clipboard</button>
     </div>`;
 
     // Reset form
@@ -7869,7 +7896,7 @@ function renderBillingCard() {
 function renderProfileHero() {
   const initials = getInitials(currentUser.name);
   const avatarHtml = currentUser.photoURL
-    ? `<div class="profile-avatar" style="padding:0;overflow:hidden;"><img src="${currentUser.photoURL}" alt="${esc(currentUser.name)}" /></div>`
+    ? `<div class="profile-avatar" style="padding:0;overflow:hidden;"><img src="${esc(currentUser.photoURL)}" alt="${esc(currentUser.name)}" /></div>`
     : `<div class="profile-avatar">${initials}</div>`;
   const badges = [];
   if (isAllStarBadgeActive(currentUser, getWeekIndex())) badges.push("⭐ All-Star");
@@ -7897,7 +7924,9 @@ async function saveProfile() {
   const biz = document.getElementById("prof-biz").value.trim();
   const type = document.getElementById("prof-type").value.trim();
   const ig = document.getElementById("prof-ig").value.trim();
-  const website = normalizeUrl(document.getElementById("prof-website").value.trim());
+  const rawWebsite = document.getElementById("prof-website").value.trim();
+  const website = rawWebsite ? safeHref(rawWebsite) : "";
+  if (rawWebsite && !website) { showToast("That link isn't a valid web address."); return; }
   // photoURL is managed separately by saveProfilePhoto / removeProfilePhoto
   // but we keep it in the update payload so it's never accidentally wiped
   const photoURL = currentUser.photoURL || "";
@@ -8281,7 +8310,7 @@ function openRenewalModal(cfg) {
     .map(line => `<div class="welcome-step"><span class="welcome-step-icon">🔁</span><span>${esc(line)}</span></div>`)
     .join("");
   ctaBtn.textContent = cfg.buttonText || DEFAULT_RENEWAL_CONFIG.buttonText;
-  ctaBtn.onclick = () => { window.open(cfg.stripeUrl || DEFAULT_RENEWAL_CONFIG.stripeUrl, "_blank", "noopener"); closeRenewalModal(cfg); };
+  ctaBtn.onclick = () => { window.open(safeHref(cfg.stripeUrl) || DEFAULT_RENEWAL_CONFIG.stripeUrl, "_blank", "noopener"); closeRenewalModal(cfg); };
   dismissBtn.textContent = cfg.dismissText || DEFAULT_RENEWAL_CONFIG.dismissText;
   dismissBtn.onclick = () => closeRenewalModal(cfg);
   document.getElementById("renewal-overlay").classList.add("open");
@@ -8318,7 +8347,7 @@ async function loadRenewalCard() {
 
 async function handleRenewalCardClick() {
   const cfg = await loadRenewalModalConfig();
-  window.open(cfg.stripeUrl || DEFAULT_RENEWAL_CONFIG.stripeUrl, "_blank", "noopener");
+  window.open(safeHref(cfg.stripeUrl) || DEFAULT_RENEWAL_CONFIG.stripeUrl, "_blank", "noopener");
 }
 
 // ---- Admin controls for the renewal modal ----
@@ -8381,6 +8410,13 @@ async function adminToggleRenewalCardEnabled() {
 async function saveRenewalModalConfig() {
   const statusEl = document.getElementById("renewal-save-status");
   const cfg = await loadRenewalModalConfig();
+  const rawStripe = (document.getElementById("renewal-stripe-input")?.value || "").trim();
+  if (rawStripe) {
+    const okStripe = safeHref(rawStripe);
+    let host = "";
+    try { host = okStripe ? new URL(okStripe).hostname : ""; } catch (e) {}
+    if (host !== "buy.stripe.com") { showToast("Stripe link must start with https://buy.stripe.com/"); return; }
+  }
   const bodyLines = (document.getElementById("renewal-body-input")?.value || "")
     .split("\n").map(s => s.trim()).filter(Boolean);
   const newCfg = {
@@ -8390,7 +8426,7 @@ async function saveRenewalModalConfig() {
     bodyLines: bodyLines.length ? bodyLines : DEFAULT_RENEWAL_CONFIG.bodyLines,
     buttonText: (document.getElementById("renewal-btn-input")?.value || "").trim() || DEFAULT_RENEWAL_CONFIG.buttonText,
     dismissText: (document.getElementById("renewal-dismiss-input")?.value || "").trim() || DEFAULT_RENEWAL_CONFIG.dismissText,
-    stripeUrl: (document.getElementById("renewal-stripe-input")?.value || "").trim() || DEFAULT_RENEWAL_CONFIG.stripeUrl,
+    stripeUrl: (rawStripe ? safeHref(rawStripe) : "") || DEFAULT_RENEWAL_CONFIG.stripeUrl,
     version: (cfg.version || 1) + 1
   };
   try {
@@ -8755,11 +8791,11 @@ async function populateAdminSubFilters() {
     const ptsEl = document.getElementById("admin-pts-member");
     if (filterEl) {
       filterEl.innerHTML = '<option value="">All Members</option>' +
-        members.map(m => `<option value="${m.uid}">${esc(m.name)} (${m.points || 0} pts)</option>`).join("");
+        members.map(m => `<option value="${esc(m.uid)}">${esc(m.name)} (${Number(m.points) || 0} pts)</option>`).join("");
     }
     if (ptsEl) {
       ptsEl.innerHTML = '<option value="">— select member —</option>' +
-        members.map(m => `<option value="${m.uid}" data-pts="${m.points || 0}">${esc(m.name)} — ${m.points || 0} pts</option>`).join("");
+        members.map(m => `<option value="${esc(m.uid)}" data-pts="${Number(m.points) || 0}">${esc(m.name)} — ${Number(m.points) || 0} pts</option>`).join("");
       ptsEl.onchange = function() {
         const sel = ptsEl.selectedOptions[0];
         const cur = sel ? sel.getAttribute("data-pts") : "";
@@ -8772,14 +8808,14 @@ async function populateAdminSubFilters() {
     if (cptsEl) {
       cptsEl.innerHTML = '<option value="">All Members</option>' +
         members.filter(m => m.email !== ADMIN_EMAIL)
-          .map(m => `<option value="${m.uid}">${esc(m.name)}</option>`).join("");
+          .map(m => `<option value="${esc(m.uid)}">${esc(m.name)}</option>`).join("");
     }
     // Backfill member dropdown
     const bfEl = document.getElementById("backfill-member");
     if (bfEl) {
       bfEl.innerHTML = '<option value="">— select member —</option>' +
         members.filter(m => m.email !== ADMIN_EMAIL)
-          .map(m => `<option value="${m.uid}" data-name="${esc(m.name).replace(/"/g,'&quot;')}">${esc(m.name)}</option>`).join("");
+          .map(m => `<option value="${esc(m.uid)}" data-name="${esc(m.name)}">${esc(m.name)}</option>`).join("");
     }
   } catch (e) { console.error("populateAdminSubFilters error:", e); }
 }
@@ -8830,7 +8866,7 @@ window.loadAdminSubmissions = async function() {
             <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;">
               ${esc(s.author)} · ${esc(weekLabel)}${trialBadge}${s.isLate ? ' <span style="color:var(--danger);">(late)</span>' : ""}
             </div>
-            ${urlField ? `<div style="font-size:13px;margin-bottom:4px;word-break:break-all;"><a href="${esc(urlField)}" target="_blank" rel="noopener">${esc(urlField)}</a></div>` : ""}
+            ${safeHref(urlField) ? `<div style="font-size:13px;margin-bottom:4px;word-break:break-all;"><a href="${esc(safeHref(urlField))}" target="_blank" rel="noopener">${esc(urlField)}</a></div>` : ""}
             ${noteField ? `<div style="font-size:12px;color:var(--text-muted);">${esc(noteField)}</div>` : ""}
             ${s.challengeCompleted ? `<div style="font-size:11px;color:var(--gold);margin-top:3px;">⚡ Weekly Challenge completed</div>` : ""}
           </div>
@@ -8877,7 +8913,11 @@ window.adminOpenEditSubmission = function(docId, collName, authorUid, currentPts
   if (isNaN(newPts) || newPts < 0) { showToast("Invalid points value."); return; }
 
   const updates = {};
-  if (newUrl.trim()) updates[collName === "engagements" ? "targetUrl" : "url"] = normalizeUrl(newUrl.trim());
+  if (newUrl.trim()) {
+    const okUrl = safeHref(newUrl.trim());
+    if (!okUrl) { showToast("That link isn't a valid web address."); return; }
+    updates[collName === "engagements" ? "targetUrl" : "url"] = okUrl;
+  }
   if (newNote.trim()) updates.note = newNote.trim();
   const ptsDiff = newPts - currentPts;
 
@@ -9219,10 +9259,10 @@ window.loadBugReports = async function() {
           <span style="flex-shrink:0;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:${r.resolved ? "#e8f5e9" : "#fff8e1"};color:${r.resolved ? "#27ae60" : "#587548"};">${r.resolved ? "✓ Resolved" : "Open"}</span>
         </div>
         <div style="font-size:14px;line-height:1.6;white-space:pre-wrap;margin-bottom:10px;">${esc(r.message || "")}</div>
-        ${r.screenshot ? `<img src="${r.screenshot}" alt="Screenshot" style="width:100%;border-radius:8px;border:1px solid var(--border);margin-bottom:12px;" />` : ""}
+        ${safeHref(r.screenshot, true) ? `<img src="${esc(safeHref(r.screenshot, true))}" alt="Screenshot" style="width:100%;border-radius:8px;border:1px solid var(--border);margin-bottom:12px;" />` : ""}
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-sm btn-outline" onclick="toggleBugResolved('${d.id}',${!!r.resolved})" style="${r.resolved ? "" : "background:rgba(39,174,96,.12);color:#27ae60;border-color:#27ae60;"}">${r.resolved ? "Mark Open" : "✓ Mark Resolved"}</button>
-          <button class="btn btn-sm btn-outline" onclick="deleteBugReport('${d.id}')" style="color:#e74c3c;border-color:#e74c3c;">Delete</button>
+          <button class="btn btn-sm btn-outline" onclick="toggleBugResolved('${jsq(d.id)}',${!!r.resolved})" style="${r.resolved ? "" : "background:rgba(39,174,96,.12);color:#27ae60;border-color:#27ae60;"}">${r.resolved ? "Mark Open" : "✓ Mark Resolved"}</button>
+          <button class="btn btn-sm btn-outline" onclick="deleteBugReport('${jsq(d.id)}')" style="color:#e74c3c;border-color:#e74c3c;">Delete</button>
         </div>
       </div>`;
     }).join("");
@@ -10505,7 +10545,7 @@ function gsRenderStart() {
       const done = Object.values(b.done || {}).filter(Boolean).length;
       const pct = total ? Math.round(done / total * 100) : 0;
       const plat = b.platform === "meta" ? "Meta" : b.platform === "google" ? "Google" : b.platform === "linkedin" ? "LinkedIn" : "no platform yet";
-      return `<button class="gs-start-brief" onclick="gsOpenBrief('${b.id}')"><div><div class="gs-start-brief-name">${esc(b.name || "Untitled")}</div><div class="gs-start-brief-meta">${esc(plat)} · ${pct}% complete</div></div><span>→</span></button>`;
+      return `<button class="gs-start-brief" onclick="gsOpenBrief('${jsq(b.id)}')"><div><div class="gs-start-brief-name">${esc(b.name || "Untitled")}</div><div class="gs-start-brief-meta">${esc(plat)} · ${pct}% complete</div></div><span>→</span></button>`;
     }).join("");
   }
   el.innerHTML = `<div class="gs-start-hero"><div class="gs-start-emoji">🚀</div>
@@ -10655,14 +10695,14 @@ function gsRenderBriefsList() {
     const active = b.id === _gsBriefId;
     const when = b.updatedAt ? timeAgo(b.updatedAt) : "";
     return `<div class="gs-brief-row${active ? " active" : ""}">
-      <div class="gs-brief-row-main" onclick="gsCloseBriefs();gsOpenBrief('${b.id}')">
+      <div class="gs-brief-row-main" onclick="gsCloseBriefs();gsOpenBrief('${jsq(b.id)}')">
         <div class="gs-brief-row-name">${esc(b.name || "Untitled")}${active ? ' <span class="gs-brief-active-tag">open</span>' : ""}</div>
         <div class="gs-brief-row-meta">${esc(plat)} · ${pct}% · ${esc(when)}</div></div>
       <div class="gs-brief-row-actions">
-        <button title="Rename" onclick="gsRenameBrief('${b.id}')">✏️</button>
-        <button title="Duplicate" onclick="gsDuplicateBrief('${b.id}')">⧉</button>
-        <button title="Download" onclick="gsDownloadBrief('${b.id}')">⬇</button>
-        <button title="Delete" onclick="gsDeleteBrief('${b.id}')">🗑</button>
+        <button title="Rename" onclick="gsRenameBrief('${jsq(b.id)}')">✏️</button>
+        <button title="Duplicate" onclick="gsDuplicateBrief('${jsq(b.id)}')">⧉</button>
+        <button title="Download" onclick="gsDownloadBrief('${jsq(b.id)}')">⬇</button>
+        <button title="Delete" onclick="gsDeleteBrief('${jsq(b.id)}')">🗑</button>
       </div></div>`;
   }).join("");
 }
@@ -10773,7 +10813,7 @@ async function rsvpCowork() {
     currentUser.points = (currentUser.points || 0) + PTS_COWORK_RSVP;
     logCommunityPts(currentUser.uid, currentUser.name || "", "Session RSVP", PTS_COWORK_RSVP);
     showToast("RSVP confirmed! +" + PTS_COWORK_RSVP + " pts");
-    if (calendarUrl) window.open(calendarUrl, "_blank", "noopener");
+    if (safeHref(calendarUrl)) window.open(safeHref(calendarUrl), "_blank", "noopener");
     loadCoworkCard();
   } catch (e) { showToast("RSVP failed — please try again."); console.error("rsvpCowork:", e); }
 }
@@ -10805,7 +10845,9 @@ async function adminToggleCoworkVisibility() {
 
 async function adminCreateCoworkSession() {
   const label  = (document.getElementById("cowork-label-input").value || "").trim();
-  const calUrl = (document.getElementById("cowork-cal-input").value  || "").trim();
+  const rawCal = (document.getElementById("cowork-cal-input").value  || "").trim();
+  const calUrl = rawCal ? safeHref(rawCal) : "";
+  if (rawCal && !calUrl) { showToast("That calendar link isn't a valid web address."); return; }
   const status = document.getElementById("cowork-create-status");
   if (!label) { if (status) status.textContent = "Label is required."; return; }
   try {
@@ -10831,25 +10873,25 @@ async function loadAdminCoworkSessions() {
       const badge   = d.active
         ? `<span style='background:rgba(39,174,96,.15);color:#27ae60;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;'>ACTIVE</span>`
         : `<span style='background:rgba(107,107,107,.12);color:var(--text-muted);font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;'>CLOSED</span>`;
-      const safeLabel = esc(d.label).replace(/'/g,"\\'");
-      const safeCal   = (d.calendarUrl||"").replace(/'/g,"\\'");
+      const safeLabel = jsq(d.label || "");
+      const safeCal   = jsq(d.calendarUrl || "");
       return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">
           <div style="flex:1;"><div style="font-weight:700;font-size:13px;">${esc(d.label)}</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Created ${created}</div></div>
           ${badge}
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;">
-          <button class="btn btn-outline btn-sm" onclick="adminToggleCoworkSession('${docSnap.id}',${d.active})">${d.active ? "Close" : "Reopen"}</button>
-          <button class="btn btn-outline btn-sm" onclick="adminShowRenameSession('${docSnap.id}','${safeLabel}','${safeCal}')">Edit</button>
-          <button class="btn btn-sm" style="background:#fef2f2;color:var(--danger);border:1px solid #fecaca;" onclick="adminDeleteCoworkSession('${docSnap.id}')">Delete</button>
-          <button class="btn btn-gold btn-sm" onclick="adminLoadAttendees('${docSnap.id}')">Mark Attendees</button>
+          <button class="btn btn-outline btn-sm" onclick="adminToggleCoworkSession('${jsq(docSnap.id)}',${!!d.active})">${d.active ? "Close" : "Reopen"}</button>
+          <button class="btn btn-outline btn-sm" onclick="adminShowRenameSession('${jsq(docSnap.id)}','${safeLabel}','${safeCal}')">Edit</button>
+          <button class="btn btn-sm" style="background:#fef2f2;color:var(--danger);border:1px solid #fecaca;" onclick="adminDeleteCoworkSession('${jsq(docSnap.id)}')">Delete</button>
+          <button class="btn btn-gold btn-sm" onclick="adminLoadAttendees('${jsq(docSnap.id)}')">Mark Attendees</button>
         </div>
         <div id="cowork-rename-${docSnap.id}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
           <div class="form-group"><input type="text" id="cowork-rename-label-${docSnap.id}" class="form-input" style="font-size:13px;" /></div>
           <div class="form-group"><input type="url" id="cowork-rename-cal-${docSnap.id}" class="form-input" style="font-size:13px;" placeholder="Calendar URL (optional)" /></div>
           <div style="display:flex;gap:6px;">
-            <button class="btn btn-gold btn-sm" onclick="adminRenameSession('${docSnap.id}')">Save</button>
-            <button class="btn btn-outline btn-sm" onclick="document.getElementById('cowork-rename-${docSnap.id}').style.display='none'">Cancel</button>
+            <button class="btn btn-gold btn-sm" onclick="adminRenameSession('${jsq(docSnap.id)}')">Save</button>
+            <button class="btn btn-outline btn-sm" onclick="document.getElementById('cowork-rename-${jsq(docSnap.id)}').style.display='none'">Cancel</button>
           </div>
         </div>
         <div id="cowork-attendees-${docSnap.id}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);"></div>
@@ -10879,7 +10921,9 @@ function adminShowRenameSession(id, currentLabel, currentCal) {
 
 async function adminRenameSession(id) {
   const label  = (document.getElementById("cowork-rename-label-" + id).value || "").trim();
-  const calUrl = (document.getElementById("cowork-rename-cal-"   + id).value || "").trim();
+  const rawCal = (document.getElementById("cowork-rename-cal-"   + id).value || "").trim();
+  const calUrl = rawCal ? safeHref(rawCal) : "";
+  if (rawCal && !calUrl) { showToast("That calendar link isn't a valid web address."); return; }
   if (!label) { showToast("Label is required."); return; }
   try {
     await updateDoc(doc(db, "aac_coworking_sessions", id), { label, calendarUrl: calUrl });
@@ -10903,10 +10947,10 @@ async function adminLoadAttendees(sessionId) {
     if (!members.length) { wrap.innerHTML = "<div style='font-size:12px;color:var(--text-muted);'>No members found.</div>"; return; }
     const rows = members.map(m => {
       const awarded    = awardedSet.has(m.uid);
-      const safeName   = esc(m.name || "").replace(/"/g,"&quot;");
+      const safeName   = esc(m.name || "");
       const awardedLbl = awarded ? ` <span style='color:var(--text-muted);font-size:11px;'>(awarded)</span>` : "";
       return `<label style='display:flex;align-items:center;gap:8px;padding:6px 2px;font-size:13px;cursor:${awarded?"default":"pointer"};'>
-        <input type='checkbox' data-uid='${m.uid}' data-name='${safeName}' ${awarded?"checked disabled":""} style='accent-color:var(--gold);width:16px;height:16px;' />
+        <input type='checkbox' data-uid='${esc(m.uid)}' data-name='${safeName}' ${awarded?"checked disabled":""} style='accent-color:var(--gold);width:16px;height:16px;' />
         ${esc(m.name||"")}${awardedLbl}
       </label>`;
     }).join("");
@@ -10984,23 +11028,23 @@ function renderCommunityPtsTable() {
       </thead>
       <tbody>
         ${rows.map((r, rowIdx) => `
-          <tr id="cpts-row-${r._docId}" style="border-bottom:1px solid var(--border);">
+          <tr id="cpts-row-${esc(r._docId)}" style="border-bottom:1px solid var(--border);">
             <td style="padding:6px 4px;">${esc(r.name || r.uid || "")}</td>
-            <td style="padding:6px 4px;" id="cpts-action-${r._docId}">${esc(r.action || "")}</td>
-            <td style="padding:6px 4px;text-align:right;font-weight:700;color:var(--gold);" id="cpts-pts-${r._docId}">+${r.pts}</td>
+            <td style="padding:6px 4px;" id="cpts-action-${esc(r._docId)}">${esc(r.action || "")}</td>
+            <td style="padding:6px 4px;text-align:right;font-weight:700;color:var(--gold);" id="cpts-pts-${esc(r._docId)}">+${Number(r.pts) || 0}</td>
             <td style="padding:6px 4px;text-align:right;color:var(--text-muted);">${r.ts ? new Date(r.ts).toLocaleDateString("en-US",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}) : ""}</td>
             <td style="padding:6px 4px;text-align:right;white-space:nowrap;">
-              <button onclick="adminEditCommunityPt('${r._docId}','${esc(r.uid||"")}','${esc(r.action||"")}',${r.pts})" style="background:none;border:1px solid var(--border);color:var(--text-muted);cursor:pointer;font-size:11px;padding:2px 6px;border-radius:4px;margin-right:4px;" title="Edit">✏️</button>
-              <button onclick="adminDeleteCommunityPt('${r._docId}','${esc(r.name||r.uid||"")}','${esc(r.action||"")}',${r.pts},'${esc(r.uid||"")}')" style="background:none;border:1px solid var(--border);color:var(--danger,#e74c3c);cursor:pointer;font-size:11px;padding:2px 6px;border-radius:4px;" title="Delete">🗑</button>
+              <button onclick="adminEditCommunityPt('${jsq(r._docId)}','${jsq(r.uid||"")}','${jsq(r.action||"")}',${Number(r.pts) || 0})" style="background:none;border:1px solid var(--border);color:var(--text-muted);cursor:pointer;font-size:11px;padding:2px 6px;border-radius:4px;margin-right:4px;" title="Edit">✏️</button>
+              <button onclick="adminDeleteCommunityPt('${jsq(r._docId)}','${jsq(r.name||r.uid||"")}','${jsq(r.action||"")}',${Number(r.pts) || 0},'${jsq(r.uid||"")}')" style="background:none;border:1px solid var(--border);color:var(--danger,#e74c3c);cursor:pointer;font-size:11px;padding:2px 6px;border-radius:4px;" title="Delete">🗑</button>
             </td>
           </tr>
-          <tr id="cpts-edit-row-${r._docId}" style="display:none;background:var(--surface2);">
+          <tr id="cpts-edit-row-${esc(r._docId)}" style="display:none;background:var(--surface2);">
             <td colspan="5" style="padding:8px;">
               <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                <input type="text" id="cpts-edit-action-${r._docId}" value="${esc(r.action||"")}" class="form-input" style="flex:1;min-width:120px;font-size:12px;padding:5px 8px;height:32px;" placeholder="Action" />
-                <input type="number" id="cpts-edit-pts-${r._docId}" value="${r.pts}" class="form-input" style="width:70px;font-size:12px;padding:5px 8px;height:32px;" placeholder="Pts" />
-                <button onclick="adminSaveCommunityPt('${r._docId}','${esc(r.uid||"")}')" class="btn btn-gold btn-sm" style="height:32px;font-size:12px;">Save</button>
-                <button onclick="document.getElementById('cpts-edit-row-${r._docId}').style.display='none'" class="btn btn-outline btn-sm" style="height:32px;font-size:12px;">Cancel</button>
+                <input type="text" id="cpts-edit-action-${esc(r._docId)}" value="${esc(r.action||"")}" class="form-input" style="flex:1;min-width:120px;font-size:12px;padding:5px 8px;height:32px;" placeholder="Action" />
+                <input type="number" id="cpts-edit-pts-${esc(r._docId)}" value="${Number(r.pts) || 0}" class="form-input" style="width:70px;font-size:12px;padding:5px 8px;height:32px;" placeholder="Pts" />
+                <button onclick="adminSaveCommunityPt('${jsq(r._docId)}','${jsq(r.uid||"")}')" class="btn btn-gold btn-sm" style="height:32px;font-size:12px;">Save</button>
+                <button onclick="document.getElementById('cpts-edit-row-${jsq(r._docId)}').style.display='none'" class="btn btn-outline btn-sm" style="height:32px;font-size:12px;">Cancel</button>
               </div>
             </td>
           </tr>`).join("")}
