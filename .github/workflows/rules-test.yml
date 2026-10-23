@@ -24,3 +24,4 @@ jobs:
         run: |
           echo "::notice title=counts::$(grep -E '^. (tests|pass|fail) ' out.txt | tr '\n' ' ')"
           grep -E '^not ok|✖' out.txt | head -20 | while read -r l; do echo "::error title=failed::$l"; done || true
+          grep -E -A12 '^not ok' out.txt | grep -E 'error:|message|code|Error' | head -10 | while read -r l; do echo "::warning title=detail::$l"; done || true
