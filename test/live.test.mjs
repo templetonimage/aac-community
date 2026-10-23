@@ -12,7 +12,7 @@ before(async () => {
   });
 });
 after(async () => env.cleanup());
-const alice = () => env.authenticatedContext("alice", { email: "alice@x.com" }).firestore();
+let _alice; const alice = () => (_alice ??= env.authenticatedContext("alice", { email: "alice@x.com" }).firestore());
 test("LIVE today: member like on another's post is BLOCKED", () => assertFails(updateDoc(doc(alice(), "posts/p"), { props: ["Alice"], propsCount: 1 })));
 test("LIVE today: member reply on another's post is BLOCKED", () => assertFails(updateDoc(doc(alice(), "posts/p"), { replies: arrayUnion({ uid: "alice", text: "x" }) })));
 test("LIVE today: member CAN self-grant Pro and points", () => assertSucceeds(updateDoc(doc(alice(), "aac_registry/alice"), { isPro: true, points: 99999, subscriptionStatus: "active" })));
